@@ -1,0 +1,39 @@
+{
+  "project_name": "PhotoPresenter",
+  "version": "1.0.0",
+  "description": "A high-performance Flutter desktop application for image presentations with automated timers and focus modes.",
+  "constitution": {
+    "architectural_principles": {
+      "state_management": "Riverpod (Functional/Provider-based). Avoid StatefulWidget where logic is involved.",
+      "ui_pattern": "Modular Component-Based Architecture. Keep widgets small and focused.",
+      "service_layer": "Abstract platform-specific logic (window management, file system, audio) into dedicated Service classes.",
+      "reactivity": "All UI updates must be driven by Stream or Provider state changes. No direct UI manipulation from logic."
+    },
+    "coding_style": {
+      "language": "Dart",
+      "linting": "flutter_lints (strict)",
+      "naming": {
+        "classes": "PascalCase",
+        "variables": "camelCase",
+        "files": "snake_case",
+        "constants": "camelCase or SCREAMING_SNAKE_CASE for global config"
+      },
+      "formatting": "Standard `dart format`. Max line length 120."
+    },
+    "logic_constraints": {
+      "image_handling": "Always use `Image.memory` or `Image.file` with proper caching. Dispose of resources when cleared.",
+      "timer_precision": "Use `dart:async` Timer. For high precision countdowns, calculate remaining time based on `DateTime.now()` to avoid drift.",
+      "fullscreen_behavior": "Must use `window_manager`. Always provide a clear 'Exit' mechanism (ESC key).",
+      "clipboard": "Support multi-file paste (File Explorer paths) and single image data (browser/screenshot)."
+    },
+    "ui_aesthetics": {
+      "theme": "Material 3",
+      "colors": "Modern, high-contrast for Focus Mode. Use subtle gradients for UI surfaces.",
+      "animations": "Use `animate_do` or `implicitly_animated_widgets`. Transitions between images should be smooth (fade/slide)."
+    },
+    "collaboration_rules": {
+      "agent_instruction": "Always refer to this file before implementing new features. Maintain consistency with existing providers.",
+      "documentation": "Document all public methods in services and providers using triple-slash (`///`) docstrings."
+    }
+  }
+}
