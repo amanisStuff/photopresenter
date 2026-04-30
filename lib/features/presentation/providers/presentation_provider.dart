@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:win32/win32.dart' as win32;
 import '../models/presentation_image.dart';
 import '../../../services/service_providers.dart';
+import '../../gallery/models/gallery_manifest.dart';
 
 class PresentationState {
   final List<PresentationImage> images;
@@ -308,6 +309,25 @@ class PresentationNotifier extends Notifier<PresentationState> {
     if (paths.isNotEmpty) {
       addImages(paths);
     }
+  }
+
+  Future<GalleryManifest?> saveGallery(String name) async {
+    final imagePaths = state.images
+        .where((img) => img.path != null)
+        .map((img) => img.path!)
+        .toList();
+    final audioPaths = List<String>.from(state.audioPaths);
+
+    if (imagePaths.isEmpty && audioPaths.isEmpty) {
+      return null;
+    }
+
+    final galleryService = ref.read(galleryServiceProvider);
+    return await galleryService.saveGallery(
+      name: name,
+      imagePaths: imagePaths,
+      audioPaths: audioPaths,
+    );
   }
 }
 

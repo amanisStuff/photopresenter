@@ -5,6 +5,56 @@ import '../providers/presentation_provider.dart';
 class PresentationControls extends ConsumerWidget {
   const PresentationControls({super.key});
 
+  Future<void> _showSaveGalleryDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final controller = TextEditingController(text: 'My Gallery');
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Save Gallery'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Gallery name',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (name != null && name.isNotEmpty) {
+      final manifest = await ref
+          .read(presentationProvider.notifier)
+          .saveGallery(name);
+      if (context.mounted) {
+        if (manifest != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gallery "${manifest.name}" saved successfully'),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No images or audio to save')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(presentationProvider);
@@ -158,6 +208,13 @@ class PresentationControls extends ConsumerWidget {
                     size: 20,
                   ),
                   onPressed: () => notifier.toggleFocusMode(),
+                ),
+                IconButton(
+                  tooltip: 'Save Gallery',
+                  icon: const Icon(Icons.save, color: Colors.white70, size: 20),
+                  onPressed: state.images.isEmpty && !state.hasAudio
+                      ? null
+                      : () => _showSaveGalleryDialog(context, ref),
                 ),
               ],
             ),
