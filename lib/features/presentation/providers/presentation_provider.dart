@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'package:win32/win32.dart' as win32;
 import '../models/presentation_image.dart';
 import '../../../services/service_providers.dart';
@@ -311,6 +315,62 @@ class PresentationNotifier extends Notifier<PresentationState> {
     }
   }
 
+  Future<List<String>> addImagesFromUrls(List<String> urls) async {
+    final cacheDir = await _getImageCacheDir();
+    final addedPaths = <String>[];
+
+    for (final url in urls) {
+      if (url.trim().isEmpty) continue;
+      try {
+        final uri = Uri.parse(url.trim());
+        if (!uri.isScheme('http') && !uri.isScheme('https')) continue;
+
+        final response = await http.get(uri);
+        if (response.statusCode != 200) continue;
+
+        final fileName = _extractFileName(url.trim(), response.headers);
+        final filePath = '${cacheDir.path}/$fileName';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        addedPaths.add(filePath);
+      } catch (e) {
+        debugPrint('Failed to download image from $url: $e');
+      }
+    }
+
+    if (addedPaths.isNotEmpty) {
+      addImages(addedPaths);
+    }
+
+    return addedPaths;
+  }
+
+  Future<Directory> _getImageCacheDir() async {
+    final appData = await getApplicationDocumentsDirectory();
+    final cacheDir = Directory('${appData.path}/web_images');
+    if (!await cacheDir.exists()) {
+      await cacheDir.create(recursive: true);
+    }
+    return cacheDir;
+  }
+
+  String _extractFileName(String url, Map<String, String> headers) {
+    var name = url.split('?').first.split('/').last;
+    if (name.isEmpty || !name.contains('.')) {
+      final contentType = headers['content-type'] ?? '';
+      final extension = contentType.contains('png')
+          ? 'png'
+          : contentType.contains('gif')
+          ? 'gif'
+          : contentType.contains('webp')
+          ? 'webp'
+          : 'jpg';
+      name = '${DateTime.now().millisecondsSinceEpoch}.$extension';
+    }
+    return name;
+  }
+
   Future<GalleryManifest?> saveGallery(String name) async {
     final imagePaths = state.images
         .where((img) => img.path != null)
@@ -328,6 +388,45 @@ class PresentationNotifier extends Notifier<PresentationState> {
       imagePaths: imagePaths,
       audioPaths: audioPaths,
     );
+  }
+
+  Future<void> loadGallery(String galleryId) async {
+    _timer?.cancel();
+    ref.read(audioServiceProvider).stop();
+
+    final galleryService = ref.read(galleryServiceProvider);
+    final manifest = await galleryService.loadGallery(galleryId);
+
+    final validImagePaths = <String>[];
+    for (final path in manifest.imagePaths) {
+      if (path.isNotEmpty) {
+        validImagePaths.add(path);
+      }
+    }
+
+    final newImages = validImagePaths
+        .map((path) => PresentationImage.fromPath(path))
+        .toList();
+
+    final validAudioPaths = manifest.audioPaths
+        .where((p) => p.isNotEmpty)
+        .toList();
+
+    state = PresentationState(
+      images: newImages,
+      currentIndex: 0,
+      isPlaying: false,
+      timerDuration: state.timerDuration,
+      remainingTime: state.timerDuration,
+      isFocusMode: state.isFocusMode,
+      audioPaths: validAudioPaths,
+      audioIndex: 0,
+    );
+  }
+
+  Future<List<GalleryManifest>> listGalleries() async {
+    final galleryService = ref.read(galleryServiceProvider);
+    return await galleryService.listGalleries();
   }
 }
 

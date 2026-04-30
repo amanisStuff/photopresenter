@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/presentation_provider.dart';
+import '../../../services/service_providers.dart';
 
 class PresentationControls extends ConsumerWidget {
   const PresentationControls({super.key});
@@ -53,6 +54,201 @@ class PresentationControls extends ConsumerWidget {
         }
       }
     }
+  }
+
+  Future<void> _showLoadGalleryDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final notifier = ref.read(presentationProvider.notifier);
+    final galleries = await notifier.listGalleries();
+
+    if (!context.mounted) return;
+
+    if (galleries.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No saved galleries found')));
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Load Gallery'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: galleries.length,
+            itemBuilder: (context, index) {
+              final gallery = galleries[index];
+              return ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: Text(gallery.name),
+                subtitle: Text(
+                  '${gallery.imageCount} images, ${gallery.audioCount} audio · '
+                  '${gallery.createdAt.month}/${gallery.createdAt.day}/${gallery.createdAt.year}',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Gallery'),
+                            content: Text(
+                              'Are you sure you want to delete "${gallery.name}"?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          final galleryService = ref.read(
+                            galleryServiceProvider,
+                          );
+                          await galleryService.deleteGallery(gallery.id);
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Gallery "${gallery.name}" deleted',
+                                ),
+                              ),
+                            );
+                            _showLoadGalleryDialog(context, ref);
+                          }
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.folder_open),
+                      onPressed: () async {
+                        await notifier.loadGallery(gallery.id);
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Gallery "${gallery.name}" loaded'),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showAddWebImagesDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final controller = TextEditingController();
+    final notifier = ref.read(presentationProvider.notifier);
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Images from Web'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter image URLs (one per line):',
+                style: TextStyle(fontSize: 14, color: Colors.white70),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: controller,
+                maxLines: 8,
+                decoration: const InputDecoration(
+                  hintText:
+                      'https://example.com/image1.jpg\nhttps://example.com/image2.png',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                autofocus: true,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final urls = controller.text
+                  .split('\n')
+                  .map((u) => u.trim())
+                  .where((u) => u.isNotEmpty)
+                  .toList();
+
+              if (urls.isEmpty) return;
+
+              Navigator.of(context).pop();
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Downloading images...')),
+                );
+              }
+
+              final addedPaths = await notifier.addImagesFromUrls(urls);
+
+              if (context.mounted) {
+                if (addedPaths.isNotEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${addedPaths.length} image(s) added'),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to download any images'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -215,6 +411,24 @@ class PresentationControls extends ConsumerWidget {
                   onPressed: state.images.isEmpty && !state.hasAudio
                       ? null
                       : () => _showSaveGalleryDialog(context, ref),
+                ),
+                IconButton(
+                  tooltip: 'Load Gallery',
+                  icon: const Icon(
+                    Icons.folder_open,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                  onPressed: () => _showLoadGalleryDialog(context, ref),
+                ),
+                IconButton(
+                  tooltip: 'Add Images from Web',
+                  icon: const Icon(
+                    Icons.language,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                  onPressed: () => _showAddWebImagesDialog(context, ref),
                 ),
               ],
             ),

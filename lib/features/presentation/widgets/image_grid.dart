@@ -34,14 +34,20 @@ class ImageGrid extends ConsumerWidget {
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.blueAccent.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '${state.images.length} images',
-                      style: const TextStyle(color: Colors.blueAccent, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.blueAccent,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -60,7 +66,7 @@ class ImageGrid extends ConsumerWidget {
                   if (index == 0) {
                     return _AddCard(onTap: () => notifier.pickFiles());
                   }
-                  
+
                   final actualIndex = index - 1;
                   final image = state.images[actualIndex];
                   final isSelected = state.currentIndex == actualIndex;
@@ -74,7 +80,9 @@ class ImageGrid extends ConsumerWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? Colors.blueAccent : Colors.transparent,
+                            color: isSelected
+                                ? Colors.blueAccent
+                                : Colors.transparent,
                             width: 3,
                           ),
                           boxShadow: [
@@ -90,18 +98,23 @@ class ImageGrid extends ConsumerWidget {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            image.source == ImageSource.file
-                                ? Image.file(File(image.path!), fit: BoxFit.cover)
-                                : Image.memory(image.bytes!, fit: BoxFit.cover),
-                            
+                            _buildImageThumbnail(image),
+
                             // Delete button on hover (simulated with Stack for now)
                             Positioned(
                               top: 4,
                               right: 4,
                               child: IconButton(
-                                icon: const Icon(Icons.close, size: 18, color: Colors.white70),
-                                onPressed: () => notifier.removeImage(actualIndex),
-                                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: Colors.white70,
+                                ),
+                                onPressed: () =>
+                                    notifier.removeImage(actualIndex),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.black54,
+                                ),
                               ),
                             ),
                           ],
@@ -139,7 +152,11 @@ class _AddCard extends StatelessWidget {
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.white38),
+              Icon(
+                Icons.add_photo_alternate_outlined,
+                size: 40,
+                color: Colors.white38,
+              ),
               SizedBox(height: 8),
               Text('Add Images', style: TextStyle(color: Colors.white38)),
             ],

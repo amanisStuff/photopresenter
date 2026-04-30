@@ -47,18 +47,62 @@ class ImageDisplay extends ConsumerWidget {
       duration: const Duration(milliseconds: 500),
       child: Container(
         constraints: const BoxConstraints.expand(),
-        child: currentImage.source == ImageSource.file
-            ? Image.file(
-                File(currentImage.path!),
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-              )
-            : Image.memory(
-                currentImage.bytes!,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-              ),
+        child: _buildImage(currentImage),
       ),
     );
+  }
+
+  Widget _buildImage(PresentationImage image) {
+    switch (image.source) {
+      case ImageSource.file:
+        return Image.file(
+          File(image.path!),
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        );
+      case ImageSource.memory:
+        return Image.memory(
+          image.bytes!,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        );
+      case ImageSource.network:
+        return Image.network(
+          image.url!,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (context, error, stackTrace) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.broken_image,
+                    size: 80,
+                    color: Colors.redAccent,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load image',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                    : null,
+                color: Colors.blueAccent,
+              ),
+            );
+          },
+        );
+    }
   }
 }
