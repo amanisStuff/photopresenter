@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:win32/win32.dart' as win32;
+import 'package:http/http.dart' as http;
 import '../models/presentation_image.dart';
 import '../../../services/service_providers.dart';
 
@@ -73,8 +74,11 @@ class PresentationNotifier extends Notifier<PresentationState> {
     return PresentationState();
   }
 
+  final AudioPlayer _beepPlayer = AudioPlayer();
+
   void _playSystemNotificationSound() {
-    win32.Beep(800, 100);
+    _beepPlayer.setSource(AssetSource('beep.wav'));
+    _beepPlayer.play(AssetSource('beep.wav'));
   }
 
   void _advanceImage() {
@@ -85,10 +89,37 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void addImages(List<String> paths) {
-    final newImages = paths
+    final filePaths = paths.where((p) => !_isUrl(p)).toList();
+    final urlPaths = paths.where((p) => _isUrl(p)).toList();
+
+    final newImages = filePaths
         .map((path) => PresentationImage.fromPath(path))
         .toList();
+
     state = state.copyWith(images: [...state.images, ...newImages]);
+
+    for (final url in urlPaths) {
+      _downloadUrlImage(url);
+    }
+  }
+
+  bool _isUrl(String path) {
+    return path.startsWith('http://') || path.startsWith('https://');
+  }
+
+  Future<void> _downloadUrlImage(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        final name = Uri.parse(url).pathSegments.isNotEmpty
+            ? Uri.parse(url).pathSegments.last.split('.').first
+            : 'Web Image';
+        addMemoryImage(bytes, name);
+      }
+    } catch (e) {
+      // Silently fail for now
+    }
   }
 
   void addMemoryImage(dynamic bytes, String name) {
@@ -308,6 +339,36 @@ class PresentationNotifier extends Notifier<PresentationState> {
     if (paths.isNotEmpty) {
       addImages(paths);
     }
+  }
+
+  Future<String?> exportCurrentImage() async {
+    final image = state.currentImage;
+    if (image == null) return null;
+
+    if (image.source == ImageSource.file && image.path != null) {
+      final fileService = ref.read(fileServiceProvider);
+      return await fileService.exportImages([
+        MapEntry(image.path!, image.name),
+      ]);
+    }
+
+    return 'Cannot export in-memory images';
+  }
+
+  Future<String?> exportAllImages() async {
+    if (state.images.isEmpty) return null;
+
+    final fileImages = state.images
+        .where((img) => img.source == ImageSource.file && img.path != null)
+        .map((img) => MapEntry(img.path!, img.name))
+        .toList();
+
+    if (fileImages.isEmpty) {
+      return 'No file-based images to export';
+    }
+
+    final fileService = ref.read(fileServiceProvider);
+    return await fileService.exportImages(fileImages);
   }
 }
 

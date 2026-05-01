@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-enum ImageSource { file, memory }
+enum ImageSource { file, memory, url }
 
 /// Represents an image in the presentation.
 class PresentationImage {
@@ -9,6 +9,7 @@ class PresentationImage {
   final Uint8List? bytes;
   final ImageSource source;
   final String name;
+  final String? url;
 
   PresentationImage({
     required this.id,
@@ -16,6 +17,7 @@ class PresentationImage {
     this.bytes,
     required this.source,
     required this.name,
+    this.url,
   });
 
   factory PresentationImage.fromPath(String path) {
@@ -33,6 +35,20 @@ class PresentationImage {
       bytes: bytes,
       source: ImageSource.memory,
       name: name,
+    );
+  }
+
+  factory PresentationImage.fromUrl(String url) {
+    final uri = Uri.parse(url);
+    final name = uri.pathSegments.isNotEmpty
+        ? uri.pathSegments.last.split('.').first
+        : 'web_image';
+    return PresentationImage(
+      id: url,
+      path: null,
+      source: ImageSource.url,
+      name: name,
+      url: url,
     );
   }
 }

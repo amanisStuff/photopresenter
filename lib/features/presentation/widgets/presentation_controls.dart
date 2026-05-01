@@ -151,6 +151,27 @@ class PresentationControls extends ConsumerWidget {
                   onPressed: () => notifier.pasteFromClipboard(),
                 ),
                 IconButton(
+                  tooltip: 'Export current image',
+                  icon: const Icon(
+                    Icons.download,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                  onPressed: state.images.isEmpty
+                      ? null
+                      : () async {
+                          final result = await notifier.exportCurrentImage();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(result ?? 'Export failed'),
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                          }
+                        },
+                ),
+                IconButton(
                   tooltip: 'Focus Mode',
                   icon: const Icon(
                     Icons.fullscreen,

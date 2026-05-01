@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 
 /// Service for picking image files from the local filesystem.
@@ -43,5 +44,29 @@ class FileService {
       return result.paths.whereType<String>().toList();
     }
     return [];
+  }
+
+  /// Opens a directory picker and exports images to the selected location.
+  Future<String?> exportImages(
+      List<MapEntry<String, String>> imagesWithNames) async {
+    String? directoryPath = await FilePicker.getDirectoryPath();
+
+    if (directoryPath == null) return null;
+
+    int savedCount = 0;
+    for (final entry in imagesWithNames) {
+      final sourcePath = entry.key;
+      final fileName = entry.value;
+      final sourceFile = File(sourcePath);
+
+      if (await sourceFile.exists()) {
+        final extension = sourcePath.split('.').last;
+        final destPath = '$directoryPath/$fileName.$extension';
+        await sourceFile.copy(destPath);
+        savedCount++;
+      }
+    }
+
+    return '$savedCount images saved to $directoryPath';
   }
 }
