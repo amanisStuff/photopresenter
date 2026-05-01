@@ -101,6 +101,59 @@ class PresentationScreen extends ConsumerWidget {
                       onPressed: () => notifier.toggleFocusMode(),
                     ),
                   ),
+
+                // Focus Mode Timer Overlay (shows in last 10 seconds)
+                if (state.isFocusMode && state.isPlaying && state.remainingTime.inSeconds <= 10)
+                  Positioned(
+                    bottom: 40,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 120,
+                              height: 4,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: LinearProgressIndicator(
+                                  value: state.timerDuration.inMilliseconds > 0
+                                      ? state.remainingTime.inMilliseconds /
+                                          state.timerDuration.inMilliseconds
+                                      : 0,
+                                  backgroundColor: Colors.white24,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    state.remainingTime.inSeconds <= 5
+                                        ? Colors.redAccent
+                                        : Colors.blueAccent,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${state.remainingTime.inSeconds}s',
+                              style: TextStyle(
+                                color: state.remainingTime.inSeconds <= 5
+                                    ? Colors.redAccent
+                                    : Colors.white70,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

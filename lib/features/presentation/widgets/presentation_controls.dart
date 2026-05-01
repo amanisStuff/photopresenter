@@ -63,6 +63,28 @@ class PresentationControls extends ConsumerWidget {
                         fontSize: 20,
                       ),
                     ),
+                    if (state.isPlaying) ...[
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 100,
+                        height: 4,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: LinearProgressIndicator(
+                            value: state.timerDuration.inMilliseconds > 0
+                                ? state.remainingTime.inMilliseconds /
+                                    state.timerDuration.inMilliseconds
+                                : 0,
+                            backgroundColor: Colors.white12,
+                            valueColor: AlwaysStoppedAnimation(
+                              state.remainingTime.inSeconds <= 5
+                                  ? Colors.redAccent
+                                  : Colors.blueAccent,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(width: 16),
                     _TimerAdjustment(
                       value: state.timerDuration.inSeconds,
