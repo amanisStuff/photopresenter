@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../models/presentation_image.dart';
 import '../../../services/service_providers.dart';
+import '../../settings/providers/settings_provider.dart';
 
 class PresentationState {
   final List<PresentationImage> images;
@@ -76,9 +77,16 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
   final AudioPlayer _beepPlayer = AudioPlayer();
 
-  void _playSystemNotificationSound() {
-    _beepPlayer.setSource(AssetSource('beep.wav'));
-    _beepPlayer.play(AssetSource('beep.wav'));
+  void _playSystemNotificationSound() async {
+    final settings = ref.read(settingsProvider);
+    if (!settings.soundOnTransition) return;
+
+    if (settings.transitionSoundPath != null) {
+      await _beepPlayer.setSource(DeviceFileSource(settings.transitionSoundPath!));
+    } else {
+      await _beepPlayer.setSource(AssetSource('beep.wav'));
+    }
+    await _beepPlayer.resume();
   }
 
   void _advanceImage() {

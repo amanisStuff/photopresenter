@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/presentation_provider.dart';
+import '../../settings/settings_screen.dart';
+import '../../settings/providers/settings_provider.dart';
 
 class PresentationControls extends ConsumerWidget {
   const PresentationControls({super.key});
@@ -170,6 +172,21 @@ class PresentationControls extends ConsumerWidget {
                             );
                           }
                         },
+                ),
+                IconButton(
+                  tooltip: 'Settings',
+                  icon: const Icon(
+                    Icons.settings,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  },
                 ),
                 IconButton(
                   tooltip: 'Focus Mode',
