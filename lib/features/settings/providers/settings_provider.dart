@@ -35,6 +35,28 @@ class SettingsNotifier extends Notifier<AppSettings> {
     state = state.copyWith(confirmOnClose: value);
   }
 
+  void addCustomClassPreset(ClassPreset preset) {
+    state = state.copyWith(
+      customClassPresets: [...state.customClassPresets, preset],
+    );
+  }
+
+  void updateCustomClassPreset(int index, ClassPreset preset) {
+    final presets = List<ClassPreset>.from(state.customClassPresets);
+    if (index >= 0 && index < presets.length) {
+      presets[index] = preset;
+      state = state.copyWith(customClassPresets: presets);
+    }
+  }
+
+  void removeCustomClassPreset(int index) {
+    final presets = List<ClassPreset>.from(state.customClassPresets);
+    if (index >= 0 && index < presets.length) {
+      presets.removeAt(index);
+      state = state.copyWith(customClassPresets: presets);
+    }
+  }
+
   void resetToDefaults() {
     state = const AppSettings();
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/presentation_provider.dart';
 import '../models/class_session.dart';
 import '../../settings/settings_screen.dart';
+import '../../settings/models/app_settings.dart';
 import '../../settings/providers/settings_provider.dart';
 
 class PresentationControls extends ConsumerWidget {
@@ -33,7 +34,9 @@ class PresentationControls extends ConsumerWidget {
               children: [
                 if (state.images.isNotEmpty)
                   Text(
-                    'Image ${state.currentIndex + 1} of ${state.images.length}: ${state.currentImage?.name}',
+                    state.isClassMode
+                        ? '${state.images.length}/${state.totalPhaseCount} images: ${state.currentImage?.name}'
+                        : '${state.images.length} images: ${state.currentImage?.name}',
                     style: const TextStyle(color: Colors.white70),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -476,9 +479,12 @@ Future<void> _showClassModeDialog(BuildContext context, WidgetRef ref) async {
     return;
   }
 
+  final settings = ref.read(settingsProvider);
+
   await showDialog<void>(
     context: context,
     builder: (context) => _ClassModeSelectionDialog(
+      customPresets: settings.customClassPresets,
       onSelectPreset: (preset) {
         final config = ClassConfig.fromPreset(preset);
         final queue = config.generatePhaseQueue();
@@ -513,10 +519,12 @@ Future<void> _showClassModeDialog(BuildContext context, WidgetRef ref) async {
 }
 
 class _ClassModeSelectionDialog extends StatefulWidget {
+  final List<ClassPreset> customPresets;
   final Function(ClassLength) onSelectPreset;
   final Function(ClassConfig) onSelectCustom;
 
   const _ClassModeSelectionDialog({
+    this.customPresets = const [],
     required this.onSelectPreset,
     required this.onSelectCustom,
   });
@@ -558,13 +566,28 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
                 runSpacing: 8,
                 children: [
                   _PresetButton(
-                    label: '30 Min',
+                    label: '30 Min (11 img)',
                     onTap: () => widget.onSelectPreset(ClassLength.thirtyMinutes),
                   ),
                   _PresetButton(
-                    label: '60 Min',
+                    label: '60 Min (18 img)',
                     onTap: () => widget.onSelectPreset(ClassLength.sixtyMinutes),
                   ),
+                  ...widget.customPresets.map((preset) => _PresetButton(
+                    label: '${preset.name} (${preset.totalImages} img)',
+                    onTap: () {
+                      final config = ClassConfig(
+                        length: ClassLength.custom,
+                        warmUpCount: preset.warmUpCount,
+                        earlyStudyCount: preset.earlyStudyCount,
+                        midStudyCount: preset.midStudyCount,
+                        finalStudyCount: preset.finalStudyCount,
+                        hasBreak: preset.hasBreak,
+                        breakMinutes: preset.breakMinutes,
+                      );
+                      widget.onSelectCustom(config);
+                    },
+                  )),
                 ],
               ),
               const SizedBox(height: 16),
@@ -622,6 +645,29 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
                     ),
                   ],
                 ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.photo_library, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Images needed: ${_warmUpCount + _earlyCount + _midCount + _finalCount}',
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

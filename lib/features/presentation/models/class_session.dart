@@ -76,6 +76,7 @@ class ClassConfig {
   final int finalStudyCount;
   final int breakMinutes;
   final bool hasBreak;
+  final int breakAfterImage; // 0 = auto (at 50%), otherwise specific image number
 
   const ClassConfig({
     required this.length,
@@ -85,6 +86,7 @@ class ClassConfig {
     this.finalStudyCount = 0,
     this.breakMinutes = 3,
     this.hasBreak = false,
+    this.breakAfterImage = 0,
   });
 
   factory ClassConfig.fromPreset(ClassLength preset) {
@@ -107,6 +109,7 @@ class ClassConfig {
           finalStudyCount: 2,
           breakMinutes: 5,
           hasBreak: true,
+          breakAfterImage: 9, // At 50% of 18 images
         );
       case ClassLength.custom:
         return const ClassConfig(
@@ -143,6 +146,7 @@ class ClassConfig {
     int? finalStudyCount,
     int? breakMinutes,
     bool? hasBreak,
+    int? breakAfterImage,
   }) {
     return ClassConfig(
       length: length ?? this.length,
@@ -152,6 +156,7 @@ class ClassConfig {
       finalStudyCount: finalStudyCount ?? this.finalStudyCount,
       breakMinutes: breakMinutes ?? this.breakMinutes,
       hasBreak: hasBreak ?? this.hasBreak,
+      breakAfterImage: breakAfterImage ?? this.breakAfterImage,
     );
   }
 }

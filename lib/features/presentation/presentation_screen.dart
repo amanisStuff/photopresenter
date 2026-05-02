@@ -82,8 +82,8 @@ class PresentationScreen extends ConsumerWidget {
                 // Main Content (Grid or Display)
                 content,
 
-                // Controls (Hidden in Focus Mode unless mouse moved - simpler implementation for now: just overlay)
-                if (!state.isFocusMode)
+                // Controls (Hidden in Focus Mode only when playing)
+                if (!state.isFocusMode || !state.isPlaying)
                   const Positioned(
                     bottom: 0,
                     left: 0,

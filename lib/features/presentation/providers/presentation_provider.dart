@@ -486,7 +486,10 @@ class PresentationNotifier extends Notifier<PresentationState> {
     final nextIndex = state.phaseQueueIndex + 1;
 
     if (state.classConfig != null && state.classConfig!.hasBreak) {
-      final breakPoint = (state.phaseQueue.length * 0.6).floor();
+      final totalImages = state.phaseQueue.length;
+      final breakPoint = state.classConfig!.breakAfterImage > 0
+          ? state.classConfig!.breakAfterImage
+          : (totalImages / 2).floor(); // Default to 50% if not specified
       if (nextIndex == breakPoint && !state.isOnBreak) {
         _startBreak();
         return;

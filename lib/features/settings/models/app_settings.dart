@@ -1,3 +1,55 @@
+class ClassPreset {
+  final String name;
+  final int warmUpCount;
+  final int earlyStudyCount;
+  final int midStudyCount;
+  final int finalStudyCount;
+  final bool hasBreak;
+  final int breakMinutes;
+  final int breakAfterImage; // 0 = auto (at 50%), otherwise specific image number
+
+  const ClassPreset({
+    required this.name,
+    this.warmUpCount = 0,
+    this.earlyStudyCount = 0,
+    this.midStudyCount = 0,
+    this.finalStudyCount = 0,
+    this.hasBreak = false,
+    this.breakMinutes = 3,
+    this.breakAfterImage = 0,
+  });
+
+  int get totalImages =>
+      warmUpCount + earlyStudyCount + midStudyCount + finalStudyCount;
+
+  ClassPreset copyWith({
+    String? name,
+    int? warmUpCount,
+    int? earlyStudyCount,
+    int? midStudyCount,
+    int? finalStudyCount,
+    bool? hasBreak,
+    int? breakMinutes,
+    int? breakAfterImage,
+  }) {
+    return ClassPreset(
+      name: name ?? this.name,
+      warmUpCount: warmUpCount ?? this.warmUpCount,
+      earlyStudyCount: earlyStudyCount ?? this.earlyStudyCount,
+      midStudyCount: midStudyCount ?? this.midStudyCount,
+      finalStudyCount: finalStudyCount ?? this.finalStudyCount,
+      hasBreak: hasBreak ?? this.hasBreak,
+      breakMinutes: breakMinutes ?? this.breakMinutes,
+      breakAfterImage: breakAfterImage ?? this.breakAfterImage,
+    );
+  }
+
+  static const List<ClassPreset> defaultPresets = [
+    ClassPreset(name: '30 Min', warmUpCount: 4, earlyStudyCount: 4, midStudyCount: 2, finalStudyCount: 1),
+    ClassPreset(name: '60 Min', warmUpCount: 6, earlyStudyCount: 6, midStudyCount: 4, finalStudyCount: 2, hasBreak: true, breakMinutes: 5, breakAfterImage: 9),
+  ];
+}
+
 class AppSettings {
   final int timerDurationSeconds;
   final bool autoPlayAudio;
@@ -6,6 +58,7 @@ class AppSettings {
   final double defaultVolume;
   final bool showImageInfo;
   final bool confirmOnClose;
+  final List<ClassPreset> customClassPresets;
 
   const AppSettings({
     this.timerDurationSeconds = 30,
@@ -15,6 +68,7 @@ class AppSettings {
     this.defaultVolume = 1.0,
     this.showImageInfo = true,
     this.confirmOnClose = false,
+    this.customClassPresets = const [],
   });
 
   AppSettings copyWith({
@@ -25,6 +79,7 @@ class AppSettings {
     double? defaultVolume,
     bool? showImageInfo,
     bool? confirmOnClose,
+    List<ClassPreset>? customClassPresets,
   }) {
     return AppSettings(
       timerDurationSeconds: timerDurationSeconds ?? this.timerDurationSeconds,
@@ -34,6 +89,7 @@ class AppSettings {
       defaultVolume: defaultVolume ?? this.defaultVolume,
       showImageInfo: showImageInfo ?? this.showImageInfo,
       confirmOnClose: confirmOnClose ?? this.confirmOnClose,
+      customClassPresets: customClassPresets ?? this.customClassPresets,
     );
   }
 
