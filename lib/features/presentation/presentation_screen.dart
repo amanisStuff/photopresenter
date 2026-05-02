@@ -6,7 +6,7 @@ import 'providers/presentation_provider.dart';
 import 'widgets/image_grid.dart';
 import 'widgets/image_display.dart';
 import 'widgets/presentation_controls.dart';
-import 'widgets/custom_title_bar.dart';
+
 
 class PresentationScreen extends ConsumerWidget {
   const PresentationScreen({super.key});
@@ -69,15 +69,6 @@ class PresentationScreen extends ConsumerWidget {
                           ),
                   ),
                 ),
-
-                // Custom Title Bar
-                if (!state.isFocusMode)
-                  const Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: CustomTitleBar(),
-                  ),
 
                 // Main Content (Grid or Display)
                 content,
