@@ -101,7 +101,7 @@ class PresentationControls extends ConsumerWidget {
                           
                           final double progress = showAudioProgress
                               ? (state.audioDuration.inMilliseconds > 0 
-                                  ? state.audioPosition.inMilliseconds / state.audioDuration.inMilliseconds 
+                                  ? (state.audioDuration.inMilliseconds - state.audioPosition.inMilliseconds) / state.audioDuration.inMilliseconds 
                                   : 0.0)
                               : (state.timerDuration.inMilliseconds > 0 
                                   ? state.remainingTime.inMilliseconds / state.timerDuration.inMilliseconds 
@@ -218,6 +218,104 @@ class PresentationControls extends ConsumerWidget {
                 icon: const Icon(Icons.fullscreen, color: Colors.white70, size: 20),
                 onPressed: () => notifier.toggleFocusMode(),
               ),
+              PopupMenuButton<String>(
+                tooltip: 'Load',
+                icon: const Icon(Icons.folder_open, color: Colors.white70, size: 20),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'images':
+                      notifier.pickFiles();
+                      break;
+                    case 'gallery':
+                      notifier.loadGallery();
+                      break;
+                    case 'playlist':
+                      notifier.loadPlaylist();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'images',
+                    child: Row(
+                      children: [
+                        Icon(Icons.image, size: 18),
+                        SizedBox(width: 8),
+                        Text('Add Images'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'gallery',
+                    child: Row(
+                      children: [
+                        Icon(Icons.collections, size: 18),
+                        SizedBox(width: 8),
+                        Text('Load Gallery'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'playlist',
+                    child: Row(
+                      children: [
+                        Icon(Icons.queue_music, size: 18),
+                        SizedBox(width: 8),
+                        Text('Load Playlist'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              PopupMenuButton<String>(
+                tooltip: 'More options',
+                icon: const Icon(Icons.more_vert, color: Colors.white70, size: 20),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'export':
+                      notifier.exportAllImages();
+                      break;
+                    case 'gallery':
+                      notifier.saveGallery('Gallery ${DateTime.now().millisecondsSinceEpoch}');
+                      break;
+                    case 'playlist':
+                      notifier.savePlaylist();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'export',
+                    child: Row(
+                      children: [
+                        Icon(Icons.download, size: 18),
+                        SizedBox(width: 8),
+                        Text('Download Images'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'gallery',
+                    child: Row(
+                      children: [
+                        Icon(Icons.collections, size: 18),
+                        SizedBox(width: 8),
+                        Text('Save Gallery'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'playlist',
+                    child: Row(
+                      children: [
+                        Icon(Icons.queue_music, size: 18),
+                        SizedBox(width: 8),
+                        Text('Save Playlist'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ],
@@ -226,25 +324,34 @@ class PresentationControls extends ConsumerWidget {
   }
 }
 
-class _TimerAdjustment extends StatelessWidget {
+class _TimerAdjustment extends ConsumerWidget {
   final int value;
   final ValueChanged<int> onChanged;
 
   const _TimerAdjustment({required this.value, required this.onChanged});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(presentationProvider);
+    final isDisabled = state.isPlaying;
+
     return PopupMenuButton<int>(
       initialValue: value,
       tooltip: 'Set timer duration',
+      enabled: !isDisabled,
       onSelected: onChanged,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white10,
+          color: isDisabled ? Colors.white.withValues(alpha: 0.05) : Colors.white10,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text('${value}s', style: const TextStyle(color: Colors.white60)),
+        child: Text(
+          '${value}s',
+          style: TextStyle(
+            color: isDisabled ? Colors.white.withValues(alpha: 0.3) : Colors.white60,
+          ),
+        ),
       ),
       itemBuilder: (context) => [
         const PopupMenuItem(value: 5, child: Text('5 seconds')),
@@ -731,28 +838,39 @@ class _AudioModeToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final state = ref.watch(presentationProvider);
     final isTimerDriven = settings.audioMode == AudioMode.timerDriven;
+    final isDisabled = state.isPlaying;
 
     return Tooltip(
       message: isTimerDriven ? 'Timer Driven: Audio starts randomly' : 'Audio Driven: Image changes when audio ends',
       child: InkWell(
-        onTap: () {
+        onTap: isDisabled ? null : () {
           final notifier = ref.read(settingsProvider.notifier);
           notifier.setAudioMode(isTimerDriven ? AudioMode.audioDriven : AudioMode.timerDriven);
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: isTimerDriven ? Colors.white10 : Colors.green.withValues(alpha: 0.2),
+            color: isDisabled 
+                ? Colors.white.withValues(alpha: 0.05)
+                : (isTimerDriven ? Colors.white10 : Colors.green.withValues(alpha: 0.2)),
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: isTimerDriven ? Colors.white24 : Colors.green, width: 1),
+            border: Border.all(
+              color: isDisabled 
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : (isTimerDriven ? Colors.white24 : Colors.green), 
+              width: 1,
+            ),
           ),
           child: Text(
             isTimerDriven ? 'TMR' : 'AUD',
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: isTimerDriven ? Colors.white60 : Colors.green,
+              color: isDisabled 
+                  ? Colors.white.withValues(alpha: 0.3)
+                  : (isTimerDriven ? Colors.white60 : Colors.green),
             ),
           ),
         ),

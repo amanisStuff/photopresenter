@@ -44,6 +44,16 @@ class PresentationScreen extends ConsumerWidget {
               notifier.pasteFromClipboard(),
           const SingleActivator(LogicalKeyboardKey.keyM, control: true): () =>
               notifier.minimizeWindow(),
+          const SingleActivator(LogicalKeyboardKey.f11): () =>
+              notifier.toggleFocusMode(),
+          const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
+              notifier.toggleFocusMode(),
+          const SingleActivator(LogicalKeyboardKey.keyD, control: true): () =>
+              notifier.exportAllImages(),
+          const SingleActivator(LogicalKeyboardKey.keyG, control: true): () =>
+              notifier.saveGallery('Gallery ${DateTime.now().millisecondsSinceEpoch}'),
+          const SingleActivator(LogicalKeyboardKey.keyP, control: true): () =>
+              notifier.savePlaylist(),
         },
         child: Focus(
           autofocus: true,

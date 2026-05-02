@@ -356,9 +356,18 @@ class PresentationNotifier extends Notifier<PresentationState> {
     _timer?.cancel();
     _targetTime = DateTime.now().add(state.remainingTime);
 
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
       if (_targetTime == null || !state.isPlaying) {
         timer.cancel();
+        return;
+      }
+
+      if (isAudioDriven && audioLonger && state.hasAudio) {
+        final audioService = ref.read(audioServiceProvider);
+        final position = await audioService.getCurrentPosition();
+        if (position != null) {
+          state = state.copyWith(audioPosition: position);
+        }
         return;
       }
 
@@ -366,9 +375,6 @@ class PresentationNotifier extends Notifier<PresentationState> {
       final difference = _targetTime!.difference(now);
 
       if (difference.inMilliseconds <= 0) {
-        if (isAudioDriven && audioLonger) {
-          return;
-        }
         _advanceImage();
       } else {
         if (difference.inSeconds != (state.remainingTime.inSeconds - 1)) {
@@ -419,6 +425,61 @@ class PresentationNotifier extends Notifier<PresentationState> {
     }
   }
 
+  Future<void> loadGallery() async {
+    final fileService = ref.read(fileServiceProvider);
+    final manifest = await fileService.pickAndLoadGallery();
+    if (manifest == null) return;
+
+    final galleryDir = manifest['images'] is List ? (manifest['images'] as List).first : null;
+    if (galleryDir == null) return;
+
+    final dirPath = galleryDir.toString().contains('/') 
+        ? galleryDir.toString().substring(0, galleryDir.toString().lastIndexOf('/'))
+        : null;
+    if (dirPath == null) return;
+
+    final imageNames = (manifest['images'] as List?)?.cast<String>() ?? [];
+    final audioNames = (manifest['audio'] as List?)?.cast<String>() ?? [];
+    final timerDuration = manifest['timerDuration'] as int? ?? 30;
+
+    final imagePaths = imageNames.map((name) {
+      final ext = name.split('.').last;
+      return '$dirPath/$name';
+    }).toList();
+
+    final audioPaths = audioNames.map((name) => '$dirPath/$name').toList();
+
+    addImages(imagePaths);
+
+    if (audioPaths.isNotEmpty) {
+      state = state.copyWith(audioPaths: audioPaths, audioIndex: 0);
+    }
+
+    state = state.copyWith(
+      timerDuration: Duration(seconds: timerDuration),
+      remainingTime: Duration(seconds: timerDuration),
+    );
+  }
+
+  Future<void> loadPlaylist() async {
+    final fileService = ref.read(fileServiceProvider);
+    final manifest = await fileService.pickAndLoadPlaylist();
+    if (manifest == null) return;
+
+    final playlistDir = manifest['audio'] is List ? (manifest['audio'] as List).first : null;
+    if (playlistDir == null) return;
+
+    final dirPath = playlistDir.toString().contains('/') 
+        ? playlistDir.toString().substring(0, playlistDir.toString().lastIndexOf('/'))
+        : null;
+    if (dirPath == null) return;
+
+    final audioNames = (manifest['audio'] as List?)?.cast<String>() ?? [];
+    final audioPaths = audioNames.map((name) => '$dirPath/$name').toList();
+
+    state = state.copyWith(audioPaths: audioPaths, audioIndex: 0);
+  }
+
   Future<String?> exportCurrentImage() async {
     final image = state.currentImage;
     if (image == null) return null;
@@ -467,6 +528,17 @@ class PresentationNotifier extends Notifier<PresentationState> {
       imagePaths: fileImages,
       timerDurationSeconds: state.timerDuration.inSeconds,
       audioPaths: state.audioPaths.isNotEmpty ? state.audioPaths : null,
+    );
+  }
+
+  Future<String?> savePlaylist([String? name]) async {
+    if (state.audioPaths.isEmpty) return 'No audio files to save';
+
+    final fileService = ref.read(fileServiceProvider);
+    final playlistName = name ?? 'Playlist ${DateTime.now().millisecondsSinceEpoch}';
+    return await fileService.savePlaylist(
+      playlistName: playlistName,
+      audioPaths: state.audioPaths,
     );
   }
 

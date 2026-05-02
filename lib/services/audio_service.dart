@@ -74,6 +74,11 @@ class AudioService {
   /// Checks if audio is currently playing.
   bool get isPlaying => _player.state == PlayerState.playing;
 
+  /// Gets the current playback position.
+  Future<Duration?> getCurrentPosition() async {
+    return await _player.getCurrentPosition();
+  }
+
   void dispose() {
     _subscription?.cancel();
     _player.dispose();

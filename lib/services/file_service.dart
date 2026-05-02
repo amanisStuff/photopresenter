@@ -120,6 +120,42 @@ class FileService {
     return '${savedNames.length} images saved to $galleryDir';
   }
 
+  /// Saves audio playlist to a directory.
+  Future<String?> savePlaylist({
+    required String playlistName,
+    required List<String> audioPaths,
+  }) async {
+    if (audioPaths.isEmpty) return 'No audio files to save';
+
+    String? directoryPath = await FilePicker.getDirectoryPath();
+    if (directoryPath == null) return null;
+
+    final playlistDir = '$directoryPath/$playlistName';
+    await Directory(playlistDir).create(recursive: true);
+
+    final futures = <Future>[];
+    final savedNames = <String>[];
+
+    for (final audioPath in audioPaths) {
+      final fileName = audioPath.split('/').last;
+      final destPath = '$playlistDir/$fileName';
+      futures.add(_copyIfExists(audioPath, destPath).then((_) => savedNames.add(fileName)));
+    }
+
+    await Future.wait(futures);
+
+    final manifest = {
+      'name': playlistName,
+      'audio': savedNames,
+    };
+
+    await File('$playlistDir/playlist.json').writeAsString(
+      JsonEncoder.withIndent('  ').convert(manifest),
+    );
+
+    return '${savedNames.length} audio files saved to $playlistDir';
+  }
+
   Future<void> _copyIfExists(String source, String dest) async {
     final file = File(source);
     if (await file.exists()) await file.copy(dest);
@@ -130,6 +166,23 @@ class FileService {
     final manifestFile = File('$dirPath/gallery.json');
     if (!await manifestFile.exists()) return null;
 
+    final content = await manifestFile.readAsString();
+    return jsonDecode(content) as Map<String, dynamic>;
+  }
+
+  /// Picks a gallery directory and loads images from it.
+  Future<Map<String, dynamic>?> pickAndLoadGallery() async {
+    String? directoryPath = await FilePicker.getDirectoryPath();
+    if (directoryPath == null) return null;
+    return await loadGalleryManifest(directoryPath);
+  }
+
+  /// Picks a playlist directory and loads audio from it.
+  Future<Map<String, dynamic>?> pickAndLoadPlaylist() async {
+    String? directoryPath = await FilePicker.getDirectoryPath();
+    if (directoryPath == null) return null;
+    final manifestFile = File('$directoryPath/playlist.json');
+    if (!await manifestFile.exists()) return null;
     final content = await manifestFile.readAsString();
     return jsonDecode(content) as Map<String, dynamic>;
   }

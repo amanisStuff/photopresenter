@@ -66,6 +66,7 @@ class ImageGrid extends ConsumerWidget {
                   final isSelected = state.currentIndex == actualIndex;
 
                   return MouseRegion(
+                    key: ValueKey(image.path ?? image.name),
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
                       onTap: () => notifier.setCurrentIndex(actualIndex),

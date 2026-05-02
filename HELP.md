@@ -30,8 +30,7 @@ lib/
     │   │   └── presentation_provider.dart # State management (Riverpod)
     │   ├── presentation_screen.dart      # Main screen with keyboard shortcuts
     │   └── widgets/
-    │       ├── custom_title_bar.dart     # Custom window title bar
-    │       ├── image_grid.dart           # Image library grid view
+│       ├── image_grid.dart           # Image library grid view
     │       ├── image_display.dart         # Full-screen image display
     │       └── presentation_controls.dart # Bottom control bar
     └── settings/
@@ -146,7 +145,17 @@ Settings accessible via the gear icon in controls:
 Bottom control bar with simplified layout:
 - **Left**: Image count, timer countdown, timer selector, class mode toggle, phase indicator
 - **Center**: Previous, Play/Pause, Next buttons
-- **Right**: Audio toggle, Settings, Focus Mode
+- **Right**: Audio toggle, Settings, Focus Mode, Load menu, Save menu
+
+### Load Menu (folder icon)
+- Add Images - Add images via file picker
+- Load Gallery - Load a previously saved gallery
+- Load Playlist - Load a previously saved audio playlist
+
+### Save Menu (more options icon)
+- Download Images - Export all images to a folder
+- Save Gallery - Save images and audio as a gallery
+- Save Playlist - Save audio files as a playlist
 
 ### Focus Mode
 
@@ -161,11 +170,16 @@ Bottom control bar with simplified layout:
 | Shortcut | Action |
 |----------|--------|
 | `Escape` | Exit focus mode |
+| `F11` | Toggle focus mode |
+| `Ctrl+F` | Toggle focus mode |
 | `Space` | Toggle play/pause |
 | `ArrowRight` | Next image |
 | `ArrowLeft` | Previous image |
 | `Ctrl+V` | Paste from clipboard |
-| `Ctrl+M` | (Available but removed from UI) |
+| `Ctrl+M` | Minimize window |
+| `Ctrl+D` | Download/export images |
+| `Ctrl+G` | Save gallery |
+| `Ctrl+P` | Save audio playlist |
 
 ---
 
@@ -196,7 +210,9 @@ flutter build linux --release
 ## Notes
 
 - Window size defaults to 1280x720
-- Hidden native title bar (custom title bar implemented)
+- Native window title bar (standard window controls)
 - Images wrap around (last → first, first → last)
 - Audio files can be loaded and cycle with images
 - Custom class presets persist in app settings
+- Timer and audio mode cannot be changed while playing
+- Progress bar shows remaining time (empties during countdown)
