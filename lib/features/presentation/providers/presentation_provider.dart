@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../models/presentation_image.dart';
 import '../models/class_session.dart';
+import '../../settings/models/app_settings.dart';
 import '../../../services/service_providers.dart';
 import '../../settings/providers/settings_provider.dart';
 
@@ -17,6 +18,7 @@ class PresentationState {
   final List<String> audioPaths;
   final int audioIndex;
   final Duration audioPosition;
+  final Duration audioDuration;
   final bool isClassMode;
   final ClassConfig? classConfig;
   final List<Duration> phaseQueue;
@@ -33,6 +35,7 @@ class PresentationState {
     List<String>? audioPaths,
     this.audioIndex = 0,
     this.audioPosition = Duration.zero,
+    this.audioDuration = Duration.zero,
     this.isClassMode = false,
     this.classConfig,
     this.phaseQueue = const [],
@@ -51,6 +54,7 @@ class PresentationState {
     List<String>? audioPaths,
     int? audioIndex,
     Duration? audioPosition,
+    Duration? audioDuration,
     bool? isClassMode,
     ClassConfig? classConfig,
     List<Duration>? phaseQueue,
@@ -67,6 +71,7 @@ class PresentationState {
       audioPaths: audioPaths ?? this.audioPaths,
       audioIndex: audioIndex ?? this.audioIndex,
       audioPosition: audioPosition ?? this.audioPosition,
+      audioDuration: audioDuration ?? this.audioDuration,
       isClassMode: isClassMode ?? this.isClassMode,
       classConfig: classConfig ?? this.classConfig,
       phaseQueue: phaseQueue ?? this.phaseQueue,
@@ -270,14 +275,20 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
   void _startAudioPlayback() {
     final audioService = ref.read(audioServiceProvider);
+    final settings = ref.read(settingsProvider);
     final path = state.currentAudioPath!;
     final timerSecs = state.timerDuration.inSeconds;
+    final isTimerDriven = settings.audioMode == AudioMode.timerDriven;
 
     audioService.getDuration(path).then((audioDuration) {
       if (audioDuration == null) return;
 
+      state = state.copyWith(audioDuration: audioDuration);
+
       final audioSecs = audioDuration.inSeconds;
-      if (audioSecs <= timerSecs) {
+      final bool audioIsCountdown = audioSecs <= timerSecs;
+
+      if (audioIsCountdown) {
         state = state.copyWith(audioPosition: Duration.zero);
         audioService.playAudio(
           path,
@@ -287,30 +298,29 @@ class PresentationNotifier extends Notifier<PresentationState> {
               final nextAudioIndex = state.audioPaths.isNotEmpty
                   ? (state.audioIndex + 1) % state.audioPaths.length
                   : 0;
-              state = state.copyWith(audioIndex: nextAudioIndex);
+              state = state.copyWith(audioIndex: nextAudioIndex, audioPosition: Duration.zero);
               _startAudioPlayback();
             }
           },
         );
-      } else {
-        final newPosition = Duration(
-          seconds: (state.audioPosition.inSeconds + timerSecs) % audioSecs,
-        );
-        state = state.copyWith(audioPosition: newPosition);
+      } else if (!isTimerDriven) {
+        state = state.copyWith(audioPosition: Duration.zero);
         audioService.playAudio(
           path,
-          startPosition: newPosition,
           onComplete: () {
             if (state.isPlaying) {
               nextImage();
               final nextAudioIndex = state.audioPaths.isNotEmpty
                   ? (state.audioIndex + 1) % state.audioPaths.length
                   : 0;
-              state = state.copyWith(audioIndex: nextAudioIndex);
+              state = state.copyWith(audioIndex: nextAudioIndex, audioPosition: Duration.zero);
               _startAudioPlayback();
             }
           },
         );
+      } else {
+        state = state.copyWith(audioPosition: Duration.zero);
+        audioService.playAudio(path);
       }
     });
   }
@@ -339,6 +349,10 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void _startTimer() {
+    final settings = ref.read(settingsProvider);
+    final isAudioDriven = settings.audioMode == AudioMode.audioDriven;
+    final audioLonger = state.hasAudio && state.audioDuration.inSeconds > state.timerDuration.inSeconds;
+
     _timer?.cancel();
     _targetTime = DateTime.now().add(state.remainingTime);
 
@@ -352,6 +366,9 @@ class PresentationNotifier extends Notifier<PresentationState> {
       final difference = _targetTime!.difference(now);
 
       if (difference.inMilliseconds <= 0) {
+        if (isAudioDriven && audioLonger) {
+          return;
+        }
         _advanceImage();
       } else {
         if (difference.inSeconds != (state.remainingTime.inSeconds - 1)) {

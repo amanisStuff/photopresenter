@@ -57,6 +57,10 @@ class SettingsNotifier extends Notifier<AppSettings> {
     }
   }
 
+  void setAudioMode(AudioMode mode) {
+    state = state.copyWith(audioMode: mode);
+  }
+
   void resetToDefaults() {
     state = const AppSettings();
   }

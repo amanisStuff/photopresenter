@@ -15,7 +15,7 @@ class PresentationControls extends ConsumerWidget {
     final notifier = ref.read(presentationProvider.notifier);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 32),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
@@ -47,46 +47,85 @@ class PresentationControls extends ConsumerWidget {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    if (state.hasAudio)
+                    if (state.hasAudio) ...[
                       Icon(
                         Icons.audiotrack,
                         size: 16,
                         color: state.isPlaying ? Colors.green : Colors.grey,
                       ),
+                      _AudioModeToggle(),
+                    ],
                     Icon(
                       Icons.timer_outlined,
                       size: 16,
                       color: state.isPlaying ? Colors.blue : Colors.grey,
                     ),
-                    Text(
-                      '${state.remainingTime.inSeconds}s',
-                      style: TextStyle(
-                        color: state.remainingTime.inSeconds <= 5
-                            ? Colors.redAccent
-                            : Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final settings = ref.watch(settingsProvider);
+                        final isAudioDriven = settings.audioMode == AudioMode.audioDriven;
+                        final audioLonger = state.hasAudio && 
+                            state.audioDuration.inSeconds > state.timerDuration.inSeconds;
+                        
+                        final bool showAudioCountdown = state.hasAudio && 
+                            state.isPlaying && 
+                            state.audioDuration.inSeconds > 0 &&
+                            (isAudioDriven || state.isClassMode);
+                        
+                        final int secondsLeft = showAudioCountdown 
+                            ? (state.audioDuration.inSeconds - state.audioPosition.inSeconds)
+                            : state.remainingTime.inSeconds;
+                        
+                        final bool isLowTime = !showAudioCountdown && secondsLeft <= 5;
+                        
+                        return Text(
+                          '${secondsLeft}s',
+                          style: TextStyle(
+                            color: showAudioCountdown 
+                                ? Colors.green 
+                                : (isLowTime ? Colors.redAccent : Colors.white),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        );
+                      },
                     ),
                     if (state.isPlaying)
-                      SizedBox(
-                        width: 100,
-                        height: 4,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: state.timerDuration.inMilliseconds > 0
-                                ? state.remainingTime.inMilliseconds /
-                                    state.timerDuration.inMilliseconds
-                                : 0,
-                            backgroundColor: Colors.white12,
-                            valueColor: AlwaysStoppedAnimation(
-                              state.remainingTime.inSeconds <= 5
-                                  ? Colors.redAccent
-                                  : Colors.blueAccent,
+                      Builder(
+                        builder: (context) {
+                          final settings = ref.watch(settingsProvider);
+                          final isAudioDriven = settings.audioMode == AudioMode.audioDriven;
+                          final showAudioProgress = state.hasAudio && 
+                              state.audioDuration.inMilliseconds > 0 &&
+                              (isAudioDriven || state.isClassMode);
+                          
+                          final double progress = showAudioProgress
+                              ? (state.audioDuration.inMilliseconds > 0 
+                                  ? state.audioPosition.inMilliseconds / state.audioDuration.inMilliseconds 
+                                  : 0.0)
+                              : (state.timerDuration.inMilliseconds > 0 
+                                  ? state.remainingTime.inMilliseconds / state.timerDuration.inMilliseconds 
+                                  : 0.0);
+                          
+                          return SizedBox(
+                            width: 100,
+                            height: 4,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                backgroundColor: Colors.white12,
+                                valueColor: AlwaysStoppedAnimation(
+                                  showAudioProgress
+                                      ? Colors.green
+                                      : (state.remainingTime.inSeconds <= 5
+                                          ? Colors.redAccent
+                                          : Colors.blueAccent),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     if (!state.isClassMode)
                       _TimerAdjustment(
@@ -127,140 +166,59 @@ class PresentationControls extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.skip_previous, size: 32),
-                onPressed: state.images.isEmpty
-                    ? null
-                    : () => notifier.previousImage(),
-                color: Colors.white,
+                icon: const Icon(Icons.skip_previous, size: 24),
+                onPressed: state.images.isEmpty ? null : () => notifier.previousImage(),
+                color: Colors.white70,
               ),
-              const SizedBox(width: 16),
-              FloatingActionButton(
-                onPressed: state.images.isEmpty
-                    ? null
-                    : () => notifier.togglePlay(),
-                backgroundColor: Colors.blueAccent,
-                child: Icon(
-                  state.isPlaying ? Icons.pause : Icons.play_arrow,
-                  size: 36,
-                ),
-              ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.skip_next, size: 32),
-                onPressed: state.images.isEmpty
-                    ? null
-                    : () => notifier.nextImage(),
+                icon: Icon(state.isPlaying ? Icons.pause : Icons.play_arrow, size: 28),
+                onPressed: state.images.isEmpty ? null : () => notifier.togglePlay(),
                 color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.skip_next, size: 24),
+                onPressed: state.images.isEmpty ? null : () => notifier.nextImage(),
+                color: Colors.white70,
               ),
             ],
           ),
 
           // Right side: Settings & Focus
-          Flexible(
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (state.hasAudio) ...[
                 IconButton(
-                  tooltip: 'Pick audio file',
-                  icon: Icon(
-                    Icons.audiotrack,
-                    color: state.hasAudio ? Colors.green : Colors.white70,
-                    size: 20,
-                  ),
+                  tooltip: 'Audio',
+                  icon: Icon(Icons.audiotrack, color: Colors.green, size: 20),
                   onPressed: () => notifier.pickAudio(),
                 ),
-                if (state.hasAudio) ...[
-                  Text(
-                    '${state.audioIndex + 1}/${state.audioPaths.length}',
-                    style: const TextStyle(color: Colors.white54, fontSize: 10),
-                  ),
-                  IconButton(
-                    iconSize: 18,
-                    tooltip: 'Clear audio',
-                    icon: const Icon(Icons.clear, color: Colors.white70),
-                    onPressed: () => notifier.clearAudio(),
-                  ),
-                ],
                 IconButton(
-                  tooltip: 'Paste from clipboard',
-                  icon: const Icon(
-                    Icons.content_paste,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  onPressed: () => notifier.pasteFromClipboard(),
+                  iconSize: 16,
+                  icon: const Icon(Icons.clear, color: Colors.white54),
+                  onPressed: () => notifier.clearAudio(),
                 ),
+              ] else
                 IconButton(
-                  tooltip: 'Export current image',
-                  icon: const Icon(
-                    Icons.download,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  onPressed: state.images.isEmpty
-                      ? null
-                      : () async {
-                          final result = await notifier.exportCurrentImage();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(result ?? 'Export failed'),
-                                duration: const Duration(seconds: 3),
-                              ),
-                            );
-                          }
-                        },
+                  tooltip: 'Add audio',
+                  icon: const Icon(Icons.add_circle_outline, color: Colors.white54, size: 20),
+                  onPressed: () => notifier.pickAudio(),
                 ),
-                IconButton(
-                  tooltip: 'Save gallery',
-                  icon: const Icon(
-                    Icons.save_alt,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  onPressed: state.images.isEmpty
-                      ? null
-                      : () async {
-                          final name = await _showSaveGalleryDialog(context);
-                          if (name != null && name.isNotEmpty) {
-                            final result = await notifier.saveGallery(name);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(result ?? 'Save failed'),
-                                  duration: const Duration(seconds: 3),
-                                ),
-                              );
-                            }
-                          }
-                        },
+              IconButton(
+                tooltip: 'Settings',
+                icon: const Icon(Icons.settings, color: Colors.white70, size: 20),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
                 ),
-                IconButton(
-                  tooltip: 'Settings',
-                  icon: const Icon(
-                    Icons.settings,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  tooltip: 'Focus Mode',
-                  icon: const Icon(
-                    Icons.fullscreen,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  onPressed: () => notifier.toggleFocusMode(),
-                ),
-              ],
-            ),
+              ),
+              IconButton(
+                tooltip: 'Focus Mode',
+                icon: const Icon(Icons.fullscreen, color: Colors.white70, size: 20),
+                onPressed: () => notifier.toggleFocusMode(),
+              ),
+            ],
           ),
         ],
       ),
@@ -764,6 +722,40 @@ class _PhaseConfigRow extends StatelessWidget {
             padding: EdgeInsets.zero,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AudioModeToggle extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    final isTimerDriven = settings.audioMode == AudioMode.timerDriven;
+
+    return Tooltip(
+      message: isTimerDriven ? 'Timer Driven: Audio starts randomly' : 'Audio Driven: Image changes when audio ends',
+      child: InkWell(
+        onTap: () {
+          final notifier = ref.read(settingsProvider.notifier);
+          notifier.setAudioMode(isTimerDriven ? AudioMode.audioDriven : AudioMode.timerDriven);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: isTimerDriven ? Colors.white10 : Colors.green.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: isTimerDriven ? Colors.white24 : Colors.green, width: 1),
+          ),
+          child: Text(
+            isTimerDriven ? 'TMR' : 'AUD',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: isTimerDriven ? Colors.white60 : Colors.green,
+            ),
+          ),
+        ),
       ),
     );
   }

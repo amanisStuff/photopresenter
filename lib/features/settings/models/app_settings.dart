@@ -1,3 +1,28 @@
+enum AudioMode {
+  audioDriven,    // 1. Audio plays start to end, image changes when audio ends
+  timerDriven,   // 2. Audio starts at random position, changes when timer ends
+}
+
+extension AudioModeExtension on AudioMode {
+  String get displayName {
+    switch (this) {
+      case AudioMode.audioDriven:
+        return 'Audio Driven';
+      case AudioMode.timerDriven:
+        return 'Timer Driven';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case AudioMode.audioDriven:
+        return 'Image changes when audio ends';
+      case AudioMode.timerDriven:
+        return 'Audio starts at random position, image changes when timer ends';
+    }
+  }
+}
+
 class ClassPreset {
   final String name;
   final int warmUpCount;
@@ -59,6 +84,7 @@ class AppSettings {
   final bool showImageInfo;
   final bool confirmOnClose;
   final List<ClassPreset> customClassPresets;
+  final AudioMode audioMode;
 
   const AppSettings({
     this.timerDurationSeconds = 30,
@@ -69,6 +95,7 @@ class AppSettings {
     this.showImageInfo = true,
     this.confirmOnClose = false,
     this.customClassPresets = const [],
+    this.audioMode = AudioMode.audioDriven,
   });
 
   AppSettings copyWith({
@@ -80,6 +107,7 @@ class AppSettings {
     bool? showImageInfo,
     bool? confirmOnClose,
     List<ClassPreset>? customClassPresets,
+    AudioMode? audioMode,
   }) {
     return AppSettings(
       timerDurationSeconds: timerDurationSeconds ?? this.timerDurationSeconds,
@@ -90,6 +118,7 @@ class AppSettings {
       showImageInfo: showImageInfo ?? this.showImageInfo,
       confirmOnClose: confirmOnClose ?? this.confirmOnClose,
       customClassPresets: customClassPresets ?? this.customClassPresets,
+      audioMode: audioMode ?? this.audioMode,
     );
   }
 

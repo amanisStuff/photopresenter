@@ -116,6 +116,12 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
+          _SectionHeader(title: 'Audio Mode'),
+          _AudioModeTile(
+            currentMode: settings.audioMode,
+            onChanged: notifier.setAudioMode,
+          ),
+          const SizedBox(height: 24),
           _SectionHeader(title: 'Behavior'),
           _SettingsTile(
             title: 'Confirm on Close',
@@ -541,6 +547,64 @@ Future<void> _showEditPresetDialog(
       },
     ),
   );
+}
+
+class _AudioModeTile extends StatelessWidget {
+  final AudioMode currentMode;
+  final ValueChanged<AudioMode> onChanged;
+
+  const _AudioModeTile({required this.currentMode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF252525),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: AudioMode.values.map((mode) {
+          final isSelected = mode == currentMode;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: InkWell(
+              onTap: () => onChanged(mode),
+              child: Row(
+                children: [
+                  Icon(
+                    isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                    color: isSelected ? Colors.blueAccent : Colors.white54,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          mode.displayName,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                          ),
+                        ),
+                        Text(
+                          mode.description,
+                          style: const TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 }
 
 class _NumberInputRow extends StatelessWidget {
