@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/presentation_provider.dart';
+import '../models/class_session.dart';
 import '../../settings/settings_screen.dart';
 import '../../settings/providers/settings_provider.dart';
 
@@ -25,7 +26,7 @@ class PresentationControls extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Left side: Info & Timer
-          Expanded(
+          Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -35,10 +36,13 @@ class PresentationControls extends ConsumerWidget {
                     'Image ${state.currentIndex + 1} of ${state.images.length}: ${state.currentImage?.name}',
                     style: const TextStyle(color: Colors.white70),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (state.hasAudio)
                       Icon(
@@ -46,13 +50,11 @@ class PresentationControls extends ConsumerWidget {
                         size: 16,
                         color: state.isPlaying ? Colors.green : Colors.grey,
                       ),
-                    if (state.hasAudio) const SizedBox(width: 8),
                     Icon(
                       Icons.timer_outlined,
                       size: 16,
                       color: state.isPlaying ? Colors.blue : Colors.grey,
                     ),
-                    const SizedBox(width: 8),
                     Text(
                       '${state.remainingTime.inSeconds}s',
                       style: TextStyle(
@@ -63,8 +65,7 @@ class PresentationControls extends ConsumerWidget {
                         fontSize: 20,
                       ),
                     ),
-                    if (state.isPlaying) ...[
-                      const SizedBox(width: 12),
+                    if (state.isPlaying)
                       SizedBox(
                         width: 100,
                         height: 4,
@@ -84,15 +85,36 @@ class PresentationControls extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    ],
-                    const SizedBox(width: 16),
-                    _TimerAdjustment(
-                      value: state.timerDuration.inSeconds,
-                      onChanged: (val) =>
-                          notifier.setTimerDuration(Duration(seconds: val)),
+                    if (!state.isClassMode)
+                      _TimerAdjustment(
+                        value: state.timerDuration.inSeconds,
+                        onChanged: (val) =>
+                            notifier.setTimerDuration(Duration(seconds: val)),
+                      ),
+                    if (state.isClassMode)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white10,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${state.timerDuration.inSeconds}s',
+                          style: const TextStyle(color: Colors.white60),
+                        ),
+                      ),
+                    _ClassModeButton(
+                      isActive: state.isClassMode,
+                      onStart: () => _showClassModeDialog(context, ref),
+                      onStop: () => notifier.stopClassMode(),
                     ),
                   ],
                 ),
+                if (state.isClassMode) ...[
+                  const SizedBox(height: 4),
+                  _ClassPhaseIndicator(state: state),
+                ],
               ],
             ),
           ),
@@ -157,15 +179,6 @@ class PresentationControls extends ConsumerWidget {
                   ),
                 ],
                 IconButton(
-                  tooltip: 'Minimize window',
-                  icon: const Icon(
-                    Icons.remove,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  onPressed: () => notifier.minimizeWindow(),
-                ),
-                IconButton(
                   tooltip: 'Paste from clipboard',
                   icon: const Icon(
                     Icons.content_paste,
@@ -192,6 +205,30 @@ class PresentationControls extends ConsumerWidget {
                                 duration: const Duration(seconds: 3),
                               ),
                             );
+                          }
+                        },
+                ),
+                IconButton(
+                  tooltip: 'Save gallery',
+                  icon: const Icon(
+                    Icons.save_alt,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                  onPressed: state.images.isEmpty
+                      ? null
+                      : () async {
+                          final name = await _showSaveGalleryDialog(context);
+                          if (name != null && name.isNotEmpty) {
+                            final result = await notifier.saveGallery(name);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(result ?? 'Save failed'),
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            }
                           }
                         },
                 ),
@@ -255,6 +292,433 @@ class _TimerAdjustment extends StatelessWidget {
         const PopupMenuItem(value: 60, child: Text('1 minute')),
         const PopupMenuItem(value: 300, child: Text('5 minutes')),
       ],
+    );
+  }
+}
+
+Future<String?> _showSaveGalleryDialog(BuildContext context) async {
+  final controller = TextEditingController(
+    text: 'Gallery ${DateTime.now().millisecondsSinceEpoch}',
+  );
+
+  return showDialog<String>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Save Gallery'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(
+          labelText: 'Gallery Name',
+          hintText: 'Enter gallery name',
+        ),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, controller.text),
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
+}
+
+class _ClassModeButton extends StatelessWidget {
+  final bool isActive;
+  final VoidCallback onStart;
+  final VoidCallback onStop;
+
+  const _ClassModeButton({
+    required this.isActive,
+    required this.onStart,
+    required this.onStop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isActive ? Colors.blue.withValues(alpha: 0.3) : Colors.white10,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: isActive ? Colors.blue : Colors.white24,
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(4),
+          onTap: isActive ? onStop : onStart,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.school,
+                  size: 16,
+                  color: isActive ? Colors.blue : Colors.white60,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  isActive ? 'Class' : 'Class Mode',
+                  style: TextStyle(
+                    color: isActive ? Colors.blue : Colors.white60,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClassPhaseIndicator extends StatelessWidget {
+  final PresentationState state;
+
+  const _ClassPhaseIndicator({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final phase = state.currentPhase;
+    final phaseName = state.isOnBreak
+        ? 'Break Time'
+        : (phase?.displayName ?? 'Unknown');
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: state.isOnBreak
+                ? Colors.orange.withValues(alpha: 0.3)
+                : Colors.green.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            phaseName,
+            style: TextStyle(
+              color: state.isOnBreak ? Colors.orange : Colors.green,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Image ${state.phaseQueueIndex + 1} of ${state.totalPhaseCount}',
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 10,
+          ),
+        ),
+        if (!state.isOnBreak && state.imagesRemainingInPhase > 1) ...[
+          const SizedBox(width: 4),
+          Text(
+            '(${state.imagesRemainingInPhase} left in phase)',
+            style: const TextStyle(
+              color: Colors.white38,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+Future<void> _showClassModeDialog(BuildContext context, WidgetRef ref) async {
+  final notifier = ref.read(presentationProvider.notifier);
+  final state = ref.read(presentationProvider);
+
+  if (state.isClassMode) {
+    final shouldStop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Stop Class Mode?'),
+        content: const Text(
+          'Are you sure you want to stop the current class session?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Stop'),
+          ),
+        ],
+      ),
+    );
+    if (shouldStop == true) {
+      notifier.stopClassMode();
+    }
+    return;
+  }
+
+  if (state.images.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please add images before starting Class Mode'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    return;
+  }
+
+  await showDialog<void>(
+    context: context,
+    builder: (context) => _ClassModeSelectionDialog(
+      onSelectPreset: (preset) {
+        final config = ClassConfig.fromPreset(preset);
+        final queue = config.generatePhaseQueue();
+        if (queue.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please configure class settings first'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+        notifier.startClassMode(config);
+        Navigator.pop(context);
+      },
+      onSelectCustom: (config) {
+        final queue = config.generatePhaseQueue();
+        if (queue.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please configure class settings first'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+        notifier.startClassMode(config);
+        Navigator.pop(context);
+      },
+    ),
+  );
+}
+
+class _ClassModeSelectionDialog extends StatefulWidget {
+  final Function(ClassLength) onSelectPreset;
+  final Function(ClassConfig) onSelectCustom;
+
+  const _ClassModeSelectionDialog({
+    required this.onSelectPreset,
+    required this.onSelectCustom,
+  });
+
+  @override
+  State<_ClassModeSelectionDialog> createState() =>
+      _ClassModeSelectionDialogState();
+}
+
+class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
+  int _warmUpCount = 4;
+  int _earlyCount = 4;
+  int _midCount = 2;
+  int _finalCount = 1;
+  bool _hasBreak = false;
+  int _breakMinutes = 3;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Start Class Mode'),
+      content: SizedBox(
+        width: 400,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Quick Start',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _PresetButton(
+                    label: '30 Min',
+                    onTap: () => widget.onSelectPreset(ClassLength.thirtyMinutes),
+                  ),
+                  _PresetButton(
+                    label: '60 Min',
+                    onTap: () => widget.onSelectPreset(ClassLength.sixtyMinutes),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Custom Configuration',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _PhaseConfigRow(
+                label: 'Warm-up (30s)',
+                value: _warmUpCount,
+                onChanged: (val) => setState(() => _warmUpCount = val),
+              ),
+              _PhaseConfigRow(
+                label: 'Early Study (1m)',
+                value: _earlyCount,
+                onChanged: (val) => setState(() => _earlyCount = val),
+              ),
+              _PhaseConfigRow(
+                label: 'Mid Study (5m)',
+                value: _midCount,
+                onChanged: (val) => setState(() => _midCount = val),
+              ),
+              _PhaseConfigRow(
+                label: 'Final Study (10m)',
+                value: _finalCount,
+                onChanged: (val) => setState(() => _finalCount = val),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _hasBreak,
+                    onChanged: (val) => setState(() => _hasBreak = val ?? false),
+                  ),
+                  const Text('Include break'),
+                  if (_hasBreak) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 60,
+                      child: DropdownButton<int>(
+                        value: _breakMinutes,
+                        isDense: true,
+                        items: [3, 5, 10].map((m) => DropdownMenuItem(
+                          value: m,
+                          child: Text('$m min'),
+                        )).toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _breakMinutes = val);
+                        },
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final config = ClassConfig(
+              length: ClassLength.custom,
+              warmUpCount: _warmUpCount,
+              earlyStudyCount: _earlyCount,
+              midStudyCount: _midCount,
+              finalStudyCount: _finalCount,
+              hasBreak: _hasBreak,
+              breakMinutes: _breakMinutes,
+            );
+            widget.onSelectCustom(config);
+          },
+          child: const Text('Start Class'),
+        ),
+      ],
+    );
+  }
+}
+
+class _PresetButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _PresetButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      child: Text(label),
+    );
+  }
+}
+
+class _PhaseConfigRow extends StatelessWidget {
+  final String label;
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  const _PhaseConfigRow({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(label),
+          ),
+          IconButton(
+            icon: const Icon(Icons.remove, size: 18),
+            onPressed: value > 0 ? () => onChanged(value - 1) : null,
+            constraints: const BoxConstraints(
+              minWidth: 32,
+              minHeight: 32,
+            ),
+            padding: EdgeInsets.zero,
+          ),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$value',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add, size: 18),
+            onPressed: () => onChanged(value + 1),
+            constraints: const BoxConstraints(
+              minWidth: 32,
+              minHeight: 32,
+            ),
+            padding: EdgeInsets.zero,
+          ),
+        ],
+      ),
     );
   }
 }

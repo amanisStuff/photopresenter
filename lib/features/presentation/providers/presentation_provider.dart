@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../models/presentation_image.dart';
+import '../models/class_session.dart';
 import '../../../services/service_providers.dart';
 import '../../settings/providers/settings_provider.dart';
 
@@ -16,6 +17,11 @@ class PresentationState {
   final List<String> audioPaths;
   final int audioIndex;
   final Duration audioPosition;
+  final bool isClassMode;
+  final ClassConfig? classConfig;
+  final List<Duration> phaseQueue;
+  final int phaseQueueIndex;
+  final bool isOnBreak;
 
   PresentationState({
     List<PresentationImage>? images,
@@ -27,6 +33,11 @@ class PresentationState {
     List<String>? audioPaths,
     this.audioIndex = 0,
     this.audioPosition = Duration.zero,
+    this.isClassMode = false,
+    this.classConfig,
+    this.phaseQueue = const [],
+    this.phaseQueueIndex = 0,
+    this.isOnBreak = false,
   }) : images = images ?? [],
        audioPaths = audioPaths ?? [];
 
@@ -40,6 +51,11 @@ class PresentationState {
     List<String>? audioPaths,
     int? audioIndex,
     Duration? audioPosition,
+    bool? isClassMode,
+    ClassConfig? classConfig,
+    List<Duration>? phaseQueue,
+    int? phaseQueueIndex,
+    bool? isOnBreak,
   }) {
     return PresentationState(
       images: images ?? this.images,
@@ -51,6 +67,11 @@ class PresentationState {
       audioPaths: audioPaths ?? this.audioPaths,
       audioIndex: audioIndex ?? this.audioIndex,
       audioPosition: audioPosition ?? this.audioPosition,
+      isClassMode: isClassMode ?? this.isClassMode,
+      classConfig: classConfig ?? this.classConfig,
+      phaseQueue: phaseQueue ?? this.phaseQueue,
+      phaseQueueIndex: phaseQueueIndex ?? this.phaseQueueIndex,
+      isOnBreak: isOnBreak ?? this.isOnBreak,
     );
   }
 
@@ -61,6 +82,34 @@ class PresentationState {
 
   PresentationImage? get currentImage =>
       images.isNotEmpty ? images[currentIndex] : null;
+
+  ClassPhase? get currentPhase {
+    if (!isClassMode || phaseQueue.isEmpty || phaseQueueIndex >= phaseQueue.length) {
+      return null;
+    }
+    final duration = phaseQueue[phaseQueueIndex];
+    if (duration.inSeconds <= 30) return ClassPhase.warmUp;
+    if (duration.inSeconds <= 60) return ClassPhase.earlyStudy;
+    if (duration.inSeconds <= 300) return ClassPhase.midStudy;
+    return ClassPhase.finalStudy;
+  }
+
+  int get totalPhaseCount => phaseQueue.length;
+
+  int get imagesRemainingInPhase {
+    if (!isClassMode) return 0;
+    int count = 0;
+    final currentDuration = phaseQueue.isNotEmpty && phaseQueueIndex < phaseQueue.length
+        ? phaseQueue[phaseQueueIndex]
+        : null;
+    if (currentDuration == null) return 0;
+    for (int i = phaseQueueIndex; i < phaseQueue.length; i++) {
+      if (phaseQueue[i] == currentDuration) {
+        count++;
+      }
+    }
+    return count;
+  }
 }
 
 class PresentationNotifier extends Notifier<PresentationState> {
@@ -90,9 +139,13 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void _advanceImage() {
-    nextImage();
-    if (state.isPlaying && !state.hasAudio) {
-      _playSystemNotificationSound();
+    if (state.isClassMode && !state.isOnBreak) {
+      _advanceClassPhase();
+    } else {
+      nextImage();
+      if (state.isPlaying && !state.hasAudio) {
+        _playSystemNotificationSound();
+      }
     }
   }
 
@@ -377,6 +430,174 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
     final fileService = ref.read(fileServiceProvider);
     return await fileService.exportImages(fileImages);
+  }
+
+  Future<String?> saveGallery(String name) async {
+    if (state.images.isEmpty) return null;
+
+    final fileImages = state.images
+        .where((img) => img.source == ImageSource.file && img.path != null)
+        .map((img) => MapEntry(img.path!, img.name))
+        .toList();
+
+    if (fileImages.isEmpty) {
+      return 'No file-based images to save';
+    }
+
+    final fileService = ref.read(fileServiceProvider);
+    return await fileService.saveGallery(
+      galleryName: name,
+      imagePaths: fileImages,
+      timerDurationSeconds: state.timerDuration.inSeconds,
+      audioPaths: state.audioPaths.isNotEmpty ? state.audioPaths : null,
+    );
+  }
+
+  void startClassMode(ClassConfig config) {
+    final queue = config.generatePhaseQueue();
+    if (queue.isEmpty) return;
+
+    final firstDuration = queue.first;
+    state = state.copyWith(
+      isClassMode: true,
+      classConfig: config,
+      phaseQueue: queue,
+      phaseQueueIndex: 0,
+      timerDuration: firstDuration,
+      remainingTime: firstDuration,
+      isOnBreak: false,
+    );
+  }
+
+  void stopClassMode() {
+    _timer?.cancel();
+    state = state.copyWith(
+      isClassMode: false,
+      classConfig: null,
+      phaseQueue: [],
+      phaseQueueIndex: 0,
+      isOnBreak: false,
+      timerDuration: const Duration(seconds: 30),
+      remainingTime: const Duration(seconds: 30),
+    );
+  }
+
+  void _advanceClassPhase() {
+    final nextIndex = state.phaseQueueIndex + 1;
+
+    if (state.classConfig != null && state.classConfig!.hasBreak) {
+      final breakPoint = (state.phaseQueue.length * 0.6).floor();
+      if (nextIndex == breakPoint && !state.isOnBreak) {
+        _startBreak();
+        return;
+      }
+    }
+
+    if (nextIndex >= state.phaseQueue.length) {
+      _endClassSession();
+      return;
+    }
+
+    final nextDuration = state.phaseQueue[nextIndex];
+    final nextIndex_ = (state.currentIndex + 1) % state.images.length;
+    final nextAudioIndex = state.audioPaths.isNotEmpty
+        ? (state.audioIndex + 1) % state.audioPaths.length
+        : 0;
+
+    _targetTime = DateTime.now().add(nextDuration);
+    state = state.copyWith(
+      phaseQueueIndex: nextIndex,
+      currentIndex: nextIndex_,
+      timerDuration: nextDuration,
+      remainingTime: nextDuration,
+      audioIndex: nextAudioIndex,
+    );
+
+    if (state.isPlaying && state.hasAudio) {
+      _startAudioPlayback();
+    }
+
+    if (state.isPlaying && !state.hasAudio) {
+      _playSystemNotificationSound();
+    }
+  }
+
+  void _startBreak() {
+    final breakDuration = Duration(
+      minutes: state.classConfig?.breakMinutes ?? 5,
+    );
+    _timer?.cancel();
+
+    state = state.copyWith(
+      isOnBreak: true,
+      remainingTime: breakDuration,
+      timerDuration: breakDuration,
+    );
+
+    _targetTime = DateTime.now().add(breakDuration);
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (_targetTime == null || !state.isPlaying || !state.isOnBreak) {
+        timer.cancel();
+        return;
+      }
+
+      final now = DateTime.now();
+      final difference = _targetTime!.difference(now);
+
+      if (difference.inMilliseconds <= 0) {
+        _endBreak();
+      } else {
+        if (difference.inSeconds != (state.remainingTime.inSeconds - 1)) {
+          state = state.copyWith(
+            remainingTime: Duration(seconds: difference.inSeconds + 1),
+          );
+        }
+      }
+    });
+  }
+
+  void _endBreak() {
+    final nextIndex = state.phaseQueueIndex + 1;
+    if (nextIndex >= state.phaseQueue.length) {
+      _endClassSession();
+      return;
+    }
+
+    final nextDuration = state.phaseQueue[nextIndex];
+    final nextIndex_ = (state.currentIndex + 1) % state.images.length;
+    final nextAudioIndex = state.audioPaths.isNotEmpty
+        ? (state.audioIndex + 1) % state.audioPaths.length
+        : 0;
+
+    _targetTime = DateTime.now().add(nextDuration);
+    state = state.copyWith(
+      isOnBreak: false,
+      phaseQueueIndex: nextIndex,
+      currentIndex: nextIndex_,
+      timerDuration: nextDuration,
+      remainingTime: nextDuration,
+      audioIndex: nextAudioIndex,
+    );
+
+    _playSystemNotificationSound();
+
+    if (state.isPlaying && state.hasAudio) {
+      _startAudioPlayback();
+    }
+  }
+
+  void _endClassSession() {
+    _timer?.cancel();
+    state = state.copyWith(
+      isPlaying: false,
+      isClassMode: false,
+      isOnBreak: false,
+    );
+  }
+
+  void cleanup() {
+    _timer?.cancel();
+    _beepPlayer.dispose();
   }
 }
 

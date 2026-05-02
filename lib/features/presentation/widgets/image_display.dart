@@ -52,12 +52,37 @@ class ImageDisplay extends ConsumerWidget {
                 File(currentImage.path!),
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.high,
+                frameBuilder: (context, child, frame, loaded) {
+                  if (loaded) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                errorBuilder: (_, __, ___) => _buildError(),
               )
-            : Image.memory(
-                currentImage.bytes!,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-              ),
+            : currentImage.bytes != null
+                ? Image.memory(
+                    currentImage.bytes!,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                    frameBuilder: (context, child, frame, loaded) {
+                      if (loaded) return child;
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                    errorBuilder: (_, __, ___) => _buildError(),
+                  )
+                : _buildError(),
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.broken_image, size: 64, color: Colors.white24),
+          SizedBox(height: 8),
+          Text('Failed to load image', style: TextStyle(color: Colors.white38)),
+        ],
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 
@@ -68,5 +69,68 @@ class FileService {
     }
 
     return '$savedCount images saved to $directoryPath';
+  }
+
+  /// Saves gallery metadata to a JSON file.
+  Future<String?> saveGallery({
+    required String galleryName,
+    required List<MapEntry<String, String>> imagePaths,
+    required int timerDurationSeconds,
+    List<String>? audioPaths,
+  }) async {
+    String? directoryPath = await FilePicker.getDirectoryPath();
+    if (directoryPath == null) return null;
+
+    final galleryDir = '$directoryPath/$galleryName';
+    await Directory(galleryDir).create(recursive: true);
+
+    final futures = <Future>[];
+    final savedNames = <String>[];
+
+    for (final entry in imagePaths) {
+      final sourcePath = entry.key;
+      final fileName = entry.value;
+      final extension = sourcePath.split('.').last;
+      final destPath = '$galleryDir/$fileName.$extension';
+      futures.add(_copyIfExists(sourcePath, destPath).then((_) => savedNames.add(fileName)));
+    }
+
+    final audioFileNames = <String>[];
+    if (audioPaths != null) {
+      for (final audioPath in audioPaths) {
+        final fileName = audioPath.split('/').last;
+        final destPath = '$galleryDir/$fileName';
+        futures.add(_copyIfExists(audioPath, destPath).then((_) => audioFileNames.add(fileName)));
+      }
+    }
+
+    await Future.wait(futures);
+
+    final manifest = {
+      'name': galleryName,
+      'timerDuration': timerDurationSeconds,
+      'images': savedNames,
+      if (audioFileNames.isNotEmpty) 'audio': audioFileNames,
+    };
+
+    await File('$galleryDir/gallery.json').writeAsString(
+      JsonEncoder.withIndent('  ').convert(manifest),
+    );
+
+    return '${savedNames.length} images saved to $galleryDir';
+  }
+
+  Future<void> _copyIfExists(String source, String dest) async {
+    final file = File(source);
+    if (await file.exists()) await file.copy(dest);
+  }
+
+  /// Loads gallery metadata from a directory.
+  Future<Map<String, dynamic>?> loadGalleryManifest(String dirPath) async {
+    final manifestFile = File('$dirPath/gallery.json');
+    if (!await manifestFile.exists()) return null;
+
+    final content = await manifestFile.readAsString();
+    return jsonDecode(content) as Map<String, dynamic>;
   }
 }

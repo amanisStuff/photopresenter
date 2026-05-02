@@ -102,6 +102,43 @@ class PresentationScreen extends ConsumerWidget {
                     ),
                   ),
 
+                // Break Time Overlay
+                if (state.isPlaying && state.isClassMode && state.isOnBreak)
+                  Container(
+                    color: Colors.black87,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.coffee,
+                            size: 64,
+                            color: Colors.orange,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'BREAK TIME',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 4,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${state.remainingTime.inMinutes}:${(state.remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 // Focus Mode Timer Overlay (shows in last 10 seconds)
                 if (state.isFocusMode && state.isPlaying && state.remainingTime.inSeconds <= 10)
                   Positioned(

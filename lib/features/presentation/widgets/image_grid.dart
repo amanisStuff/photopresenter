@@ -90,11 +90,7 @@ class ImageGrid extends ConsumerWidget {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            image.source == ImageSource.file
-                                ? Image.file(File(image.path!), fit: BoxFit.cover)
-                                : Image.memory(image.bytes!, fit: BoxFit.cover),
-                            
-                            // Delete button on hover (simulated with Stack for now)
+                            _GridImage(image: image),
                             Positioned(
                               top: 4,
                               right: 4,
@@ -114,6 +110,64 @@ class ImageGrid extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _GridImage extends StatefulWidget {
+  final PresentationImage image;
+
+  const _GridImage({required this.image});
+
+  @override
+  State<_GridImage> createState() => _GridImageState();
+}
+
+class _GridImageState extends State<_GridImage> {
+  late final ImageProvider _imageProvider;
+  bool _loaded = false;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageProvider = widget.image.source == ImageSource.file && widget.image.path != null
+        ? FileImage(File(widget.image.path!))
+        : widget.image.source == ImageSource.memory && widget.image.bytes != null
+            ? MemoryImage(widget.image.bytes!)
+            : const NetworkImage('about:blank');
+    
+    _imageProvider.resolve(ImageConfiguration.empty).addListener(
+      ImageStreamListener((_, __) {
+        if (mounted) setState(() => _loaded = true);
+      }, onError: (_, __) {
+        if (mounted) setState(() => _error = true);
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error) {
+      return const Center(child: Icon(Icons.broken_image, color: Colors.white38));
+    }
+
+    if (!_loaded) {
+      return const Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return Image(
+      image: _imageProvider,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Center(
+        child: Icon(Icons.broken_image, color: Colors.white38),
       ),
     );
   }
