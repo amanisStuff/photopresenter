@@ -47,62 +47,43 @@ class ImageDisplay extends ConsumerWidget {
       duration: const Duration(milliseconds: 500),
       child: Container(
         constraints: const BoxConstraints.expand(),
-        child: _buildImage(currentImage),
+        child: currentImage.source == ImageSource.file
+            ? Image.file(
+                File(currentImage.path!),
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                frameBuilder: (context, child, frame, loaded) {
+                  if (loaded) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                errorBuilder: (_, __, ___) => _buildError(),
+              )
+            : currentImage.bytes != null
+            ? Image.memory(
+                currentImage.bytes!,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                frameBuilder: (context, child, frame, loaded) {
+                  if (loaded) return child;
+                  return const Center(child: CircularProgressIndicator());
+                },
+                errorBuilder: (_, __, ___) => _buildError(),
+              )
+            : _buildError(),
       ),
     );
   }
 
-  Widget _buildImage(PresentationImage image) {
-    switch (image.source) {
-      case ImageSource.file:
-        return Image.file(
-          File(image.path!),
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-        );
-      case ImageSource.memory:
-        return Image.memory(
-          image.bytes!,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-        );
-      case ImageSource.network:
-        return Image.network(
-          image.url!,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-          errorBuilder: (context, error, stackTrace) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.broken_image,
-                    size: 80,
-                    color: Colors.redAccent,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Failed to load image',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ],
-              ),
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                    : null,
-                color: Colors.blueAccent,
-              ),
-            );
-          },
-        );
-    }
+  Widget _buildError() {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.broken_image, size: 64, color: Colors.white24),
+          SizedBox(height: 8),
+          Text('Failed to load image', style: TextStyle(color: Colors.white38)),
+        ],
+      ),
+    );
   }
 }

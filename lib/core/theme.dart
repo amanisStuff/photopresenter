@@ -21,6 +21,27 @@ class AppTheme {
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+      ),
+      tooltipTheme: const TooltipThemeData(
+        waitDuration: Duration(milliseconds: 500),
+      ),
     );
   }
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-PhotoPresenter is a desktop image slideshow application built with Flutter for Windows. It allows users to display images in a presentation format with automatic slide transitions, focus mode, and various input methods (drag & drop, clipboard, file picker).
+PhotoPresenter is a desktop image slideshow application built with Flutter for Linux. It allows users to display images in a presentation format with automatic slide transitions, focus mode, class mode for figure drawing practice, and various input methods (drag & drop, clipboard, file picker).
 
 ---
 
@@ -12,91 +12,106 @@ PhotoPresenter is a desktop image slideshow application built with Flutter for W
 lib/
 ├── main.dart                    # App entry point
 ├── core/
-│   └── theme.dart               # App theming (dark theme)
+│   ├── theme.dart               # App theming (dark theme)
+│   └── widgets/
+│       └── clickable.dart       # Custom clickable widget
 ├── services/
 │   ├── service_providers.dart   # Riverpod providers for services
 │   ├── window_service.dart      # Window management (fullscreen, focus mode)
 │   ├── file_service.dart        # File picking (native file dialog)
 │   ├── clipboard_service.dart  # Clipboard operations (paste images/files)
-│   └── audio_service.dart       # Audio feedback (tick sounds)
+│   └── audio_service.dart       # Audio playback
 └── features/
-    └── presentation/
+    ├── presentation/
+    │   ├── models/
+    │   │   ├── presentation_image.dart   # Image data model
+    │   │   └── class_session.dart         # Class mode session model
+    │   ├── providers/
+    │   │   └── presentation_provider.dart # State management (Riverpod)
+    │   ├── presentation_screen.dart      # Main screen with keyboard shortcuts
+    │   └── widgets/
+│       ├── image_grid.dart           # Image library grid view
+    │       ├── image_display.dart         # Full-screen image display
+    │       └── presentation_controls.dart # Bottom control bar
+    └── settings/
         ├── models/
-        │   └── presentation_image.dart   # Image data model
+        │   └── app_settings.dart         # App settings & class presets
         ├── providers/
-        │   └── presentation_provider.dart # State management (Riverpod)
-        ├── presentation_screen.dart      # Main screen with keyboard shortcuts
-        └── widgets/
-            ├── custom_title_bar.dart     # Custom window title bar
-            ├── image_grid.dart          # Image library grid view
-            ├── image_display.dart        # Full-screen image display
-            └── presentation_controls.dart # Bottom control bar
+        │   └── settings_provider.dart     # Settings state management
+        └── settings_screen.dart          # Settings UI
 ```
 
 ---
 
-## Core Components
+## Core Features
 
-### 1. Main Entry Point (`main.dart`)
+### 1. Image Slideshow
 
-- Initializes `WindowService` for desktop window management
-- Wraps app in `ProviderScope` for Riverpod state management
-- Sets up dark theme via `AppTheme.darkTheme`
+- **Drag & Drop**: Drag image files directly onto the window
+- **File Picker**: Click "Add Images" button
+- **Clipboard Paste**: `Ctrl+V` to paste images from clipboard
+- Automatic slide transitions with configurable timer
 
-### 2. Theme (`core/theme.dart`)
+### 2. Class Mode (Figure Drawing Practice)
 
-- Dark theme configuration using Material 3
-- Custom gradients for primary and focus modes
-- Color scheme: Blue accent seed color, dark surface (#121212, #0A0A0A)
+Class Mode simulates live figure drawing sessions with progressive timing:
+
+| Phase | Duration | Purpose |
+|-------|----------|---------|
+| Warm-up | 30 seconds | Gesture, line of action, basic flow |
+| Early Study | 1 minute | Weight, proportion, major masses |
+| Mid Study | 5 minutes | Refining shapes, silhouettes |
+| Final Study | 10+ minutes | Anatomical detail, lighting, shadow |
+
+**Class Length Presets:**
+- **30 Minutes**: 4 warm-up, 4 early, 2 mid, 1 final (11 images)
+- **60 Minutes**: 6 warm-up, 6 early, 4 mid, 2 final + break (18 images)
+- **Custom**: User-configurable counts for each phase
+
+**Break Timer**: For longer sessions, a break can be triggered at a specific image to prevent hand cramping.
+
+### 3. Audio Modes
+
+Two audio modes available in Settings → Audio Mode:
+
+| Mode | Behavior |
+|------|----------|
+| **Audio Driven** | Audio plays from start to end. Image changes when audio ends. Timer shows audio countdown when audio is longer than timer. |
+| **Timer Driven** | Timer controls when images change. Audio plays briefly as a signal/beep when image changes (does not play throughout timer). |
+
+### 4. Custom Class Presets
+
+In Settings, users can create and manage custom class presets:
+- Add custom class with name and phase counts
+- Configure break timing
+- Edit or delete custom presets
 
 ---
 
-## Services
+## Settings
 
-### WindowService (`services/window_service.dart`)
+Settings accessible via the gear icon in controls:
 
-| Method | Description |
+| Setting | Description |
 |--------|-------------|
-| `initialize()` | Sets up window (1280x720, hidden title bar, centered) |
-| `toggleFullScreen()` | Toggles full-screen mode |
-| `enterFocusMode()` | Enters ultra-focus mode (fullscreen + frameless) |
-| `exitFocusMode()` | Exits focus mode |
-| `minimize()` | Minimizes window to taskbar |
-| `close()` | Closes the application |
-
-### FileService (`services/file_service.dart`)
-
-| Method | Description |
-|--------|-------------|
-| `pickImages()` | Opens native file picker, returns list of image paths |
-
-### ClipboardService (`services/clipboard_service.dart`)
-
-| Method | Description |
-|--------|-------------|
-| `getClipboardImage()` | Returns image bytes from clipboard, or null |
-| `getClipboardFiles()` | Returns file paths from clipboard |
-| `hasRelevantData()` | Checks if clipboard has images or files |
-
-### AudioService (`services/audio_service.dart`)
-
-| Method | Description |
-|--------|-------------|
-| `playAudio(String path, {void Function()? onComplete})` | Plays audio file, calls onComplete when done |
-| `stop()` | Stops current playback |
-| `pause()` | Pauses playback |
-| `resume()` | Resumes playback |
-| `isPlaying` | Getter - checks if audio is playing |
-| `dispose()` | Disposes audio player |
+| Default Timer Duration | Default slideshow interval (5s - 10m) |
+| Auto-play Audio | Start audio when slideshow begins |
+| Sound on Transition | Play sound when moving to next image |
+| Transition Sound | Custom sound file for transitions |
+| Default Volume | Audio playback volume |
+| Show Image Info | Display image name and count |
+| Confirm on Close | Ask before closing the app |
+| Audio Mode | Audio Driven vs Timer Driven |
+| Class Mode Presets | Manage custom class presets |
 
 ---
 
 ## State Management
 
-### PresentationState (`features/presentation/providers/presentation_provider.dart`)
+### PresentationState (`presentation_provider.dart`)
 
 | Property | Type | Default | Description |
-|-----------|------|---------|-------------|
+|---------|------|---------|-------------|
 | `images` | `List<PresentationImage>` | `[]` | Loaded images |
 | `currentIndex` | `int` | `0` | Currently displayed image index |
 | `isPlaying` | `bool` | `false` | Auto-playback active |
@@ -105,78 +120,48 @@ lib/
 | `isFocusMode` | `bool` | `false` | Focus mode enabled |
 | `audioPaths` | `List<String>` | `[]` | Loaded audio file paths |
 | `audioIndex` | `int` | `0` | Current audio track index |
+| `audioPosition` | `Duration` | `0` | Current audio playback position |
+| `audioDuration` | `Duration` | `0` | Current audio total duration |
+| `isClassMode` | `bool` | `false` | Class mode active |
+| `classConfig` | `ClassConfig?` | `null` | Current class configuration |
+| `phaseQueue` | `List<Duration>` | `[]` | Queue of phase durations |
+| `phaseQueueIndex` | `int` | `0` | Current phase index |
+| `isOnBreak` | `bool` | `false` | Break timer active |
 
-### PresentationNotifier Methods
+### AppSettings (`app_settings.dart`)
 
-| Method | Description |
-|--------|-------------|
-| `addImages(List<String> paths)` | Add images from file paths |
-| `addMemoryImage(dynamic bytes, String name)` | Add image from clipboard bytes |
-| `removeImage(int index)` | Remove image at index |
-| `setCurrentIndex(int index)` | Jump to specific image |
-| `nextImage()` | Go to next image (wraps to start) |
-| `previousImage()` | Go to previous image (wraps to end) |
-| `togglePlay()` | Start/stop auto-slideshow |
-| `setTimerDuration(Duration duration)` | Set slideshow interval |
-| `toggleFocusMode()` | Toggle focus/fullscreen mode |
-| `minimizeWindow()` | Minimize to taskbar |
-| `pasteFromClipboard()` | Paste image(s) from clipboard |
-| `pickFiles()` | Open file picker dialog |
-| `pickAudio()` | Pick multiple audio files |
-| `clearAudio()` | Clear all audio files |
+| Property | Type | Default | Description |
+|---------|------|---------|-------------|
+| `timerDurationSeconds` | `int` | `30` | Default timer in seconds |
+| `audioMode` | `AudioMode` | `audioDriven` | Audio/Timer driven mode |
+| `customClassPresets` | `List<ClassPreset>` | `[]` | User-created class presets |
 
 ---
 
-## Image Model
+## UI Components
 
-### PresentationImage (`features/presentation/models/presentation_image.dart`)
+### PresentationControls
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | `String` | Unique identifier (path or timestamp) |
-| `path` | `String?` | File path (if source is file) |
-| `bytes` | `Uint8List?` | Image bytes (if source is memory) |
-| `source` | `ImageSource` | `file` or `memory` |
-| `name` | `String` | Display name (filename) |
-
----
-
-## UI Widgets
-
-### PresentationScreen (`features/presentation/presentation_screen.dart`)
-
-Main screen that switches between:
-- **Empty state**: Shows drag hint and "Pick Images" button
-- **Grid view**: When not playing, shows library grid
-- **Display view**: When playing, shows current image fullscreen
-
-### CustomTitleBar (`features/presentation/widgets/custom_title_bar.dart`)
-
-Custom window title bar with:
-- App icon and title "PhotoPresenter"
-- Window controls: Minimize, Focus Mode, Close
-- Draggable area for moving window
-
-### ImageGrid (`features/presentation/widgets/image_grid.dart`)
-
-- Displays all loaded images in a grid (200px tiles)
-- "Add Images" card at the start
-- Click to select/display image
-- Delete button on each thumbnail
-- Shows image count badge
-
-### ImageDisplay (`features/presentation/widgets/image_display.dart`)
-
-- Full-screen image display with `BoxFit.contain`
-- FadeIn animation on image change
-- Empty state with drag hint and file picker button
-
-### PresentationControls (`features/presentation/widgets/presentation_controls.dart`)
-
-Bottom control bar with:
-- **Left**: Image info, timer countdown, timer duration selector (dropdown: 5s/10s/30s/1m/5m)
+Bottom control bar with simplified layout:
+- **Left**: Image count, timer countdown, timer selector, class mode toggle, phase indicator
 - **Center**: Previous, Play/Pause, Next buttons
-- **Right**: Minimize, Paste, Focus Mode buttons
+- **Right**: Audio toggle, Settings, Focus Mode, Load menu, Save menu
+
+### Load Menu (folder icon)
+- Add Images - Add images via file picker
+- Load Gallery - Load a previously saved gallery
+- Load Playlist - Load a previously saved audio playlist
+
+### Save Menu (more options icon)
+- Download Images - Export all images to a folder
+- Save Gallery - Save images and audio as a gallery
+- Save Playlist - Save audio files as a playlist
+
+### Focus Mode
+
+- Hides controls when playing (shows when paused/stopped)
+- Full-screen display with dark background
+- Press `Escape` or click X to exit
 
 ---
 
@@ -184,42 +169,29 @@ Bottom control bar with:
 
 | Shortcut | Action |
 |----------|--------|
-| `Escape` | Exit focus mode (when in focus mode) |
+| `Escape` | Exit focus mode |
+| `F11` | Toggle focus mode |
+| `Ctrl+F` | Toggle focus mode |
 | `Space` | Toggle play/pause |
 | `ArrowRight` | Next image |
 | `ArrowLeft` | Previous image |
 | `Ctrl+V` | Paste from clipboard |
 | `Ctrl+M` | Minimize window |
+| `Ctrl+D` | Download/export images |
+| `Ctrl+G` | Save gallery |
+| `Ctrl+P` | Save audio playlist |
 
 ---
 
-## Input Methods
+## Class Mode Dialog
 
-1. **Drag & Drop**: Drag image files directly onto the window
-2. **File Picker**: Click "Pick Images" button or "+" card
-3. **Clipboard Paste**: `Ctrl+V` to paste images from clipboard (including screenshots)
-4. **File Explorer Paste**: Copy files in Explorer, then `Ctrl+V`
+When clicking "Class Mode" button:
+1. **Quick Start**: Choose 30 Min or 60 Min preset
+2. **Custom Configuration**: Adjust counts for each phase
+3. **Break Option**: Enable break for longer sessions
+4. **Image Counter**: Shows minimum images needed
 
----
-
-## Focus Mode
-
-- Hides title bar and controls
-- Full-screen display with dark gradient background
-- Shows close button in top-right corner
-- Press `Escape` or click close button to exit
-
----
-
-## Dependencies (from `pubspec.yaml`)
-
-- `flutter_riverpod` - State management
-- `window_manager` - Desktop window control
-- `file_picker` - Native file dialogs
-- `desktop_drop` - Drag & drop support
-- `pasteboard` - Clipboard access
-- `audioplayers` - Audio playback (placeholder)
-- `animate_do` - Animations
+The top bar shows: `[current]/[total] images` format during class mode.
 
 ---
 
@@ -227,10 +199,10 @@ Bottom control bar with:
 
 ```bash
 # Development
-flutter run -d windows
+flutter run -d linux
 
 # Release build
-flutter build windows --release
+flutter build linux --release
 ```
 
 ---
@@ -238,6 +210,9 @@ flutter build windows --release
 ## Notes
 
 - Window size defaults to 1280x720
-- Hidden native title bar (custom title bar implemented)
-- Timer tick sound triggers when < 3 seconds remaining (audio not implemented)
-- Images wrap around (last -> first, first -> last)
+- Native window title bar (standard window controls)
+- Images wrap around (last → first, first → last)
+- Audio files can be loaded and cycle with images
+- Custom class presets persist in app settings
+- Timer and audio mode cannot be changed while playing
+- Progress bar shows remaining time (empties during countdown)

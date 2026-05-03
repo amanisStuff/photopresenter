@@ -12,7 +12,7 @@ class WindowService {
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.hidden,
+      titleBarStyle: TitleBarStyle.normal,
     );
 
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -36,8 +36,7 @@ class WindowService {
   /// Exits focus mode.
   Future<void> exitFocusMode() async {
     await windowManager.setFullScreen(false);
-    // Note: Frameless toggle might require window restart or specific logic depending on platform
-    // but for now we focus on full-screen exit.
+    await windowManager.setTitleBarStyle(TitleBarStyle.normal);
   }
 
   /// Minimizes the window.

@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'package:win32/win32.dart' as win32;
 import '../models/presentation_image.dart';
+import '../models/class_session.dart';
+import '../../settings/models/app_settings.dart';
 import '../../../services/service_providers.dart';
-import '../../gallery/models/gallery_manifest.dart';
+import '../../settings/providers/settings_provider.dart';
 
 class PresentationState {
   final List<PresentationImage> images;
@@ -19,6 +18,12 @@ class PresentationState {
   final List<String> audioPaths;
   final int audioIndex;
   final Duration audioPosition;
+  final Duration audioDuration;
+  final bool isClassMode;
+  final ClassConfig? classConfig;
+  final List<Duration> phaseQueue;
+  final int phaseQueueIndex;
+  final bool isOnBreak;
 
   PresentationState({
     List<PresentationImage>? images,
@@ -30,6 +35,12 @@ class PresentationState {
     List<String>? audioPaths,
     this.audioIndex = 0,
     this.audioPosition = Duration.zero,
+    this.audioDuration = Duration.zero,
+    this.isClassMode = false,
+    this.classConfig,
+    this.phaseQueue = const [],
+    this.phaseQueueIndex = 0,
+    this.isOnBreak = false,
   }) : images = images ?? [],
        audioPaths = audioPaths ?? [];
 
@@ -43,6 +54,12 @@ class PresentationState {
     List<String>? audioPaths,
     int? audioIndex,
     Duration? audioPosition,
+    Duration? audioDuration,
+    bool? isClassMode,
+    ClassConfig? classConfig,
+    List<Duration>? phaseQueue,
+    int? phaseQueueIndex,
+    bool? isOnBreak,
   }) {
     return PresentationState(
       images: images ?? this.images,
@@ -54,6 +71,12 @@ class PresentationState {
       audioPaths: audioPaths ?? this.audioPaths,
       audioIndex: audioIndex ?? this.audioIndex,
       audioPosition: audioPosition ?? this.audioPosition,
+      audioDuration: audioDuration ?? this.audioDuration,
+      isClassMode: isClassMode ?? this.isClassMode,
+      classConfig: classConfig ?? this.classConfig,
+      phaseQueue: phaseQueue ?? this.phaseQueue,
+      phaseQueueIndex: phaseQueueIndex ?? this.phaseQueueIndex,
+      isOnBreak: isOnBreak ?? this.isOnBreak,
     );
   }
 
@@ -64,6 +87,37 @@ class PresentationState {
 
   PresentationImage? get currentImage =>
       images.isNotEmpty ? images[currentIndex] : null;
+
+  ClassPhase? get currentPhase {
+    if (!isClassMode ||
+        phaseQueue.isEmpty ||
+        phaseQueueIndex >= phaseQueue.length) {
+      return null;
+    }
+    final duration = phaseQueue[phaseQueueIndex];
+    if (duration.inSeconds <= 30) return ClassPhase.warmUp;
+    if (duration.inSeconds <= 60) return ClassPhase.earlyStudy;
+    if (duration.inSeconds <= 300) return ClassPhase.midStudy;
+    return ClassPhase.finalStudy;
+  }
+
+  int get totalPhaseCount => phaseQueue.length;
+
+  int get imagesRemainingInPhase {
+    if (!isClassMode) return 0;
+    int count = 0;
+    final currentDuration =
+        phaseQueue.isNotEmpty && phaseQueueIndex < phaseQueue.length
+        ? phaseQueue[phaseQueueIndex]
+        : null;
+    if (currentDuration == null) return 0;
+    for (int i = phaseQueueIndex; i < phaseQueue.length; i++) {
+      if (phaseQueue[i] == currentDuration) {
+        count++;
+      }
+    }
+    return count;
+  }
 }
 
 class PresentationNotifier extends Notifier<PresentationState> {
@@ -78,22 +132,65 @@ class PresentationNotifier extends Notifier<PresentationState> {
     return PresentationState();
   }
 
-  void _playSystemNotificationSound() {
-    win32.Beep(800, 100);
+  final AudioPlayer _beepPlayer = AudioPlayer();
+
+  void _playSystemNotificationSound() async {
+    final settings = ref.read(settingsProvider);
+    if (!settings.soundOnTransition) return;
+
+    if (settings.transitionSoundPath != null) {
+      await _beepPlayer.setSource(
+        DeviceFileSource(settings.transitionSoundPath!),
+      );
+    } else {
+      await _beepPlayer.setSource(AssetSource('beep.wav'));
+    }
+    await _beepPlayer.resume();
   }
 
   void _advanceImage() {
-    nextImage();
-    if (state.isPlaying && !state.hasAudio) {
-      _playSystemNotificationSound();
+    if (state.isClassMode && !state.isOnBreak) {
+      _advanceClassPhase();
+    } else {
+      nextImage();
+      if (state.isPlaying && !state.hasAudio) {
+        _playSystemNotificationSound();
+      }
     }
   }
 
   void addImages(List<String> paths) {
-    final newImages = paths
+    final filePaths = paths.where((p) => !_isUrl(p)).toList();
+    final urlPaths = paths.where((p) => _isUrl(p)).toList();
+
+    final newImages = filePaths
         .map((path) => PresentationImage.fromPath(path))
         .toList();
+
     state = state.copyWith(images: [...state.images, ...newImages]);
+
+    for (final url in urlPaths) {
+      _downloadUrlImage(url);
+    }
+  }
+
+  bool _isUrl(String path) {
+    return path.startsWith('http://') || path.startsWith('https://');
+  }
+
+  Future<void> _downloadUrlImage(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        final name = Uri.parse(url).pathSegments.isNotEmpty
+            ? Uri.parse(url).pathSegments.last.split('.').first
+            : 'Web Image';
+        addMemoryImage(bytes, name);
+      }
+    } catch (e) {
+      // Silently fail for now
+    }
   }
 
   void addMemoryImage(dynamic bytes, String name) {
@@ -183,14 +280,20 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
   void _startAudioPlayback() {
     final audioService = ref.read(audioServiceProvider);
+    final settings = ref.read(settingsProvider);
     final path = state.currentAudioPath!;
     final timerSecs = state.timerDuration.inSeconds;
+    final isTimerDriven = settings.audioMode == AudioMode.timerDriven;
 
     audioService.getDuration(path).then((audioDuration) {
       if (audioDuration == null) return;
 
+      state = state.copyWith(audioDuration: audioDuration);
+
       final audioSecs = audioDuration.inSeconds;
-      if (audioSecs <= timerSecs) {
+      final bool audioIsCountdown = audioSecs <= timerSecs;
+
+      if (audioIsCountdown) {
         state = state.copyWith(audioPosition: Duration.zero);
         audioService.playAudio(
           path,
@@ -200,30 +303,35 @@ class PresentationNotifier extends Notifier<PresentationState> {
               final nextAudioIndex = state.audioPaths.isNotEmpty
                   ? (state.audioIndex + 1) % state.audioPaths.length
                   : 0;
-              state = state.copyWith(audioIndex: nextAudioIndex);
+              state = state.copyWith(
+                audioIndex: nextAudioIndex,
+                audioPosition: Duration.zero,
+              );
               _startAudioPlayback();
             }
           },
         );
-      } else {
-        final newPosition = Duration(
-          seconds: (state.audioPosition.inSeconds + timerSecs) % audioSecs,
-        );
-        state = state.copyWith(audioPosition: newPosition);
+      } else if (!isTimerDriven) {
+        state = state.copyWith(audioPosition: Duration.zero);
         audioService.playAudio(
           path,
-          startPosition: newPosition,
           onComplete: () {
             if (state.isPlaying) {
               nextImage();
               final nextAudioIndex = state.audioPaths.isNotEmpty
                   ? (state.audioIndex + 1) % state.audioPaths.length
                   : 0;
-              state = state.copyWith(audioIndex: nextAudioIndex);
+              state = state.copyWith(
+                audioIndex: nextAudioIndex,
+                audioPosition: Duration.zero,
+              );
               _startAudioPlayback();
             }
           },
         );
+      } else {
+        state = state.copyWith(audioPosition: Duration.zero);
+        audioService.playAudio(path);
       }
     });
   }
@@ -252,12 +360,27 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void _startTimer() {
+    final settings = ref.read(settingsProvider);
+    final isAudioDriven = settings.audioMode == AudioMode.audioDriven;
+    final audioLonger =
+        state.hasAudio &&
+        state.audioDuration.inSeconds > state.timerDuration.inSeconds;
+
     _timer?.cancel();
     _targetTime = DateTime.now().add(state.remainingTime);
 
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
       if (_targetTime == null || !state.isPlaying) {
         timer.cancel();
+        return;
+      }
+
+      if (isAudioDriven && audioLonger && state.hasAudio) {
+        final audioService = ref.read(audioServiceProvider);
+        final position = await audioService.getCurrentPosition();
+        if (position != null) {
+          state = state.copyWith(audioPosition: position);
+        }
         return;
       }
 
@@ -315,118 +438,282 @@ class PresentationNotifier extends Notifier<PresentationState> {
     }
   }
 
-  Future<List<String>> addImagesFromUrls(List<String> urls) async {
-    final cacheDir = await _getImageCacheDir();
-    final addedPaths = <String>[];
+  Future<void> loadGallery() async {
+    final fileService = ref.read(fileServiceProvider);
+    final manifest = await fileService.pickAndLoadGallery();
+    if (manifest == null) return;
 
-    for (final url in urls) {
-      if (url.trim().isEmpty) continue;
-      try {
-        final uri = Uri.parse(url.trim());
-        if (!uri.isScheme('http') && !uri.isScheme('https')) continue;
+    final galleryDir = manifest['images'] is List
+        ? (manifest['images'] as List).first
+        : null;
+    if (galleryDir == null) return;
 
-        final response = await http.get(uri);
-        if (response.statusCode != 200) continue;
+    final dirPath = galleryDir.toString().contains('/')
+        ? galleryDir.toString().substring(
+            0,
+            galleryDir.toString().lastIndexOf('/'),
+          )
+        : null;
+    if (dirPath == null) return;
 
-        final fileName = _extractFileName(url.trim(), response.headers);
-        final filePath = '${cacheDir.path}/$fileName';
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
+    final imageNames = (manifest['images'] as List?)?.cast<String>() ?? [];
+    final audioNames = (manifest['audio'] as List?)?.cast<String>() ?? [];
+    final timerDuration = manifest['timerDuration'] as int? ?? 30;
 
-        addedPaths.add(filePath);
-      } catch (e) {
-        debugPrint('Failed to download image from $url: $e');
-      }
+    final imagePaths = imageNames.map((name) {
+      final ext = name.split('.').last;
+      return '$dirPath/$name';
+    }).toList();
+
+    final audioPaths = audioNames.map((name) => '$dirPath/$name').toList();
+
+    addImages(imagePaths);
+
+    if (audioPaths.isNotEmpty) {
+      state = state.copyWith(audioPaths: audioPaths, audioIndex: 0);
     }
 
-    if (addedPaths.isNotEmpty) {
-      addImages(addedPaths);
-    }
-
-    return addedPaths;
-  }
-
-  Future<Directory> _getImageCacheDir() async {
-    final appData = await getApplicationDocumentsDirectory();
-    final cacheDir = Directory('${appData.path}/web_images');
-    if (!await cacheDir.exists()) {
-      await cacheDir.create(recursive: true);
-    }
-    return cacheDir;
-  }
-
-  String _extractFileName(String url, Map<String, String> headers) {
-    var name = url.split('?').first.split('/').last;
-    if (name.isEmpty || !name.contains('.')) {
-      final contentType = headers['content-type'] ?? '';
-      final extension = contentType.contains('png')
-          ? 'png'
-          : contentType.contains('gif')
-          ? 'gif'
-          : contentType.contains('webp')
-          ? 'webp'
-          : 'jpg';
-      name = '${DateTime.now().millisecondsSinceEpoch}.$extension';
-    }
-    return name;
-  }
-
-  Future<GalleryManifest?> saveGallery(String name) async {
-    final imagePaths = state.images
-        .where((img) => img.path != null)
-        .map((img) => img.path!)
-        .toList();
-    final audioPaths = List<String>.from(state.audioPaths);
-
-    if (imagePaths.isEmpty && audioPaths.isEmpty) {
-      return null;
-    }
-
-    final galleryService = ref.read(galleryServiceProvider);
-    return await galleryService.saveGallery(
-      name: name,
-      imagePaths: imagePaths,
-      audioPaths: audioPaths,
+    state = state.copyWith(
+      timerDuration: Duration(seconds: timerDuration),
+      remainingTime: Duration(seconds: timerDuration),
     );
   }
 
-  Future<void> loadGallery(String galleryId) async {
+  Future<void> loadPlaylist() async {
+    final fileService = ref.read(fileServiceProvider);
+    final manifest = await fileService.pickAndLoadPlaylist();
+    if (manifest == null) return;
+
+    final playlistDir = manifest['audio'] is List
+        ? (manifest['audio'] as List).first
+        : null;
+    if (playlistDir == null) return;
+
+    final dirPath = playlistDir.toString().contains('/')
+        ? playlistDir.toString().substring(
+            0,
+            playlistDir.toString().lastIndexOf('/'),
+          )
+        : null;
+    if (dirPath == null) return;
+
+    final audioNames = (manifest['audio'] as List?)?.cast<String>() ?? [];
+    final audioPaths = audioNames.map((name) => '$dirPath/$name').toList();
+
+    state = state.copyWith(audioPaths: audioPaths, audioIndex: 0);
+  }
+
+  Future<String?> exportCurrentImage() async {
+    final image = state.currentImage;
+    if (image == null) return null;
+
+    if (image.source == ImageSource.file && image.path != null) {
+      final fileService = ref.read(fileServiceProvider);
+      return await fileService.exportImages([
+        MapEntry(image.path!, image.name),
+      ]);
+    }
+
+    return 'Cannot export in-memory images';
+  }
+
+  Future<String?> exportAllImages() async {
+    if (state.images.isEmpty) return null;
+
+    final fileImages = state.images
+        .where((img) => img.source == ImageSource.file && img.path != null)
+        .map((img) => MapEntry(img.path!, img.name))
+        .toList();
+
+    if (fileImages.isEmpty) {
+      return 'No file-based images to export';
+    }
+
+    final fileService = ref.read(fileServiceProvider);
+    return await fileService.exportImages(fileImages);
+  }
+
+  Future<String?> saveGallery(String name) async {
+    if (state.images.isEmpty) return null;
+
+    final fileImages = state.images
+        .where((img) => img.source == ImageSource.file && img.path != null)
+        .map((img) => MapEntry(img.path!, img.name))
+        .toList();
+
+    if (fileImages.isEmpty) {
+      return 'No file-based images to save';
+    }
+
+    final fileService = ref.read(fileServiceProvider);
+    return await fileService.saveGallery(
+      galleryName: name,
+      imagePaths: fileImages,
+      timerDurationSeconds: state.timerDuration.inSeconds,
+      audioPaths: state.audioPaths.isNotEmpty ? state.audioPaths : null,
+    );
+  }
+
+  Future<String?> savePlaylist([String? name]) async {
+    if (state.audioPaths.isEmpty) return 'No audio files to save';
+
+    final fileService = ref.read(fileServiceProvider);
+    final playlistName =
+        name ?? 'Playlist ${DateTime.now().millisecondsSinceEpoch}';
+    return await fileService.savePlaylist(
+      playlistName: playlistName,
+      audioPaths: state.audioPaths,
+    );
+  }
+
+  void startClassMode(ClassConfig config) {
+    final queue = config.generatePhaseQueue();
+    if (queue.isEmpty) return;
+
+    final firstDuration = queue.first;
+    state = state.copyWith(
+      isClassMode: true,
+      classConfig: config,
+      phaseQueue: queue,
+      phaseQueueIndex: 0,
+      timerDuration: firstDuration,
+      remainingTime: firstDuration,
+      isOnBreak: false,
+    );
+  }
+
+  void stopClassMode() {
     _timer?.cancel();
-    ref.read(audioServiceProvider).stop();
-
-    final galleryService = ref.read(galleryServiceProvider);
-    final manifest = await galleryService.loadGallery(galleryId);
-
-    final validImagePaths = <String>[];
-    for (final path in manifest.imagePaths) {
-      if (path.isNotEmpty) {
-        validImagePaths.add(path);
-      }
-    }
-
-    final newImages = validImagePaths
-        .map((path) => PresentationImage.fromPath(path))
-        .toList();
-
-    final validAudioPaths = manifest.audioPaths
-        .where((p) => p.isNotEmpty)
-        .toList();
-
-    state = PresentationState(
-      images: newImages,
-      currentIndex: 0,
-      isPlaying: false,
-      timerDuration: state.timerDuration,
-      remainingTime: state.timerDuration,
-      isFocusMode: state.isFocusMode,
-      audioPaths: validAudioPaths,
-      audioIndex: 0,
+    state = state.copyWith(
+      isClassMode: false,
+      classConfig: null,
+      phaseQueue: [],
+      phaseQueueIndex: 0,
+      isOnBreak: false,
+      timerDuration: const Duration(seconds: 30),
+      remainingTime: const Duration(seconds: 30),
     );
   }
 
-  Future<List<GalleryManifest>> listGalleries() async {
-    final galleryService = ref.read(galleryServiceProvider);
-    return await galleryService.listGalleries();
+  void _advanceClassPhase() {
+    final nextIndex = state.phaseQueueIndex + 1;
+
+    if (state.classConfig != null && state.classConfig!.hasBreak) {
+      final totalImages = state.phaseQueue.length;
+      final breakPoint = state.classConfig!.breakAfterImage > 0
+          ? state.classConfig!.breakAfterImage
+          : (totalImages / 2).floor(); // Default to 50% if not specified
+      if (nextIndex == breakPoint && !state.isOnBreak) {
+        _startBreak();
+        return;
+      }
+    }
+
+    if (nextIndex >= state.phaseQueue.length) {
+      _endClassSession();
+      return;
+    }
+
+    final nextDuration = state.phaseQueue[nextIndex];
+    final nextIndex_ = (state.currentIndex + 1) % state.images.length;
+    final nextAudioIndex = state.audioPaths.isNotEmpty
+        ? (state.audioIndex + 1) % state.audioPaths.length
+        : 0;
+
+    _targetTime = DateTime.now().add(nextDuration);
+    state = state.copyWith(
+      phaseQueueIndex: nextIndex,
+      currentIndex: nextIndex_,
+      timerDuration: nextDuration,
+      remainingTime: nextDuration,
+      audioIndex: nextAudioIndex,
+    );
+
+    if (state.isPlaying && state.hasAudio) {
+      _startAudioPlayback();
+    }
+
+    if (state.isPlaying && !state.hasAudio) {
+      _playSystemNotificationSound();
+    }
+  }
+
+  void _startBreak() {
+    final breakDuration = Duration(
+      minutes: state.classConfig?.breakMinutes ?? 5,
+    );
+    _timer?.cancel();
+
+    state = state.copyWith(
+      isOnBreak: true,
+      remainingTime: breakDuration,
+      timerDuration: breakDuration,
+    );
+
+    _targetTime = DateTime.now().add(breakDuration);
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (_targetTime == null || !state.isPlaying || !state.isOnBreak) {
+        timer.cancel();
+        return;
+      }
+
+      final now = DateTime.now();
+      final difference = _targetTime!.difference(now);
+
+      if (difference.inMilliseconds <= 0) {
+        _endBreak();
+      } else {
+        if (difference.inSeconds != (state.remainingTime.inSeconds - 1)) {
+          state = state.copyWith(
+            remainingTime: Duration(seconds: difference.inSeconds + 1),
+          );
+        }
+      }
+    });
+  }
+
+  void _endBreak() {
+    final nextIndex = state.phaseQueueIndex + 1;
+    if (nextIndex >= state.phaseQueue.length) {
+      _endClassSession();
+      return;
+    }
+
+    final nextDuration = state.phaseQueue[nextIndex];
+    final nextIndex_ = (state.currentIndex + 1) % state.images.length;
+    final nextAudioIndex = state.audioPaths.isNotEmpty
+        ? (state.audioIndex + 1) % state.audioPaths.length
+        : 0;
+
+    _targetTime = DateTime.now().add(nextDuration);
+    state = state.copyWith(
+      isOnBreak: false,
+      phaseQueueIndex: nextIndex,
+      currentIndex: nextIndex_,
+      timerDuration: nextDuration,
+      remainingTime: nextDuration,
+      audioIndex: nextAudioIndex,
+    );
+
+    _playSystemNotificationSound();
+
+    if (state.isPlaying && state.hasAudio) {
+      _startAudioPlayback();
+    }
+  }
+
+  void _endClassSession() {
+    _timer?.cancel();
+    state = state.copyWith(
+      isPlaying: false,
+      isClassMode: false,
+      isOnBreak: false,
+    );
+  }
+
+  void cleanup() {
+    _timer?.cancel();
+    _beepPlayer.dispose();
   }
 }
 
