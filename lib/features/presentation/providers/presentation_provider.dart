@@ -24,6 +24,9 @@ class PresentationState {
   final List<Duration> phaseQueue;
   final int phaseQueueIndex;
   final bool isOnBreak;
+  // Indicates that the last user action was a manual navigation (not auto-advance)
+  // This helps us decide whether to apply the 500ms inter-slide delay on the next auto-transition.
+  final bool lastActionWasManual;
 
   PresentationState({
     List<PresentationImage>? images,
@@ -41,8 +44,9 @@ class PresentationState {
     this.phaseQueue = const [],
     this.phaseQueueIndex = 0,
     this.isOnBreak = false,
+    this.lastActionWasManual = false,
   }) : images = images ?? [],
-       audioPaths = audioPaths ?? [];
+      audioPaths = audioPaths ?? [];
 
   PresentationState copyWith({
     List<PresentationImage>? images,
@@ -60,6 +64,7 @@ class PresentationState {
     List<Duration>? phaseQueue,
     int? phaseQueueIndex,
     bool? isOnBreak,
+    bool? lastActionWasManual,
   }) {
     return PresentationState(
       images: images ?? this.images,
@@ -77,6 +82,7 @@ class PresentationState {
       phaseQueue: phaseQueue ?? this.phaseQueue,
       phaseQueueIndex: phaseQueueIndex ?? this.phaseQueueIndex,
       isOnBreak: isOnBreak ?? this.isOnBreak,
+      lastActionWasManual: lastActionWasManual ?? this.lastActionWasManual,
     );
   }
 
@@ -87,6 +93,7 @@ class PresentationState {
 
   PresentationImage? get currentImage =>
       images.isNotEmpty ? images[currentIndex] : null;
+
 
   ClassPhase? get currentPhase {
     if (!isClassMode ||
@@ -152,9 +159,24 @@ class PresentationNotifier extends Notifier<PresentationState> {
     if (state.isClassMode && !state.isOnBreak) {
       _advanceClassPhase();
     } else {
+      // Auto-advance to next image
       nextImage();
       if (state.isPlaying && !state.hasAudio) {
         _playSystemNotificationSound();
+      }
+      // Schedule next transition with inter-slide delay when auto-advancing
+      // If the previous action was manual (user navigation), skip this extra delay.
+      if (!state.isClassMode) {
+        if (state.lastActionWasManual) {
+          // Reset the timer to start from now without extra delay
+          _targetTime = DateTime.now().add(state.timerDuration);
+          // Consume the manual flag
+          state = state.copyWith(lastActionWasManual: false);
+        } else {
+          _targetTime = DateTime.now()
+              .add(state.timerDuration)
+              .add(const Duration(seconds: 1));
+        }
       }
     }
   }
@@ -232,11 +254,13 @@ class PresentationNotifier extends Notifier<PresentationState> {
     final nextAudioIndex = state.audioPaths.isNotEmpty
         ? (state.audioIndex + 1) % state.audioPaths.length
         : 0;
+    // Manual navigation should not trigger inter-slide delay
     _targetTime = DateTime.now().add(state.timerDuration);
     state = state.copyWith(
       currentIndex: nextIndex,
       remainingTime: state.timerDuration,
       audioIndex: nextAudioIndex,
+      lastActionWasManual: true,
     );
     if (state.isPlaying && state.hasAudio) {
       _startAudioPlayback();
@@ -251,11 +275,13 @@ class PresentationNotifier extends Notifier<PresentationState> {
         ? (state.audioIndex - 1 + state.audioPaths.length) %
               state.audioPaths.length
         : 0;
+    // Manual navigation should not trigger inter-slide delay
     _targetTime = DateTime.now().add(state.timerDuration);
     state = state.copyWith(
       currentIndex: prevIndex,
       remainingTime: state.timerDuration,
       audioIndex: nextAudioIndex,
+      lastActionWasManual: true,
     );
     if (state.isPlaying && state.hasAudio) {
       _startAudioPlayback();

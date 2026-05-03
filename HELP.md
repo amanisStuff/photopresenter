@@ -2,7 +2,7 @@
 
 ## Overview
 
-PhotoPresenter is a desktop image slideshow application built with Flutter for Linux. It allows users to display images in a presentation format with automatic slide transitions, focus mode, class mode for figure drawing practice, and various input methods (drag & drop, clipboard, file picker).
+PhotoPresenter is a cross-platform desktop image slideshow application built with Flutter. It allows users to display images in a presentation format with automatic slide transitions, focus mode, class mode for figure drawing practice, and various input methods (drag & drop, clipboard, file picker).
 
 ---
 
@@ -53,9 +53,11 @@ lib/
 ### 1. Image Slideshow
 
 - **Drag & Drop**: Drag image files directly onto the window
-- **File Picker**: Click "Add Images" button
+- **File Picker**: Click "Add Images" button or use Load menu
 - **Clipboard Paste**: `Ctrl+V` to paste images from clipboard
+- **Web Images**: Load images from URLs via the Load menu
 - Automatic slide transitions with configurable timer
+- Inter-slide delay: When auto-advancing between images, a 1 second delay is inserted between slides. This delay does not apply when you actively navigate (next/previous) images.
 
 ### 2. Class Mode (Figure Drawing Practice)
 
@@ -154,12 +156,12 @@ Bottom control bar with simplified layout:
 
 ### Load Menu (folder icon)
 - Add Images - Add images via file picker
-- Load Gallery - Load a previously saved gallery
+- Load Gallery - Load a previously saved gallery (shows dialog with available galleries)
 - Load Playlist - Load a previously saved audio playlist
 
 ### Save Menu (more options icon)
 - Download Images - Export all images to a folder
-- Save Gallery - Save images and audio as a gallery
+- Save Gallery - Save images and audio as a gallery (saved to user documents directory)
 - Save Playlist - Save audio files as a playlist
 
 ### Focus Mode
@@ -175,8 +177,7 @@ Bottom control bar with simplified layout:
 | Shortcut | Action |
 |----------|--------|
 | `Escape` | Exit focus mode |
-| `F11` | Toggle focus mode |
-| `Ctrl+F` | Toggle focus mode |
+| `F11` or `Ctrl+F` | Toggle focus mode |
 | `Space` | Toggle play/pause |
 | `ArrowRight` | Next image |
 | `ArrowLeft` | Previous image |
@@ -203,17 +204,30 @@ The top bar shows: `[current]/[total] images` format during class mode.
 ## Building/Running
 
 ```bash
-# Development
+# Development (Linux)
 flutter run -d linux
 
-# Release build
+# Development (Windows)
+flutter run -d windows
+
+# Development (macOS)
+flutter run -d macos
+
+# Release build (Linux)
 flutter build linux --release
+
+# Release build (Windows)
+flutter build windows --release
+
+# Release build (macOS)
+flutter build macos --release
 ```
 
 ---
 
 ## Notes
 
+- Cross-platform: Windows, macOS, Linux
 - Window size defaults to 1280x720
 - Native window title bar (standard window controls)
 - Images wrap around (last → first, first → last)
@@ -221,3 +235,4 @@ flutter build linux --release
 - Custom class presets persist in app settings
 - Timer and audio mode cannot be changed while playing
 - Progress bar shows remaining time (empties during countdown)
+- Galleries are saved to user documents directory under `galleries/`
