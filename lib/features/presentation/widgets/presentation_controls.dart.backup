@@ -10,7 +10,7 @@ import '../../../services/service_providers.dart';
 class PresentationControls extends ConsumerWidget {
   const PresentationControls({super.key});
 
-  Future<void> _showLoadGalleryDialog(
+  @override
     BuildContext context,
     WidgetRef ref,
   ) async {
@@ -119,6 +119,90 @@ class PresentationControls extends ConsumerWidget {
     );
   }
 
+  Future<void> _showAddWebImagesDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final controller = TextEditingController();
+    final notifier = ref.read(presentationProvider.notifier);
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Images from Web'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter image URLs (one per line):',
+                style: TextStyle(fontSize: 14, color: Colors.white70),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: controller,
+                maxLines: 8,
+                decoration: const InputDecoration(
+                  hintText:
+                      'https://example.com/image1.jpg\nhttps://example.com/image2.png',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                autofocus: true,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final urls = controller.text
+                  .split('\n')
+                  .map((u) => u.trim())
+                  .where((u) => u.isNotEmpty)
+                  .toList();
+
+              if (urls.isEmpty) return;
+
+              Navigator.of(context).pop();
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Downloading images...')),
+                );
+              }
+
+              final addedPaths = await notifier.addImagesFromUrls(urls);
+
+              if (context.mounted) {
+                if (addedPaths.isNotEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${addedPaths.length} image(s) added'),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to download any images'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(presentationProvider);
@@ -175,6 +259,10 @@ class PresentationControls extends ConsumerWidget {
                         final settings = ref.watch(settingsProvider);
                         final isAudioDriven =
                             settings.audioMode == AudioMode.audioDriven;
+                        final audioLonger =
+                            state.hasAudio &&
+                            state.audioDuration.inSeconds >
+                                state.timerDuration.inSeconds;
 
                         final bool showAudioCountdown =
                             state.hasAudio &&
@@ -520,6 +608,37 @@ class _TimerAdjustment extends ConsumerWidget {
       ],
     );
   }
+}
+
+Future<String?> _showSaveGalleryDialog(BuildContext context) async {
+  final controller = TextEditingController(
+    text: 'Gallery ${DateTime.now().millisecondsSinceEpoch}',
+  );
+
+  return showDialog<String>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Save Gallery'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(
+          labelText: 'Gallery Name',
+          hintText: 'Enter gallery name',
+        ),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, controller.text),
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
 }
 
 class _ClassModeButton extends StatelessWidget {

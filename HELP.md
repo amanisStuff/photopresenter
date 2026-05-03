@@ -19,8 +19,9 @@ lib/
 │   ├── service_providers.dart   # Riverpod providers for services
 │   ├── window_service.dart      # Window management (fullscreen, focus mode)
 │   ├── file_service.dart        # File picking (native file dialog)
-│   ├── clipboard_service.dart  # Clipboard operations (paste images/files)
-│   └── audio_service.dart       # Audio playback
+│   ├── clipboard_service.dart   # Clipboard operations (paste images/files)
+│   ├── audio_service.dart       # Audio playback
+│   └── gallery_service.dart     # Gallery save/load operations
 └── features/
     ├── presentation/
     │   ├── models/
@@ -30,15 +31,19 @@ lib/
     │   │   └── presentation_provider.dart # State management (Riverpod)
     │   ├── presentation_screen.dart      # Main screen with keyboard shortcuts
     │   └── widgets/
-│       ├── image_grid.dart           # Image library grid view
+    │       ├── image_grid.dart           # Image library grid view
     │       ├── image_display.dart         # Full-screen image display
-    │       └── presentation_controls.dart # Bottom control bar
-    └── settings/
-        ├── models/
-        │   └── app_settings.dart         # App settings & class presets
-        ├── providers/
-        │   └── settings_provider.dart     # Settings state management
-        └── settings_screen.dart          # Settings UI
+    │       ├── presentation_controls.dart # Bottom control bar
+    │       └── custom_title_bar.dart     # Custom window title bar
+    ├── settings/
+    │   ├── models/
+    │   │   └── app_settings.dart         # App settings & class presets
+    │   ├── providers/
+    │   │   └── settings_provider.dart     # Settings state management
+    │   └── settings_screen.dart          # Settings UI
+    └── gallery/
+        └── models/
+            └── gallery_manifest.dart     # Gallery manifest data model
 ```
 
 ---

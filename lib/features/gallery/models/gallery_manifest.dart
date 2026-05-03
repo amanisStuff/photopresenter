@@ -7,6 +7,7 @@ class GalleryManifest {
   final int audioCount;
   final List<String> imagePaths;
   final List<String> audioPaths;
+  final int? timerDurationSeconds;
 
   GalleryManifest({
     required this.id,
@@ -17,6 +18,7 @@ class GalleryManifest {
     required this.audioCount,
     required this.imagePaths,
     required this.audioPaths,
+    this.timerDurationSeconds,
   });
 
   factory GalleryManifest.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class GalleryManifest {
       audioCount: json['audioCount'] as int,
       imagePaths: (json['imagePaths'] as List<dynamic>).cast<String>(),
       audioPaths: (json['audioPaths'] as List<dynamic>).cast<String>(),
+      timerDurationSeconds: json['timerDurationSeconds'] as int?,
     );
   }
 
@@ -42,6 +45,7 @@ class GalleryManifest {
       'audioCount': audioCount,
       'imagePaths': imagePaths,
       'audioPaths': audioPaths,
+      if (timerDurationSeconds != null) 'timerDurationSeconds': timerDurationSeconds,
     };
   }
 }

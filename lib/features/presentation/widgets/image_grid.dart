@@ -160,10 +160,10 @@ class _GridImageState extends State<_GridImage> {
         .resolve(ImageConfiguration.empty)
         .addListener(
           ImageStreamListener(
-            (_, __) {
-              if (mounted) setState(() => _loaded = true);
-            },
-            onError: (_, __) {
+             (imageInfo, synchronousCall) {
+               if (mounted) setState(() => _loaded = true);
+             },
+            onError: (error, stackTrace) {
               if (mounted) setState(() => _error = true);
             },
           ),
@@ -191,7 +191,7 @@ class _GridImageState extends State<_GridImage> {
     return Image(
       image: _imageProvider,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) =>
+      errorBuilder: (context, error, stackTrace) =>
           const Center(child: Icon(Icons.broken_image, color: Colors.white38)),
     );
   }

@@ -438,6 +438,45 @@ class PresentationNotifier extends Notifier<PresentationState> {
     }
   }
 
+  Future<void> loadGalleryById(String id) async {
+    final galleryService = ref.read(galleryServiceProvider);
+    final manifest = await galleryService.loadGallery(id);
+
+    final imagePaths = manifest.imagePaths;
+    final audioPaths = manifest.audioPaths;
+
+    addImages(imagePaths);
+
+    if (audioPaths.isNotEmpty) {
+      state = state.copyWith(audioPaths: audioPaths, audioIndex: 0);
+    }
+
+    state = state.copyWith(
+      timerDuration: Duration(seconds: manifest.timerDurationSeconds ?? 30),
+      remainingTime: Duration(seconds: manifest.timerDurationSeconds ?? 30),
+    );
+  }
+
+  Future<List<String>> addImagesFromUrls(List<String> urls) async {
+    final addedPaths = <String>[];
+    for (final url in urls) {
+      try {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final bytes = response.bodyBytes;
+          final name = Uri.parse(url).pathSegments.isNotEmpty
+              ? Uri.parse(url).pathSegments.last.split('.').first
+              : 'Web Image';
+          addMemoryImage(bytes, name);
+          addedPaths.add(url);
+        }
+      } catch (e) {
+        // Silently fail for now
+      }
+    }
+    return addedPaths;
+  }
+
   Future<void> loadGallery() async {
     final fileService = ref.read(fileServiceProvider);
     final manifest = await fileService.pickAndLoadGallery();
@@ -461,7 +500,6 @@ class PresentationNotifier extends Notifier<PresentationState> {
     final timerDuration = manifest['timerDuration'] as int? ?? 30;
 
     final imagePaths = imageNames.map((name) {
-      final ext = name.split('.').last;
       return '$dirPath/$name';
     }).toList();
 

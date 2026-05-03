@@ -56,7 +56,7 @@ class ImageDisplay extends ConsumerWidget {
                   if (loaded) return child;
                   return const Center(child: CircularProgressIndicator());
                 },
-                errorBuilder: (_, __, ___) => _buildError(),
+                errorBuilder: (context, error, stackTrace) => _buildError(),
               )
             : currentImage.bytes != null
             ? Image.memory(
@@ -67,7 +67,7 @@ class ImageDisplay extends ConsumerWidget {
                   if (loaded) return child;
                   return const Center(child: CircularProgressIndicator());
                 },
-                errorBuilder: (_, __, ___) => _buildError(),
+                errorBuilder: (context, error, stackTrace) => _buildError(),
               )
             : _buildError(),
       ),

@@ -60,7 +60,7 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.autoPlayAudio,
               onChanged: notifier.setAutoPlayAudio,
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
             ),
           ),
           _SettingsTile(
@@ -69,7 +69,7 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.soundOnTransition,
               onChanged: notifier.setSoundOnTransition,
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
             ),
           ),
           if (settings.soundOnTransition)
@@ -94,14 +94,14 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: '${(settings.defaultVolume * 100).toInt()}%',
             trailing: SizedBox(
               width: 150,
-              child: Slider(
-                value: settings.defaultVolume,
-                min: 0.0,
-                max: 1.0,
-                activeColor: Colors.blueAccent,
-                inactiveColor: Colors.white24,
-                onChanged: notifier.setDefaultVolume,
-              ),
+               child: Slider(
+                 value: settings.defaultVolume,
+                 min:0.0,
+                 max: 1.0,
+                 activeColor: Colors.blueAccent,
+                 inactiveColor: Colors.white24,
+                 onChanged: notifier.setDefaultVolume,
+               ),
             ),
           ),
           const SizedBox(height: 24),
@@ -112,7 +112,7 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.showImageInfo,
               onChanged: notifier.setShowImageInfo,
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
             ),
           ),
           const SizedBox(height: 24),
@@ -129,7 +129,7 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.confirmOnClose,
               onChanged: notifier.setConfirmOnClose,
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
             ),
           ),
           const SizedBox(height: 24),
@@ -257,35 +257,6 @@ class _SettingsTile extends StatelessWidget {
           trailing,
         ],
       ),
-    );
-  }
-}
-
-class _SoundOnTransitionSwitch extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _SoundOnTransitionSwitch({
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: Colors.blueAccent,
-        ),
-        if (value)
-          Tooltip(
-            message: 'Create assets/beep.wav or add to pubspec.yaml',
-            child: const Icon(Icons.info_outline, size: 14, color: Colors.orange),
-          ),
-      ],
     );
   }
 }
