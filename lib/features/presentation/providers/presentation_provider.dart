@@ -8,6 +8,21 @@ import '../../settings/models/app_settings.dart';
 import '../../../services/service_providers.dart';
 import '../../settings/providers/settings_provider.dart';
 
+enum ImageFilter {
+  none('None'),
+  grayscale('Grayscale'),
+  sepia('Sepia'),
+  invert('Invert'),
+  brightness('Bright'),
+  contrast('High Contrast'),
+  extremeContrast('Extreme Contrast'),
+  blurEffect('Blur'),
+  heavyBlur('Heavy Blur');
+
+  final String displayName;
+  const ImageFilter(this.displayName);
+}
+
 class PresentationState {
   final List<PresentationImage> images;
   final int currentIndex;
@@ -24,9 +39,8 @@ class PresentationState {
   final List<Duration> phaseQueue;
   final int phaseQueueIndex;
   final bool isOnBreak;
-  // Indicates that the last user action was a manual navigation (not auto-advance)
-  // This helps us decide whether to apply the 500ms inter-slide delay on the next auto-transition.
   final bool lastActionWasManual;
+  final Set<ImageFilter> activeFilters;
 
   PresentationState({
     List<PresentationImage>? images,
@@ -45,6 +59,7 @@ class PresentationState {
     this.phaseQueueIndex = 0,
     this.isOnBreak = false,
     this.lastActionWasManual = false,
+    this.activeFilters = const {},
   }) : images = images ?? [],
       audioPaths = audioPaths ?? [];
 
@@ -65,6 +80,7 @@ class PresentationState {
     int? phaseQueueIndex,
     bool? isOnBreak,
     bool? lastActionWasManual,
+    Set<ImageFilter>? activeFilters,
   }) {
     return PresentationState(
       images: images ?? this.images,
@@ -83,6 +99,7 @@ class PresentationState {
       phaseQueueIndex: phaseQueueIndex ?? this.phaseQueueIndex,
       isOnBreak: isOnBreak ?? this.isOnBreak,
       lastActionWasManual: lastActionWasManual ?? this.lastActionWasManual,
+      activeFilters: activeFilters ?? this.activeFilters,
     );
   }
 
@@ -302,6 +319,26 @@ class PresentationNotifier extends Notifier<PresentationState> {
       _timer?.cancel();
       ref.read(audioServiceProvider).stop();
     }
+  }
+
+  void toggleFilter(ImageFilter filter) {
+    final newFilters = Set<ImageFilter>.from(state.activeFilters);
+    if (newFilters.contains(filter)) {
+      newFilters.remove(filter);
+    } else {
+      newFilters.add(filter);
+    }
+    state = state.copyWith(activeFilters: newFilters);
+  }
+
+  void clearFilters() {
+    state = state.copyWith(activeFilters: {});
+  }
+
+  void shuffleImages() {
+    if (state.images.isEmpty) return;
+    final shuffled = List<PresentationImage>.from(state.images)..shuffle();
+    state = state.copyWith(images: shuffled, currentIndex: 0, remainingTime: state.timerDuration);
   }
 
   void _startAudioPlayback() {

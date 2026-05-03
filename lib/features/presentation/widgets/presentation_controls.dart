@@ -293,7 +293,15 @@ class PresentationControls extends ConsumerWidget {
                     : () => notifier.previousImage(),
                 color: Colors.white70,
               ),
-              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.shuffle, size: 20),
+                tooltip: 'Shuffle',
+                onPressed: state.images.isEmpty
+                    ? null
+                    : () => notifier.shuffleImages(),
+                color: Colors.white70,
+              ),
+              const SizedBox(width: 4),
               IconButton(
                 icon: Icon(
                   state.isPlaying ? Icons.pause : Icons.play_arrow,
@@ -361,6 +369,11 @@ class PresentationControls extends ConsumerWidget {
                   size: 20,
                 ),
                 onPressed: () => notifier.toggleFocusMode(),
+              ),
+              _FilterButton(
+                activeFilters: state.activeFilters,
+                onFilterToggled: (filter) => notifier.toggleFilter(filter),
+                onClearFilters: () => notifier.clearFilters(),
               ),
               PopupMenuButton<String>(
                 tooltip: 'Load',
@@ -1003,5 +1016,110 @@ class _AudioModeToggle extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+class _FilterButton extends StatelessWidget {
+  final Set<ImageFilter> activeFilters;
+  final ValueChanged<ImageFilter> onFilterToggled;
+  final VoidCallback onClearFilters;
+
+  const _FilterButton({
+    required this.activeFilters,
+    required this.onFilterToggled,
+    required this.onClearFilters,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = activeFilters.isNotEmpty;
+    return PopupMenuButton<void>(
+      tooltip: 'Image Filters',
+      icon: Icon(
+        Icons.filter,
+        color: isActive ? Colors.amber : Colors.white70,
+        size: 20,
+      ),
+      itemBuilder: (context) {
+        final items = <PopupMenuEntry<void>>[];
+        
+        if (activeFilters.isNotEmpty) {
+          items.add(
+            PopupMenuItem<void>(
+              onTap: onClearFilters,
+              child: Row(
+                children: [
+                  Icon(Icons.clear_all, size: 18, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Text(
+                    'None (Clear All)',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ],
+              ),
+            ),
+          );
+          items.add(const PopupMenuDivider());
+        }
+        
+        for (final filter in ImageFilter.values) {
+          if (filter == ImageFilter.none) continue;
+          items.add(
+            PopupMenuItem<void>(
+              onTap: () => onFilterToggled(filter),
+              child: Row(
+                children: [
+                  Icon(
+                    activeFilters.contains(filter)
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank,
+                    size: 18,
+                    color: activeFilters.contains(filter) ? Colors.amber : null,
+                  ),
+                  const SizedBox(width: 8),
+                  _FilterIcon(filter: filter),
+                  const SizedBox(width: 8),
+                  Text(filter.displayName),
+                ],
+              ),
+            ),
+          );
+        }
+        
+        return items;
+      },
+    );
+  }
+}
+
+class _FilterIcon extends StatelessWidget {
+  final ImageFilter filter;
+
+  const _FilterIcon({required this.filter});
+
+  @override
+  Widget build(BuildContext context) {
+    IconData icon;
+    switch (filter) {
+      case ImageFilter.none:
+        icon = Icons.filter_none;
+      case ImageFilter.grayscale:
+        icon = Icons.gradient;
+      case ImageFilter.sepia:
+        icon = Icons.filter_vintage;
+      case ImageFilter.invert:
+        icon = Icons.invert_colors;
+      case ImageFilter.brightness:
+        icon = Icons.brightness_6;
+      case ImageFilter.contrast:
+        icon = Icons.contrast;
+      case ImageFilter.extremeContrast:
+        icon = Icons.contrast;
+      case ImageFilter.blurEffect:
+        icon = Icons.blur_on;
+      case ImageFilter.heavyBlur:
+        icon = Icons.blur_circular;
+    }
+    return Icon(icon, size: 18);
   }
 }
