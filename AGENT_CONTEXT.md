@@ -123,3 +123,8 @@ Onboarding and Agent Guidance (New)
 
 Notes
 - This document is intended as a living briefing to minimize context drift. Update as the codebase evolves.
+
+- New Feature: Image Filters
+  - Implemented Black & White and Sepia image rendering for the slideshow.
+  - Access via the Presentation Controls bar: click the Filter menu (palette icon) to choose None / BW / Sepia.
+  - Rendering uses ColorFiltered; the underlying image data remains unchanged.
