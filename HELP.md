@@ -194,6 +194,10 @@ Bottom control bar with simplified layout:
 ---
 
 ## Class Mode Dialog
+### New Feature: Image Filters
+- Black & White and Sepia rendering have been added to image display.
+- Access via the Presentation Controls popup menu (palette icon) to switch None / BW / Sepia.
+- Rendering uses ColorFiltered; image data is unchanged.
 
 When clicking "Class Mode" button:
 1. **Quick Start**: Choose 30 Min or 60 Min preset

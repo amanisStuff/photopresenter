@@ -156,7 +156,12 @@ The image grid in `image_grid.dart` uses `ValueKey(image.path ?? image.name)` to
 1. Add method to `PresentationProvider` in `presentation_provider.dart`
 2. Add button/popup in `presentation_controls.dart`
 3. Add keyboard shortcut in `presentation_screen.dart` (optional)
-4. Update HELP.md and DEVELOPERS.md
+4. Implement Image Filter feature (Black & White and Sepia)
+   - Introduce `ImageFilterMode` in the presentation layer and a `filterMode` on `PresentationState`.
+   - Add `cycleFilter()` in the notifier to cycle through None -> BW -> Sepia -> None.
+   - Render filters in the image view using `ColorFiltered` with BW and Sepia matrices.
+   - Add a UI control (Filter icon) in `PresentationControls` to cycle the filter.
+5. Update HELP.md and DEVELOPERS.md
 
 ### Adding a New Setting
 
