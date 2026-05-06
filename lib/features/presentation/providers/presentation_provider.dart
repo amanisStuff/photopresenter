@@ -41,6 +41,8 @@ class PresentationState {
   final bool isOnBreak;
   final bool lastActionWasManual;
   final Set<ImageFilter> activeFilters;
+  final bool isShuffled;
+  final List<PresentationImage>? originalOrder;
 
   PresentationState({
     List<PresentationImage>? images,
@@ -60,6 +62,8 @@ class PresentationState {
     this.isOnBreak = false,
     this.lastActionWasManual = false,
     this.activeFilters = const {},
+    this.isShuffled = false,
+    this.originalOrder,
   }) : images = images ?? [],
       audioPaths = audioPaths ?? [];
 
@@ -81,6 +85,8 @@ class PresentationState {
     bool? isOnBreak,
     bool? lastActionWasManual,
     Set<ImageFilter>? activeFilters,
+    bool? isShuffled,
+    List<PresentationImage>? originalOrder,
   }) {
     return PresentationState(
       images: images ?? this.images,
@@ -100,6 +106,8 @@ class PresentationState {
       isOnBreak: isOnBreak ?? this.isOnBreak,
       lastActionWasManual: lastActionWasManual ?? this.lastActionWasManual,
       activeFilters: activeFilters ?? this.activeFilters,
+      isShuffled: isShuffled ?? this.isShuffled,
+      originalOrder: originalOrder ?? this.originalOrder,
     );
   }
 
@@ -250,6 +258,27 @@ class PresentationNotifier extends Notifier<PresentationState> {
     state = state.copyWith(images: newImages, currentIndex: newIndex);
   }
 
+  void reorderImages(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.images.length) return;
+    if (newIndex < 0 || newIndex >= state.images.length) return;
+    if (oldIndex == newIndex) return;
+
+    final newImages = List<PresentationImage>.from(state.images);
+    final item = newImages.removeAt(oldIndex);
+    newImages.insert(newIndex, item);
+
+    int newCurrentIndex = state.currentIndex;
+    if (state.currentIndex == oldIndex) {
+      newCurrentIndex = newIndex;
+    } else if (oldIndex < state.currentIndex && newIndex >= state.currentIndex) {
+      newCurrentIndex--;
+    } else if (oldIndex > state.currentIndex && newIndex <= state.currentIndex) {
+      newCurrentIndex++;
+    }
+
+    state = state.copyWith(images: newImages, currentIndex: newCurrentIndex);
+  }
+
   void setCurrentIndex(int index) {
     if (index < 0 || index >= state.images.length) return;
     final nextAudioIndex = state.audioPaths.isNotEmpty
@@ -335,10 +364,26 @@ class PresentationNotifier extends Notifier<PresentationState> {
     state = state.copyWith(activeFilters: {});
   }
 
-  void shuffleImages() {
+  void toggleShuffle() {
     if (state.images.isEmpty) return;
-    final shuffled = List<PresentationImage>.from(state.images)..shuffle();
-    state = state.copyWith(images: shuffled, currentIndex: 0, remainingTime: state.timerDuration);
+    if (state.isShuffled && state.originalOrder != null) {
+      state = state.copyWith(
+        images: state.originalOrder,
+        originalOrder: null,
+        isShuffled: false,
+        currentIndex: 0,
+      );
+    } else {
+      final original = List<PresentationImage>.from(state.images);
+      final shuffled = List<PresentationImage>.from(state.images)..shuffle();
+      state = state.copyWith(
+        images: shuffled,
+        originalOrder: original,
+        isShuffled: true,
+        currentIndex: 0,
+        remainingTime: state.timerDuration,
+      );
+    }
   }
 
   void _startAudioPlayback() {

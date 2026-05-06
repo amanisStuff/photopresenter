@@ -56,6 +56,8 @@ lib/
 - **File Picker**: Click "Add Images" button or use Load menu
 - **Clipboard Paste**: `Ctrl+V` to paste images from clipboard
 - **Web Images**: Load images from URLs via the Load menu
+- **Reorder Images**: In the Library grid, long-press and drag an image to reorder it
+- **Shuffle**: Click the shuffle button to randomize image order; click again to restore original order
 - Automatic slide transitions with configurable timer
 - Inter-slide delay: When auto-advancing between images, a 1 second delay is inserted between slides. This delay does not apply when you actively navigate (next/previous) images.
 
@@ -134,6 +136,8 @@ Settings accessible via the gear icon in controls:
 | `phaseQueue` | `List<Duration>` | `[]` | Queue of phase durations |
 | `phaseQueueIndex` | `int` | `0` | Current phase index |
 | `isOnBreak` | `bool` | `false` | Break timer active |
+| `isShuffled` | `bool` | `false` | Shuffle mode active |
+| `originalOrder` | `List<PresentationImage>?` | `null` | Original image order before shuffle |
 
 ### AppSettings (`app_settings.dart`)
 

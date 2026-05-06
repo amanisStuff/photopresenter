@@ -5,11 +5,18 @@ import 'package:animate_do/animate_do.dart';
 import '../providers/presentation_provider.dart';
 import '../models/presentation_image.dart';
 
-class ImageGrid extends ConsumerWidget {
+class ImageGrid extends ConsumerStatefulWidget {
   const ImageGrid({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ImageGrid> createState() => _ImageGridState();
+}
+
+class _ImageGridState extends ConsumerState<ImageGrid> {
+  int? _draggedIndex;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(presentationProvider);
     final notifier = ref.read(presentationProvider.notifier);
 
@@ -71,61 +78,168 @@ class ImageGrid extends ConsumerWidget {
                   final image = state.images[actualIndex];
                   final isSelected = state.currentIndex == actualIndex;
 
-                  return MouseRegion(
+                  return _DraggableImage(
                     key: ValueKey(image.path ?? image.name),
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () => notifier.setCurrentIndex(actualIndex),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.blueAccent
-                                : Colors.transparent,
-                            width: 3,
-                          ),
-                          boxShadow: [
-                            if (isSelected)
-                              BoxShadow(
-                                color: Colors.blueAccent.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                          ],
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            _GridImage(image: image),
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  size: 18,
-                                  color: Colors.white70,
-                                ),
-                                onPressed: () =>
-                                    notifier.removeImage(actualIndex),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    image: image,
+                    actualIndex: actualIndex,
+                    isSelected: isSelected,
+                    isDragging: _draggedIndex == actualIndex,
+                    onDragStarted: () => setState(() => _draggedIndex = actualIndex),
+                    onDragEnd: () => setState(() => _draggedIndex = null),
+                    onTap: () => notifier.setCurrentIndex(actualIndex),
+                    onRemove: () => notifier.removeImage(actualIndex),
+                    onReorder: notifier.reorderImages,
+                    imagesLength: state.images.length,
                   );
                 },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DraggableImage extends StatelessWidget {
+  final PresentationImage image;
+  final int actualIndex;
+  final bool isSelected;
+  final bool isDragging;
+  final VoidCallback onDragStarted;
+  final VoidCallback onDragEnd;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+  final void Function(int, int) onReorder;
+  final int imagesLength;
+
+  const _DraggableImage({
+    super.key,
+    required this.image,
+    required this.actualIndex,
+    required this.isSelected,
+    required this.isDragging,
+    required this.onDragStarted,
+    required this.onDragEnd,
+    required this.onTap,
+    required this.onRemove,
+    required this.onReorder,
+    required this.imagesLength,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LongPressDraggable<int>(
+      data: actualIndex,
+      delay: const Duration(milliseconds: 200),
+      onDragStarted: onDragStarted,
+      onDragEnd: (_) => onDragEnd(),
+      feedback: Material(
+        color: Colors.transparent,
+        child: SizedBox(
+          width: 180,
+          height: 180,
+          child: _buildImageCard(context, isDragging: true),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _buildImageCard(context),
+      ),
+      child: DragTarget<int>(
+        onWillAcceptWithDetails: (details) => details.data != actualIndex,
+        onAcceptWithDetails: (details) {
+          onReorder(details.data, actualIndex);
+        },
+        builder: (context, candidateData, rejectedData) {
+          final isDropTarget = candidateData.isNotEmpty;
+          return MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: onTap,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDropTarget
+                        ? Colors.green
+                        : isSelected
+                            ? Colors.blueAccent
+                            : Colors.transparent,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    if (isSelected)
+                      BoxShadow(
+                        color: Colors.blueAccent.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                      ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _GridImage(image: image),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          size: 18,
+                          color: Colors.white70,
+                        ),
+                        onPressed: onRemove,
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildImageCard(BuildContext context, {bool isDragging = false}) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDragging ? Colors.blueAccent : Colors.transparent,
+          width: 3,
+        ),
+        boxShadow: isDragging
+            ? [
+                BoxShadow(
+                  color: Colors.blueAccent.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 4,
+                ),
+              ]
+            : null,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _GridImage(image: image),
+          if (isDragging)
+            Container(
+              color: Colors.black26,
+              child: const Center(
+                child: Icon(Icons.drag_indicator, color: Colors.white70, size: 40),
+              ),
+            ),
+        ],
       ),
     );
   }

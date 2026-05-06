@@ -294,12 +294,16 @@ class PresentationControls extends ConsumerWidget {
                 color: Colors.white70,
               ),
               IconButton(
-                icon: const Icon(Icons.shuffle, size: 20),
+                icon: Icon(
+                  Icons.shuffle,
+                  size: 20,
+                  color: state.isShuffled ? Colors.blueAccent : Colors.white70,
+                ),
                 tooltip: 'Shuffle',
                 onPressed: state.images.isEmpty
                     ? null
-                    : () => notifier.shuffleImages(),
-                color: Colors.white70,
+                    : () => notifier.toggleShuffle(),
+                color: state.isShuffled ? Colors.blueAccent : Colors.white70,
               ),
               const SizedBox(width: 4),
               IconButton(
