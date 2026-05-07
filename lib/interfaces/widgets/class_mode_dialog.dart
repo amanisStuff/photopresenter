@@ -128,16 +128,7 @@ class _ClassModeSelectionDialogState extends State<ClassModeSelectionDialog> {
                     (preset) => PresetButton(
                       label: '${preset.name} (${preset.totalImages} img)',
                       onTap: () {
-                        final config = ClassConfig(
-                          length: ClassLength.custom,
-                          warmUpCount: preset.warmUpCount,
-                          earlyStudyCount: preset.earlyStudyCount,
-                          midStudyCount: preset.midStudyCount,
-                          finalStudyCount: preset.finalStudyCount,
-                          hasBreak: preset.hasBreak,
-                          breakMinutes: preset.breakMinutes,
-                        );
-                        widget.onSelectCustom(config);
+                        widget.onSelectCustom(preset.toConfig());
                       },
                     ),
                   ),

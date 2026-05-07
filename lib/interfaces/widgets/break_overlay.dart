@@ -10,9 +10,9 @@ class BreakOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF0A0A18), Color(0xFF14142A)],
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppTheme.breakGradientStart, AppTheme.breakGradientEnd],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -45,15 +45,7 @@ class BreakOverlay extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'BREAK TIME',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 6,
-              ),
-            ),
+            Text('BREAK TIME', style: AppTheme.overlayTitleStyle),
             const SizedBox(height: 4),
             Text(
               'Rest your hand',

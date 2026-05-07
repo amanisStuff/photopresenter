@@ -23,6 +23,39 @@ extension AudioModeExtension on AudioMode {
   }
 }
 
+class ClassPresetBuilder {
+  String _name = 'Custom';
+  int _warmUpCount = 0;
+  int _earlyStudyCount = 0;
+  int _midStudyCount = 0;
+  int _finalStudyCount = 0;
+  bool _hasBreak = false;
+  int _breakMinutes = 3;
+  int _breakAfterImage = 0;
+
+  ClassPresetBuilder setName(String name) { _name = name; return this; }
+  ClassPresetBuilder setWarmUpCount(int count) { _warmUpCount = count; return this; }
+  ClassPresetBuilder setEarlyStudyCount(int count) { _earlyStudyCount = count; return this; }
+  ClassPresetBuilder setMidStudyCount(int count) { _midStudyCount = count; return this; }
+  ClassPresetBuilder setFinalStudyCount(int count) { _finalStudyCount = count; return this; }
+  ClassPresetBuilder setHasBreak(bool hasBreak) { _hasBreak = hasBreak; return this; }
+  ClassPresetBuilder setBreakMinutes(int minutes) { _breakMinutes = minutes; return this; }
+  ClassPresetBuilder setBreakAfterImage(int image) { _breakAfterImage = image; return this; }
+
+  ClassPreset build() {
+    return ClassPreset(
+      name: _name,
+      warmUpCount: _warmUpCount,
+      earlyStudyCount: _earlyStudyCount,
+      midStudyCount: _midStudyCount,
+      finalStudyCount: _finalStudyCount,
+      hasBreak: _hasBreak,
+      breakMinutes: _breakMinutes,
+      breakAfterImage: _breakAfterImage,
+    );
+  }
+}
+
 class ClassPreset {
   final String name;
   final int warmUpCount;

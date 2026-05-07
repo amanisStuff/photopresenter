@@ -7,6 +7,8 @@ import '../../core/providers/presentation_provider.dart';
 import '../widgets/image_grid.dart';
 import '../widgets/image_display.dart';
 import '../widgets/presentation_controls.dart';
+import '../widgets/break_overlay.dart';
+import '../widgets/focus_timer_overlay.dart';
 
 class PresentationScreen extends ConsumerWidget {
   const PresentationScreen({super.key});
@@ -64,15 +66,7 @@ class PresentationScreen extends ConsumerWidget {
             },
             child: Stack(
               children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF0D0D1A), Color(0xFF06060D)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                ),
+                Container(decoration: AppTheme.presentationBackground),
 
                 content,
 
@@ -127,11 +121,7 @@ class PresentationScreen extends ConsumerWidget {
                       ),
                       child: Text(
                         state.currentImage!.name,
-                        style: const TextStyle(
-                          color: Color(0xFFB0B0C8),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: AppTheme.overlayTextStyle.copyWith(fontWeight: FontWeight.w500),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -156,150 +146,12 @@ class PresentationScreen extends ConsumerWidget {
                   ),
 
                 if (state.isPlaying && state.isClassMode && state.isOnBreak)
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF0A0A18), Color(0xFF14142A)],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppTheme.royalBlue.withValues(alpha: 0.4),
-                                  AppTheme.royalBlueDark.withValues(alpha: 0.2),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: AppTheme.royalBlue.withValues(
-                                  alpha: 0.5,
-                                ),
-                                width: 2,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.coffee,
-                              size: 56,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'BREAK TIME',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 6,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Rest your hand',
-                            style: TextStyle(
-                              color: AppTheme.textMuted,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.bgCard,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: AppTheme.royalBlue.withValues(
-                                  alpha: 0.3,
-                                ),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              '${state.remainingTime.inMinutes}:${(state.remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
-                              style: const TextStyle(
-                                color: AppTheme.royalBlueLight,
-                                fontSize: 48,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  BreakOverlay(state: state),
 
                 if (state.isFocusMode &&
                     state.isPlaying &&
                     state.remainingTime.inSeconds <= 10)
-                  Positioned(
-                    bottom: 40,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.bgCard.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: AppTheme.royalBlue.withValues(alpha: 0.5),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 120,
-                              height: 10,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: LinearProgressIndicator(
-                                  value: state.timerDuration.inMilliseconds > 0
-                                      ? state.remainingTime.inMilliseconds /
-                                            state.timerDuration.inMilliseconds
-                                      : 0,
-                                  backgroundColor: Colors.white12,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    state.remainingTime.inSeconds <= 5
-                                        ? AppTheme.closeRed
-                                        : AppTheme.xpGreen,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${state.remainingTime.inSeconds}s',
-                              style: TextStyle(
-                                color: state.remainingTime.inSeconds <= 5
-                                    ? AppTheme.closeRed
-                                    : Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  FocusTimerOverlay(state: state),
               ],
             ),
           ),

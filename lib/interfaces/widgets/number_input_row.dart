@@ -34,14 +34,14 @@ class NumberInputRow extends StatelessWidget {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F0F1E),
+              color: AppTheme.bgDarkest,
               borderRadius: BorderRadius.circular(4),
               border: Border.all(color: AppTheme.royalBlue.withValues(alpha: 0.2)),
             ),
             child: Text(
               '$value',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+              style: AppTheme.cardTitleStyle,
             ),
           ),
           const SizedBox(width: 4),

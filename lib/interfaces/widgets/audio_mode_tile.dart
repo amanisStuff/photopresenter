@@ -15,56 +15,14 @@ class AudioModeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: AppTheme.royalBlue.withValues(alpha: 0.15),
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: AppTheme.tileOuterDecoration,
       child: Row(
         children: [
-          Container(
-            width: 4,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppTheme.royalBlue,
-                  AppTheme.royalBlueDark,
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-            ),
-          ),
+          Container(width: 4, decoration: AppTheme.tileAccentBarDecoration),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF16162A),
-                    const Color(0xFF0F0F1E),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
-                ),
-              ),
+              decoration: AppTheme.tileContentDecoration,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: AudioMode.values.map((mode) {
@@ -99,7 +57,7 @@ class AudioModeTile extends StatelessWidget {
                                   const SizedBox(height: 1),
                                   Text(
                                     mode.description,
-                                    style: const TextStyle(color: Color(0xFF8888A8), fontSize: 12),
+                                    style: AppTheme.cardSubtitleStyle,
                                   ),
                                 ],
                               ),

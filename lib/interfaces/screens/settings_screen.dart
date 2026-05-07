@@ -17,183 +17,151 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
 
-    return Container(
-      color: AppTheme.bgDark,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              height: 48,
-              decoration: AppTheme.royalBlueHeader,
-              child: Row(
-                children: [
-                  const SizedBox(width: 8),
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.settings, size: 16, color: Colors.white),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-                children: [
-                  SectionHeader(title: 'Timer'),
-                  SettingsTile(
-                    title: 'Default Timer Duration',
-                    subtitle: '${settings.timerDurationSeconds} seconds',
-                    trailing: DropdownButton<int>(
-                      value: settings.timerDurationSeconds,
-                      dropdownColor: const Color(0xFF2A2A2A),
-                      underline: const SizedBox(),
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
-                      items: AppSettings.timerOptions.map((val) {
-                        return DropdownMenuItem(
-                          value: val,
-                          child: Text(
-                            val < 60 ? '${val}s' : '${val ~/ 60}min',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) notifier.setTimerDuration(val);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SectionHeader(title: 'Audio'),
-                  SettingsTile(
-                    title: 'Auto-play Audio',
-                    subtitle: 'Play audio when slideshow starts',
-                    trailing: Switch(
-                      value: settings.autoPlayAudio,
-                      onChanged: notifier.setAutoPlayAudio,
-                      activeThumbColor: AppTheme.xpGreen,
-                      activeTrackColor: AppTheme.xpGreen.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  SettingsTile(
-                    title: 'Sound on Transition',
-                    subtitle: 'Play sound when moving to next image',
-                    trailing: Switch(
-                      value: settings.soundOnTransition,
-                      onChanged: notifier.setSoundOnTransition,
-                      activeThumbColor: AppTheme.royalBlue,
-                      activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SectionHeader(title: 'Display'),
-                  SettingsTile(
-                    title: 'Show Image Info',
-                    subtitle: 'Display image name and count',
-                    trailing: Switch(
-                      value: settings.showImageInfo,
-                      onChanged: notifier.setShowImageInfo,
-                      activeThumbColor: AppTheme.royalBlue,
-                      activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SectionHeader(title: 'Audio Mode'),
-                  AudioModeTile(
-                    currentMode: settings.audioMode,
-                    onChanged: notifier.setAudioMode,
-                  ),
-                  const SizedBox(height: 24),
-                  SectionHeader(title: 'Behavior'),
-                  SettingsTile(
-                    title: 'Confirm on Close',
-                    subtitle: 'Ask before closing the app',
-                    trailing: Switch(
-                      value: settings.confirmOnClose,
-                      onChanged: notifier.setConfirmOnClose,
-                      activeThumbColor: AppTheme.royalBlue,
-                      activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SectionHeader(title: 'Class Mode Presets'),
-                  ...ClassPreset.defaultPresets.asMap().entries.map((entry) {
-                    final preset = entry.value;
-                    return ClassPresetTile(
-                      name: preset.name,
-                      warmUp: preset.warmUpCount,
-                      early: preset.earlyStudyCount,
-                      mid: preset.midStudyCount,
-                      finalCount: preset.finalStudyCount,
-                      hasBreak: preset.hasBreak,
-                      breakMinutes: preset.breakMinutes,
-                    );
-                  }),
-                  ...settings.customClassPresets.asMap().entries.map((entry) {
-                    final preset = entry.value;
-                    return ClassPresetTile(
-                      name: preset.name,
-                      warmUp: preset.warmUpCount,
-                      early: preset.earlyStudyCount,
-                      mid: preset.midStudyCount,
-                      finalCount: preset.finalStudyCount,
-                      hasBreak: preset.hasBreak,
-                      breakMinutes: preset.breakMinutes,
-                      isCustom: true,
-                      onEdit: () => showEditPresetDialog(context, ref, entry.key, preset),
-                      onDelete: () => notifier.removeCustomClassPreset(entry.key),
-                    );
-                  }),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: TextButton.icon(
-                      icon: const Icon(Icons.add, color: AppTheme.royalBlue, size: 18),
-                      label: const Text(
-                        'Add Custom Class',
-                        style: TextStyle(color: AppTheme.royalBlue),
-                      ),
-                      onPressed: () => showEditPresetDialog(context, ref, -1, null),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: TextButton.icon(
-                      icon: const Icon(Icons.restore, color: Colors.white54),
-                      label: const Text(
-                        'Reset to Defaults',
-                        style: TextStyle(color: Colors.white54),
-                      ),
-                      onPressed: () => notifier.resetToDefaults(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    return Scaffold(
+      backgroundColor: AppTheme.bgDark,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white70),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        title: const Text(
+          'Settings',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        ),
+        centerTitle: true,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        children: [
+          SectionHeader(title: 'Timer'),
+          SettingsTile(
+            title: 'Default Timer Duration',
+            subtitle: '${settings.timerDurationSeconds} seconds',
+            trailing: DropdownButton<int>(
+              value: settings.timerDurationSeconds,
+              dropdownColor: AppTheme.dropdownBg,
+              underline: const SizedBox(),
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              items: AppSettings.timerOptions.map((val) {
+                return DropdownMenuItem(
+                  value: val,
+                  child: Text(
+                    val < 60 ? '${val}s' : '${val ~/ 60}min',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) notifier.setTimerDuration(val);
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+          SectionHeader(title: 'Audio'),
+          SettingsTile(
+            title: 'Auto-play Audio',
+            subtitle: 'Play audio when slideshow starts',
+            trailing: Switch(
+              value: settings.autoPlayAudio,
+              onChanged: notifier.setAutoPlayAudio,
+              activeThumbColor: AppTheme.xpGreen,
+              activeTrackColor: AppTheme.xpGreen.withValues(alpha: 0.3),
+            ),
+          ),
+          SettingsTile(
+            title: 'Sound on Transition',
+            subtitle: 'Play sound when moving to next image',
+            trailing: Switch(
+              value: settings.soundOnTransition,
+              onChanged: notifier.setSoundOnTransition,
+              activeThumbColor: AppTheme.royalBlue,
+              activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SectionHeader(title: 'Display'),
+          SettingsTile(
+            title: 'Show Image Info',
+            subtitle: 'Display image name and count',
+            trailing: Switch(
+              value: settings.showImageInfo,
+              onChanged: notifier.setShowImageInfo,
+              activeThumbColor: AppTheme.royalBlue,
+              activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SectionHeader(title: 'Audio Mode'),
+          AudioModeTile(
+            currentMode: settings.audioMode,
+            onChanged: notifier.setAudioMode,
+          ),
+          const SizedBox(height: 24),
+          SectionHeader(title: 'Behavior'),
+          SettingsTile(
+            title: 'Confirm on Close',
+            subtitle: 'Ask before closing the app',
+            trailing: Switch(
+              value: settings.confirmOnClose,
+              onChanged: notifier.setConfirmOnClose,
+              activeThumbColor: AppTheme.royalBlue,
+              activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SectionHeader(title: 'Class Mode Presets'),
+          ...ClassPreset.defaultPresets.asMap().entries.map((entry) {
+            final preset = entry.value;
+            return ClassPresetTile(
+              name: preset.name,
+              warmUp: preset.warmUpCount,
+              early: preset.earlyStudyCount,
+              mid: preset.midStudyCount,
+              finalCount: preset.finalStudyCount,
+              hasBreak: preset.hasBreak,
+              breakMinutes: preset.breakMinutes,
+            );
+          }),
+          ...settings.customClassPresets.asMap().entries.map((entry) {
+            final preset = entry.value;
+            return ClassPresetTile(
+              name: preset.name,
+              warmUp: preset.warmUpCount,
+              early: preset.earlyStudyCount,
+              mid: preset.midStudyCount,
+              finalCount: preset.finalStudyCount,
+              hasBreak: preset.hasBreak,
+              breakMinutes: preset.breakMinutes,
+              isCustom: true,
+              onEdit: () => showEditPresetDialog(context, ref, entry.key, preset),
+              onDelete: () => notifier.removeCustomClassPreset(entry.key),
+            );
+          }),
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton.icon(
+              icon: const Icon(Icons.add, color: AppTheme.royalBlue, size: 18),
+              label: const Text(
+                'Add Custom Class',
+                style: TextStyle(color: AppTheme.royalBlue),
+              ),
+              onPressed: () => showEditPresetDialog(context, ref, -1, null),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Center(
+            child: TextButton.icon(
+              icon: const Icon(Icons.restore, color: Colors.white54),
+              label: const Text(
+                'Reset to Defaults',
+                style: TextStyle(color: Colors.white54),
+              ),
+              onPressed: () => notifier.resetToDefaults(),
+            ),
+          ),
+        ],
       ),
     );
   }

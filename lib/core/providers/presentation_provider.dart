@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../entities/presentation_image.dart';
 import '../entities/class_session.dart';
-import '../entities/app_settings.dart';
 import '../../infrastructure/service_providers.dart';
 import 'settings_provider.dart';
+import '../strategies/strategy_providers.dart';
 
 enum ImageFilter {
   none('None'),
@@ -378,62 +378,31 @@ class PresentationNotifier extends Notifier<PresentationState> {
     }
   }
 
-  void _startAudioPlayback() {
+  Future<void> _startAudioPlayback() async {
     final audioService = ref.read(audioServiceProvider);
-    final settings = ref.read(settingsProvider);
+    final strategy = ref.read(audioModeStrategyProvider);
     final path = state.currentAudioPath!;
-    final timerSecs = state.timerDuration.inSeconds;
-    final isTimerDriven = settings.audioMode == AudioMode.timerDriven;
+    final timerDuration = state.timerDuration;
 
-    audioService.getDuration(path).then((audioDuration) {
-      if (audioDuration == null) return;
-
-      state = state.copyWith(audioDuration: audioDuration);
-
-      final audioSecs = audioDuration.inSeconds;
-      final bool audioIsCountdown = audioSecs <= timerSecs;
-
-      if (audioIsCountdown) {
-        state = state.copyWith(audioPosition: Duration.zero);
-        audioService.playAudio(
-          path,
-          onComplete: () {
-            if (state.isPlaying) {
-              nextImage();
-              final nextAudioIndex = state.audioPaths.isNotEmpty
-                  ? (state.audioIndex + 1) % state.audioPaths.length
-                  : 0;
-              state = state.copyWith(
-                audioIndex: nextAudioIndex,
-                audioPosition: Duration.zero,
-              );
-              _startAudioPlayback();
-            }
-          },
-        );
-      } else if (!isTimerDriven) {
-        state = state.copyWith(audioPosition: Duration.zero);
-        audioService.playAudio(
-          path,
-          onComplete: () {
-            if (state.isPlaying) {
-              nextImage();
-              final nextAudioIndex = state.audioPaths.isNotEmpty
-                  ? (state.audioIndex + 1) % state.audioPaths.length
-                  : 0;
-              state = state.copyWith(
-                audioIndex: nextAudioIndex,
-                audioPosition: Duration.zero,
-              );
-              _startAudioPlayback();
-            }
-          },
-        );
-      } else {
-        state = state.copyWith(audioPosition: Duration.zero);
-        audioService.playAudio(path);
-      }
-    });
+    final duration = await strategy.startAudio(audioService, path,
+      timerDuration: timerDuration,
+      onAudioEnd: () {
+        if (state.isPlaying) {
+          nextImage();
+          final nextAudioIndex = state.audioPaths.isNotEmpty
+              ? (state.audioIndex + 1) % state.audioPaths.length
+              : 0;
+          state = state.copyWith(
+            audioIndex: nextAudioIndex,
+            audioPosition: Duration.zero,
+          );
+          _startAudioPlayback();
+        }
+      },
+    );
+    if (duration != null) {
+      state = state.copyWith(audioDuration: duration, audioPosition: Duration.zero);
+    }
   }
 
   Future<void> pickAudio() async {
@@ -460,9 +429,10 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void _startTimer() {
-    final settings = ref.read(settingsProvider);
-    final isAudioDriven = settings.audioMode == AudioMode.audioDriven;
-    final audioLonger =
+    final strategy = ref.read(audioModeStrategyProvider);
+    final audioService = ref.read(audioServiceProvider);
+    final shouldTrackPosition =
+        !strategy.timerAdvancesImage &&
         state.hasAudio &&
         state.audioDuration.inSeconds > state.timerDuration.inSeconds;
 
@@ -475,8 +445,7 @@ class PresentationNotifier extends Notifier<PresentationState> {
         return;
       }
 
-      if (isAudioDriven && audioLonger && state.hasAudio) {
-        final audioService = ref.read(audioServiceProvider);
+      if (shouldTrackPosition) {
         final position = await audioService.getCurrentPosition();
         if (position != null) {
           state = state.copyWith(audioPosition: position);

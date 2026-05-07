@@ -221,7 +221,7 @@ class PresentationControls extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(2),
                               child: LinearProgressIndicator(
                                 value: progress,
-                                backgroundColor: const Color(0xFF808080),
+                                backgroundColor: AppTheme.silverBorder,
                                 valueColor: AlwaysStoppedAnimation(
                                   showAudioProgress
                                       ? AppTheme.xpGreen
@@ -474,7 +474,7 @@ class PresentationControls extends ConsumerWidget {
                         (Icons.queue_music, 'Load Playlist'),
                       ],
                     ),
-                    Container(width: 1, height: 20, color: const Color(0xFF808080)),
+                    Container(width: 1, height: 20, color: AppTheme.silverBorder),
                     _MenuButton(
                       icon: Icons.save_alt,
                       tooltip: 'Save / Export',
@@ -661,24 +661,7 @@ class _TimerAdjustment extends ConsumerWidget {
       onSelected: onChanged,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDisabled
-                ? [const Color(0xFFC0C0C0), const Color(0xFFD8D8D8)]
-                : [const Color(0xFFE8E8E8), const Color(0xFFC0C0C0)],
-          ),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: const Color(0xFF808080), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.6),
-              blurRadius: 1,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
+        decoration: AppTheme.xpControlButton(disabled: isDisabled),
         child: Text(
           '${value}s',
           style: TextStyle(
@@ -935,16 +918,7 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
                     (preset) => _PresetButton(
                       label: '${preset.name} (${preset.totalImages} img)',
                       onTap: () {
-                        final config = ClassConfig(
-                          length: ClassLength.custom,
-                          warmUpCount: preset.warmUpCount,
-                          earlyStudyCount: preset.earlyStudyCount,
-                          midStudyCount: preset.midStudyCount,
-                          finalStudyCount: preset.finalStudyCount,
-                          hasBreak: preset.hasBreak,
-                          breakMinutes: preset.breakMinutes,
-                        );
-                        widget.onSelectCustom(config);
+                        widget.onSelectCustom(preset.toConfig());
                       },
                     ),
                   ),
@@ -1161,16 +1135,16 @@ class _AudioModeToggle extends ConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: isDisabled
-                  ? [const Color(0xFFC0C0C0), const Color(0xFFD8D8D8)]
+                  ? [AppTheme.silverShadow, AppTheme.silverMid]
                   : (isTimerDriven
-                        ? [const Color(0xFFE8E8E8), const Color(0xFFC0C0C0)]
+                        ? [AppTheme.silverHighlight, AppTheme.silverShadow]
                         : [AppTheme.xpGreen, AppTheme.xpGreenDark]),
             ),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: isDisabled
-                  ? const Color(0xFF808080)
-                  : (isTimerDriven ? const Color(0xFF808080) : AppTheme.xpGreenDark),
+                  ? AppTheme.silverBorder
+                  : (isTimerDriven ? AppTheme.silverBorder : AppTheme.xpGreenDark),
               width: 1,
             ),
             boxShadow: [

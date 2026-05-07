@@ -1,86 +1,10 @@
-import 'dart:ui' as ui;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../core/providers/presentation_provider.dart';
+import '../../core/strategies/image_filter_decorator.dart';
 import '../../core/entities/presentation_image.dart';
-
-ColorFilter? _getColorFilterMatrix(ImageFilter filter) {
-  switch (filter) {
-    case ImageFilter.none:
-      return null;
-    case ImageFilter.grayscale:
-      return const ColorFilter.matrix([
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0, 0, 0, 1, 0,
-      ]);
-    case ImageFilter.sepia:
-      return const ColorFilter.matrix([
-        0.393, 0.769, 0.189, 0, 0,
-        0.349, 0.686, 0.168, 0, 0,
-        0.272, 0.534, 0.131, 0, 0,
-        0, 0, 0, 1, 0,
-      ]);
-    case ImageFilter.invert:
-      return const ColorFilter.matrix([
-        -1, 0, 0, 0, 255,
-        0, -1, 0, 0, 255,
-        0, 0, -1, 0, 255,
-        0, 0, 0, 1, 0,
-      ]);
-    case ImageFilter.brightness:
-      return const ColorFilter.matrix([
-        1.3, 0, 0, 0, 0,
-        0, 1.3, 0, 0, 0,
-        0, 0, 1.3, 0, 0,
-        0, 0, 0, 1, 0,
-      ]);
-    case ImageFilter.contrast:
-      return const ColorFilter.matrix([
-        1.6, 0, 0, 0, -128 * 0.6,
-        0, 1.6, 0, 0, -128 * 0.6,
-        0, 0, 1.6, 0, -128 * 0.6,
-        0, 0, 0, 1, 0,
-      ]);
-    case ImageFilter.extremeContrast:
-      return const ColorFilter.matrix([
-        2.5, 0, 0, 0, -200,
-        0, 2.5, 0, 0, -200,
-        0, 0, 2.5, 0, -200,
-        0, 0, 0, 1, 0,
-      ]);
-    case ImageFilter.blurEffect:
-    case ImageFilter.heavyBlur:
-      return null;
-  }
-}
-
-Widget _applyFilters(Set<ImageFilter> filters, Widget child) {
-  Widget result = child;
-  
-  for (final filter in filters) {
-    if (filter == ImageFilter.blurEffect) {
-      result = ImageFiltered(
-        imageFilter: ui.ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-        child: result,
-      );
-    } else if (filter == ImageFilter.heavyBlur) {
-      result = ImageFiltered(
-        imageFilter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: result,
-      );
-    } else {
-      final colorFilter = _getColorFilterMatrix(filter);
-      if (colorFilter != null) {
-        result = ColorFiltered(colorFilter: colorFilter, child: result);
-      }
-    }
-  }
-  return result;
-}
 
 class ImageDisplay extends ConsumerWidget {
   const ImageDisplay({super.key});
@@ -152,7 +76,7 @@ class ImageDisplay extends ConsumerWidget {
       duration: const Duration(milliseconds: 500),
       child: Container(
         constraints: const BoxConstraints.expand(),
-        child: _applyFilters(activeFilters, imageWidget),
+        child: applyFilters(activeFilters, imageWidget),
       ),
     );
   }

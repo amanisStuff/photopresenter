@@ -5,6 +5,7 @@ import 'package:animate_do/animate_do.dart';
 import '../../shared/theme.dart';
 import '../../core/providers/presentation_provider.dart';
 import '../../core/entities/presentation_image.dart';
+import 'add_image_card.dart';
 
 class ImageGrid extends ConsumerStatefulWidget {
   const ImageGrid({super.key});
@@ -84,7 +85,7 @@ class _ImageGridState extends ConsumerState<ImageGrid> {
                 itemCount: state.images.length + 1,
                 itemBuilder: (context, index) {
                   if (index == 0) {
-                    return _AddCard(onTap: () => notifier.pickFiles());
+                    return AddImageCard(onTap: () => notifier.pickFiles());
                   }
 
                   final actualIndex = index - 1;
@@ -320,57 +321,6 @@ class _GridImageState extends State<_GridImage> {
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) =>
           const Center(child: Icon(Icons.broken_image, color: Colors.white38)),
-    );
-  }
-}
-
-class _AddCard extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AddCard({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppTheme.royalBlue.withValues(alpha: 0.12),
-                AppTheme.royalBlueDark.withValues(alpha: 0.06),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppTheme.royalBlue.withValues(alpha: 0.2),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.add_photo_alternate_outlined,
-                size: 40,
-                color: AppTheme.royalBlueLight.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Add Images',
-                style: TextStyle(
-                  color: AppTheme.royalBlueLight.withValues(alpha: 0.6),
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

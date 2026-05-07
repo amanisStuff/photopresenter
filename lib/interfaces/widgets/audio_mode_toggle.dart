@@ -35,16 +35,16 @@ class AudioModeToggle extends ConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: isDisabled
-                  ? [const Color(0xFFC0C0C0), const Color(0xFFD8D8D8)]
+                  ? [AppTheme.silverShadow, AppTheme.silverMid]
                   : (isTimerDriven
-                        ? [const Color(0xFFE8E8E8), const Color(0xFFC0C0C0)]
+                        ? [AppTheme.silverHighlight, AppTheme.silverShadow]
                         : [AppTheme.xpGreen, AppTheme.xpGreenDark]),
             ),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: isDisabled
-                  ? const Color(0xFF808080)
-                  : (isTimerDriven ? const Color(0xFF808080) : AppTheme.xpGreenDark),
+                  ? AppTheme.silverBorder
+                  : (isTimerDriven ? AppTheme.silverBorder : AppTheme.xpGreenDark),
               width: 1,
             ),
             boxShadow: [

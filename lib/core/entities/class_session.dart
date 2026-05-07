@@ -1,3 +1,5 @@
+import 'app_settings.dart';
+
 enum ClassPhase {
   warmUp,
   earlyStudy,
@@ -159,4 +161,17 @@ class ClassConfig {
       breakAfterImage: breakAfterImage ?? this.breakAfterImage,
     );
   }
+}
+
+extension ClassPresetToConfig on ClassPreset {
+  ClassConfig toConfig() => ClassConfig(
+    length: ClassLength.custom,
+    warmUpCount: warmUpCount,
+    earlyStudyCount: earlyStudyCount,
+    midStudyCount: midStudyCount,
+    finalStudyCount: finalStudyCount,
+    hasBreak: hasBreak,
+    breakMinutes: breakMinutes,
+    breakAfterImage: breakAfterImage,
+  );
 }

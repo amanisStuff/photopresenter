@@ -32,8 +32,8 @@ Future<void> showEditPresetDialog(
         final autoBreakPos = totalImages > 0 ? (totalImages / 2).floor() + 1 : 1;
         final breakPos = breakAfterImage > 0 ? breakAfterImage : autoBreakPos;
 
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
+         return AlertDialog(
+           backgroundColor: AppTheme.bgCard,
           title: Text(
             existingPreset == null ? 'Add Custom Class' : 'Edit Class',
             style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
@@ -48,7 +48,7 @@ Future<void> showEditPresetDialog(
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F0F1E),
+                      color: AppTheme.bgDarkest,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: AppTheme.royalBlue.withValues(alpha: 0.2)),
                     ),
@@ -57,7 +57,7 @@ Future<void> showEditPresetDialog(
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: const InputDecoration(
                         labelText: 'Class Name',
-                        labelStyle: TextStyle(color: Color(0xFF8888A8), fontSize: 13),
+                        labelStyle: TextStyle(color: AppTheme.textSubtitle, fontSize: 13),
                         hintText: 'e.g., Quick 15 Min',
                         hintStyle: TextStyle(color: Colors.white24),
                         border: InputBorder.none,
@@ -73,7 +73,7 @@ Future<void> showEditPresetDialog(
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F0F1E),
+                      color: AppTheme.bgDarkest,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: AppTheme.royalBlue.withValues(alpha: 0.15)),
                     ),
@@ -95,7 +95,7 @@ Future<void> showEditPresetDialog(
                             child: DropdownButton<int>(
                               value: breakMinutes,
                               isDense: true,
-                              dropdownColor: const Color(0xFF2A2A2A),
+                              dropdownColor: AppTheme.dropdownBg,
                               underline: const SizedBox(),
                               style: const TextStyle(color: Colors.white70, fontSize: 13),
                               items: [3, 5, 10, 15].map((m) => DropdownMenuItem(
