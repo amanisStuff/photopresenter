@@ -36,61 +36,71 @@ flutter build linux --release
 ```
 lib/
 ├── main.dart                          # App entry point
-├── core/
-│   ├── theme.dart                     # App theming (dark theme)
-│   └── widgets/
-│       └── clickable.dart             # Custom clickable widget
-├── services/
-│   ├── service_providers.dart         # Riverpod providers for services
-│   ├── window_service.dart            # Window management (fullscreen, focus mode)
-│   ├── file_service.dart              # File picking (native file dialog)
-│   ├── clipboard_service.dart         # Clipboard operations (paste images/files)
-│   ├── audio_service.dart             # Audio playback
-│   └── gallery_service.dart           # Gallery save/load operations
-└── features/
-    ├── presentation/
-    │   ├── models/
-    │   │   ├── presentation_image.dart    # Image data model
-    │   │   └── class_session.dart         # Class mode session model
-    │   ├── providers/
-    │   │   └── presentation_provider.dart # Main state management (Riverpod)
-    │   ├── presentation_screen.dart       # Main screen with keyboard shortcuts
-    │   └── widgets/
-    │       ├── image_grid.dart            # Image library grid view
-    │       ├── image_display.dart         # Full-screen image display
-    │       ├── presentation_controls.dart # Bottom control bar
-    │       └── custom_title_bar.dart      # Custom window title bar
-    ├── settings/
-    │   ├── models/
-    │   │   └── app_settings.dart          # App settings & class presets
-    │   ├── providers/
-    │   │   └── settings_provider.dart     # Settings state management
-    │   └── settings_screen.dart           # Settings UI
-    └── gallery/
-        └── models/
-            └── gallery_manifest.dart      # Gallery manifest data model
+├── core/                              # Domain entities & business logic
+│   ├── entities/                      # Framework-agnostic data models
+│   │   ├── presentation_image.dart    # Image data model
+│   │   ├── class_session.dart         # Class mode session model
+│   │   ├── app_settings.dart          # App settings & class presets
+│   │   └── gallery_manifest.dart      # Gallery manifest data model
+│   └── providers/                     # Riverpod Notifier business logic
+│       ├── presentation_provider.dart # Main slideshow state management
+│       └── settings_provider.dart     # Settings state management
+├── infrastructure/                    # External implementations & DI
+│   ├── services/                      # IO / platform wrappers
+│   │   ├── window_service.dart        # Window management (fullscreen, focus mode)
+│   │   ├── file_service.dart          # File picking (native file dialog)
+│   │   ├── clipboard_service.dart     # Clipboard operations (paste images/files)
+│   │   ├── audio_service.dart         # Audio playback
+│   │   └── gallery_service.dart       # Gallery save/load operations
+│   └── service_providers.dart         # Riverpod DI wiring for services
+├── interfaces/                        # UI layer (entry points, screens, widgets)
+│   ├── screens/                       # Full-page views
+│   │   ├── presentation_screen.dart   # Main screen with keyboard shortcuts
+│   │   └── settings_screen.dart       # Settings UI
+│   └── widgets/                       # Composable UI components
+│       ├── image_grid.dart            # Image library grid view
+│       ├── image_display.dart         # Full-screen image display
+│       ├── presentation_controls.dart # Bottom control bar
+│       └── custom_title_bar.dart      # Custom window title bar
+└── shared/                            # Reusable utilities & constants
+    ├── theme.dart                     # App theming (WMP9/Luna theme)
+    └── widgets/
+        └── clickable.dart             # Custom clickable widget
 ```
 
 ---
 
 ## Architecture
 
+### Layered Structure
+
+The codebase follows a **four-layer architecture** based on SOLID & CUPID principles:
+
+| Layer | Path | Responsibility |
+|-------|------|----------------|
+| **Core** | `lib/core/` | Domain entities & business logic (framework-agnostic data models + Riverpod providers) |
+| **Infrastructure** | `lib/infrastructure/` | External implementations (file I/O, audio, clipboard, window management) |
+| **Interfaces** | `lib/interfaces/` | UI layer (screens, widgets, entry point) |
+| **Shared** | `lib/shared/` | Reusable utilities, theme, shared widgets |
+
+Dependency flows inward: `interfaces → core ← infrastructure`, with `shared` available to all layers.
+
 ### State Management
 
 The app uses **Riverpod** for state management with two main providers:
 
-1. **PresentationProvider** (`presentation_provider.dart`)
+1. **PresentationProvider** (`core/providers/presentation_provider.dart`)
    - Manages slideshow state: images, playback, timers, audio, focus mode, class mode
    - Handles all user interactions
-   - Contains ~650 lines of core logic
+   - Contains ~870 lines of core logic
 
-2. **SettingsProvider** (`settings_provider.dart`)
+2. **SettingsProvider** (`core/providers/settings_provider.dart`)
    - Manages app settings: timer duration, audio mode, class presets
    - Persists settings to local storage
 
 ### Services
 
-Services are injected via Riverpod providers in `service_providers.dart`:
+Services are injected via Riverpod providers in `infrastructure/service_providers.dart`:
 
 | Service | Purpose |
 |---------|---------|
@@ -100,11 +110,12 @@ Services are injected via Riverpod providers in `service_providers.dart`:
 | AudioService | Audio playback with audioplayers package |
 | SettingsProvider | App settings persistence |
 
-### Models
+### Models (in `core/entities/`)
 
 - **PresentationImage**: Image data (path, name, source: file/memory/url)
 - **ClassConfig**: Class mode configuration (phase counts, break timing)
 - **AppSettings**: User preferences
+- **GalleryManifest**: Gallery metadata (images, audio, timestamps)
 
 ---
 
@@ -112,7 +123,7 @@ Services are injected via Riverpod providers in `service_providers.dart`:
 
 ### Audio Modes
 
-Two audio modes in `app_settings.dart`:
+Two audio modes in `core/entities/app_settings.dart`:
 
 ```dart
 enum AudioMode {
@@ -125,13 +136,13 @@ When audio-driven mode is active and audio duration > timer, the countdown shows
 
 ### Focus Mode
 
-Focus mode in `window_service.dart`:
+Focus mode in `infrastructure/services/window_service.dart`:
 - Enters: `setFullScreen(true)` + `setAsFrameless()`
 - Exits: `setFullScreen(false)` + `setTitleBarStyle(TitleBarStyle.normal)`
 
 ### Keyboard Shortcuts
 
-Registered in `presentation_screen.dart` using `CallbackShortcuts`:
+Registered in `interfaces/screens/presentation_screen.dart` using `CallbackShortcuts`:
 
 ```dart
 CallbackShortcuts(
@@ -145,7 +156,7 @@ CallbackShortcuts(
 
 ### Grid Item Keys
 
-The image grid in `image_grid.dart` uses `ValueKey(image.path ?? image.name)` to ensure proper item tracking when removing images.
+The image grid in `interfaces/widgets/image_grid.dart` uses `ValueKey(image.path ?? image.name)` to ensure proper item tracking when removing images.
 
 ---
 
@@ -153,26 +164,21 @@ The image grid in `image_grid.dart` uses `ValueKey(image.path ?? image.name)` to
 
 ### Adding a New Menu
 
-1. Add method to `PresentationProvider` in `presentation_provider.dart`
-2. Add button/popup in `presentation_controls.dart`
-3. Add keyboard shortcut in `presentation_screen.dart` (optional)
-4. Implement Image Filter feature (Black & White and Sepia)
-   - Introduce `ImageFilterMode` in the presentation layer and a `filterMode` on `PresentationState`.
-   - Add `cycleFilter()` in the notifier to cycle through None -> BW -> Sepia -> None.
-   - Render filters in the image view using `ColorFiltered` with BW and Sepia matrices.
-   - Add a UI control (Filter icon) in `PresentationControls` to cycle the filter.
-5. Update HELP.md and DEVELOPERS.md
+1. Add method to `PresentationNotifier` in `core/providers/presentation_provider.dart`
+2. Add button/popup in `interfaces/widgets/presentation_controls.dart`
+3. Add keyboard shortcut in `interfaces/screens/presentation_screen.dart` (optional)
+4. Update HELP.md and DEVELOPERS.md
 
 ### Adding a New Setting
 
-1. Add field to `AppSettings` in `app_settings.dart`
-2. Add UI in `settings_screen.dart`
-3. Handle in `SettingsProvider` in `settings_provider.dart`
+1. Add field to `AppSettings` in `core/entities/app_settings.dart`
+2. Add UI in `interfaces/screens/settings_screen.dart`
+3. Handle in `SettingsNotifier` in `core/providers/settings_provider.dart`
 
 ### Adding a New Audio Feature
 
-1. Add method to `AudioService` in `audio_service.dart`
-2. Call from `PresentationProvider` methods
+1. Add method to `AudioService` in `infrastructure/services/audio_service.dart`
+2. Call from `PresentationNotifier` in `core/providers/presentation_provider.dart`
 
 ---
 

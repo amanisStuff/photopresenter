@@ -4,6 +4,8 @@
 
 PhotoPresenter is a cross-platform desktop image slideshow application built with Flutter. It allows users to display images in a presentation format with automatic slide transitions, focus mode, class mode for figure drawing practice, and various input methods (drag & drop, clipboard, file picker).
 
+**Theme**: Windows Media Player 9 / Windows XP Luna aesthetic with brushed aluminum controls, royal blue title bars, green progress indicators, and 3D beveled buttons.
+
 ---
 
 ## Project Structure
@@ -12,7 +14,7 @@ PhotoPresenter is a cross-platform desktop image slideshow application built wit
 lib/
 ├── main.dart                    # App entry point
 ├── core/
-│   ├── theme.dart               # App theming (dark theme)
+│   ├── theme.dart               # App theming (Y2K neon theme)
 │   └── widgets/
 │       └── clickable.dart       # Custom clickable widget
 ├── services/

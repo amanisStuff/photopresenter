@@ -28,31 +28,25 @@ The Tech Stack
 Project Topography
 - lib/
   - main.dart: App entry; bootstraps window services and Riverpod scope
-- core/
-  - theme.dart, widgets/ (shared UI components)
-- services/
-  - service_providers.dart (DI for services)
-  - window_service.dart, file_service.dart, clipboard_service.dart, audio_service.dart, gallery_service.dart
-- features/
-  - presentation/
-    - models/ (PresentationImage, ClassSession)
-    - providers/ (presentation_provider.dart)
-    - screens/ (presentation_screen.dart)
-    - widgets/
-      - image_grid.dart, image_display.dart
-      - presentation_controls.dart (centered playback controls; now uses stateless components)
-      - center_playback_panel.dart (new)
-      - slideshow_header.dart (new)
-      - _??_ (other internal widgets)
-  - settings/
-    - models/ (app_settings.dart)
-    - providers/ (settings_provider.dart)
-    - screens/ (settings_screen.dart)
-  - gallery/
-    - models/ (gallery_manifest.dart)
+- core/                        # Domain entities & business logic
+  - entities/                  # Framework-agnostic data models
+    - presentation_image.dart, class_session.dart, app_settings.dart, gallery_manifest.dart
+  - providers/                 # Riverpod Notifier business logic
+    - presentation_provider.dart, settings_provider.dart
+- infrastructure/              # External implementations & DI
+  - services/                  # IO / platform wrappers
+    - window_service.dart, file_service.dart, audio_service.dart, clipboard_service.dart, gallery_service.dart
+  - service_providers.dart
+- interfaces/                  # UI layer (entry points, screens, widgets)
+  - screens/                   # Full-page views
+    - presentation_screen.dart, settings_screen.dart
+  - widgets/                   # Composable UI components
+    - image_grid.dart, image_display.dart, presentation_controls.dart, custom_title_bar.dart
+- shared/                      # Reusable utilities & constants
+  - theme.dart                 # WMP9/Luna theme (royal blue, brushed silver, XP green)
+  - widgets/clickable.dart     # Shared MouseRegion + GestureDetector wrapper
 - test/
   - widget_test.dart
-- AGENT_CONTEXT.md (high-level briefing for new AI agents)
 
 Architectural Patterns
 - Unidirectional data flow with Riverpod

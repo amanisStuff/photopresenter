@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/theme.dart';
-import 'services/window_service.dart';
-import 'features/presentation/presentation_screen.dart';
+import 'shared/theme.dart';
+import 'infrastructure/services/window_service.dart';
+import 'interfaces/screens/presentation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Window Manager
   final windowService = WindowService();
   await windowService.initialize();
 
