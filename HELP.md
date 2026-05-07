@@ -12,40 +12,53 @@ PhotoPresenter is a cross-platform desktop image slideshow application built wit
 
 ```
 lib/
-├── main.dart                    # App entry point
+├── main.dart                            # App entry point
 ├── core/
-│   ├── theme.dart               # App theming (Y2K neon theme)
+│   ├── entities/
+│   │   ├── presentation_image.dart      # Image data model
+│   │   ├── class_session.dart           # Class mode session model
+│   │   ├── app_settings.dart            # App settings & class presets
+│   │   └── gallery_manifest.dart        # Gallery manifest data model
+│   └── providers/
+│       ├── presentation_provider.dart   # State management (Riverpod)
+│       └── settings_provider.dart       # Settings state management
+├── infrastructure/
+│   ├── services/
+│   │   ├── window_service.dart          # Window management (fullscreen, focus mode)
+│   │   ├── file_service.dart            # File picking (native file dialog)
+│   │   ├── clipboard_service.dart       # Clipboard operations (paste images/files)
+│   │   ├── audio_service.dart           # Audio playback
+│   │   └── gallery_service.dart         # Gallery save/load operations
+│   └── service_providers.dart           # DI wiring for all services
+├── interfaces/
+│   ├── screens/
+│   │   ├── presentation_screen.dart     # Main screen with keyboard shortcuts
+│   │   └── settings_screen.dart         # Settings UI
 │   └── widgets/
-│       └── clickable.dart       # Custom clickable widget
-├── services/
-│   ├── service_providers.dart   # Riverpod providers for services
-│   ├── window_service.dart      # Window management (fullscreen, focus mode)
-│   ├── file_service.dart        # File picking (native file dialog)
-│   ├── clipboard_service.dart   # Clipboard operations (paste images/files)
-│   ├── audio_service.dart       # Audio playback
-│   └── gallery_service.dart     # Gallery save/load operations
-└── features/
-    ├── presentation/
-    │   ├── models/
-    │   │   ├── presentation_image.dart   # Image data model
-    │   │   └── class_session.dart         # Class mode session model
-    │   ├── providers/
-    │   │   └── presentation_provider.dart # State management (Riverpod)
-    │   ├── presentation_screen.dart      # Main screen with keyboard shortcuts
-    │   └── widgets/
-    │       ├── image_grid.dart           # Image library grid view
-    │       ├── image_display.dart         # Full-screen image display
-    │       ├── presentation_controls.dart # Bottom control bar
-    │       └── custom_title_bar.dart     # Custom window title bar
-    ├── settings/
-    │   ├── models/
-    │   │   └── app_settings.dart         # App settings & class presets
-    │   ├── providers/
-    │   │   └── settings_provider.dart     # Settings state management
-    │   └── settings_screen.dart          # Settings UI
-    └── gallery/
-        └── models/
-            └── gallery_manifest.dart     # Gallery manifest data model
+│       ├── add_image_card.dart          # Add image placeholder card
+│       ├── audio_mode_tile.dart         # Audio mode radio list (settings)
+│       ├── audio_mode_toggle.dart       # TMR/AUD toggle button (controls)
+│       ├── break_overlay.dart           # Break timer overlay
+│       ├── class_mode_button.dart       # Class mode toggle button
+│       ├── class_mode_dialog.dart       # Class mode configuration dialog
+│       ├── class_phase_indicator.dart   # Current phase label
+│       ├── class_preset_tile.dart       # Class preset display tile
+│       ├── custom_title_bar.dart        # Custom window title bar
+│       ├── draggable_image_card.dart    # Draggable/reorderable image card
+│       ├── edit_preset_dialog.dart      # Add/edit class preset dialog
+│       ├── focus_timer_overlay.dart     # Focus mode timer overlay
+│       ├── image_display.dart           # Full-screen image display
+│       ├── image_grid.dart              # Image library grid view
+│       ├── load_gallery_dialog.dart     # Gallery load/delete dialog
+│       ├── number_input_row.dart        # Stepper row for numeric input
+│       ├── presentation_controls.dart   # Bottom control bar
+│       ├── section_header.dart          # Settings section label
+│       ├── settings_tile.dart           # Reusable settings row
+│       ├── silver_controls.dart         # Silver-themed buttons (IconButton, Menu etc.)
+│       └── timer_adjustment.dart        # Timer increment/decrement
+└── shared/
+    ├── clickable.dart                   # Custom clickable widget
+    └── theme.dart                       # App theming (WMP9/Luna aesthetic)
 ```
 
 ---
