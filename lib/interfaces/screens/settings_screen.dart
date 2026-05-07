@@ -23,12 +23,12 @@ class SettingsScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white70),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textOnDarkMedium),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Settings',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          style: TextStyle(color: AppTheme.textOnDark, fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
       ),
@@ -43,13 +43,13 @@ class SettingsScreen extends ConsumerWidget {
               value: settings.timerDurationSeconds,
               dropdownColor: AppTheme.surfaceDropdown,
               underline: const SizedBox(),
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              style: const TextStyle(color: AppTheme.textOnDarkMedium, fontSize: 13),
               items: AppSettings.timerOptions.map((val) {
                 return DropdownMenuItem(
                   value: val,
                   child: Text(
                     val < 60 ? '${val}s' : '${val ~/ 60}min',
-                    style: const TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: AppTheme.textOnDarkMedium),
                   ),
                 );
               }).toList(),
@@ -153,10 +153,10 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 32),
           Center(
             child: TextButton.icon(
-              icon: const Icon(Icons.restore, color: Colors.white54),
+              icon: const Icon(Icons.restore, color: AppTheme.textOnDarkSubtle),
               label: const Text(
                 'Reset to Defaults',
-                style: TextStyle(color: Colors.white54),
+                style: TextStyle(color: AppTheme.textOnDarkSubtle),
               ),
               onPressed: () => notifier.resetToDefaults(),
             ),

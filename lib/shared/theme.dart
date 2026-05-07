@@ -27,6 +27,9 @@ class AppTheme {
   static const Color screenBackgroundStart = Color(0xFF0D0D1A);
   static const Color screenBackgroundEnd = Color(0xFF06060D);
   static const Color badgeText = Color(0xFFB0B0C8);
+  static const Color textOnDark = Colors.white;
+  static const Color textOnDarkMedium = Colors.white70;
+  static const Color textOnDarkSubtle = Colors.white54;
 
   static ThemeData get darkTheme {
     return ThemeData(
