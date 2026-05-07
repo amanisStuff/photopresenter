@@ -38,7 +38,7 @@ class AudioModeTile extends StatelessWidget {
                           children: [
                             Icon(
                               isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                              color: isSelected ? AppTheme.royalBlue : Colors.white38,
+                              color: isSelected ? AppTheme.primary : Colors.white38,
                               size: 20,
                             ),
                             const SizedBox(width: 12),

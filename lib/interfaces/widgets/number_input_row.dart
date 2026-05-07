@@ -34,9 +34,9 @@ class NumberInputRow extends StatelessWidget {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.bgDarkest,
+              color: AppTheme.surfaceDark,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppTheme.royalBlue.withValues(alpha: 0.2)),
+              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
             ),
             child: Text(
               '$value',
@@ -64,10 +64,10 @@ class _StepperButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.silverButton(pressed: false),
+      decoration: AppTheme.buttonDecoration(pressed: false),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       child: IconButton(
-        icon: Icon(icon, size: 14, color: onPressed == null ? Colors.grey : AppTheme.textOnSilver),
+        icon: Icon(icon, size: 14, color: onPressed == null ? Colors.grey : AppTheme.onSurface),
         onPressed: onPressed,
         style: IconButton.styleFrom(backgroundColor: Colors.transparent),
         constraints: const BoxConstraints(minWidth: 28, minHeight: 28),

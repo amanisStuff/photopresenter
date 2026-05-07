@@ -12,7 +12,7 @@ class BreakOverlay extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.breakGradientStart, AppTheme.breakGradientEnd],
+          colors: [AppTheme.breakBackgroundStart, AppTheme.breakBackgroundEnd],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -28,13 +28,13 @@ class BreakOverlay extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppTheme.royalBlue.withValues(alpha: 0.4),
-                    AppTheme.royalBlueDark.withValues(alpha: 0.2),
+                    AppTheme.primary.withValues(alpha: 0.4),
+                    AppTheme.primaryDark.withValues(alpha: 0.2),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppTheme.royalBlue.withValues(alpha: 0.5),
+                  color: AppTheme.primary.withValues(alpha: 0.5),
                   width: 2,
                 ),
               ),
@@ -50,7 +50,7 @@ class BreakOverlay extends StatelessWidget {
             Text(
               'Rest your hand',
               style: TextStyle(
-                color: AppTheme.textMuted,
+                color: AppTheme.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -61,17 +61,17 @@ class BreakOverlay extends StatelessWidget {
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-                color: AppTheme.bgCard,
+                color: AppTheme.surfaceOverlay,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppTheme.royalBlue.withValues(alpha: 0.3),
+                  color: AppTheme.primary.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
               child: Text(
                 '${state.remainingTime.inMinutes}:${(state.remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
                 style: const TextStyle(
-                  color: AppTheme.royalBlueLight,
+                  color: AppTheme.primaryLight,
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
                 ),

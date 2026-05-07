@@ -35,16 +35,16 @@ class AudioModeToggle extends ConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: isDisabled
-                  ? [AppTheme.silverShadow, AppTheme.silverMid]
+                  ? [AppTheme.buttonGradientBottom, AppTheme.buttonGradientMid]
                   : (isTimerDriven
-                        ? [AppTheme.silverHighlight, AppTheme.silverShadow]
-                        : [AppTheme.xpGreen, AppTheme.xpGreenDark]),
+                        ? [AppTheme.buttonGradientTop, AppTheme.buttonGradientBottom]
+                        : [AppTheme.success, AppTheme.successDark]),
             ),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: isDisabled
-                  ? AppTheme.silverBorder
-                  : (isTimerDriven ? AppTheme.silverBorder : AppTheme.xpGreenDark),
+                  ? AppTheme.border
+                  : (isTimerDriven ? AppTheme.border : AppTheme.successDark),
               width: 1,
             ),
             boxShadow: [
@@ -61,8 +61,8 @@ class AudioModeToggle extends ConsumerWidget {
               fontSize: 10,
               fontWeight: FontWeight.bold,
               color: isDisabled
-                  ? AppTheme.textOnSilver.withValues(alpha: 0.4)
-                  : (isTimerDriven ? AppTheme.textOnSilver : Colors.white),
+                  ? AppTheme.onSurface.withValues(alpha: 0.4)
+                  : (isTimerDriven ? AppTheme.onSurface : Colors.white),
             ),
           ),
         ),

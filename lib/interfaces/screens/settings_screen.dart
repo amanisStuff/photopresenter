@@ -18,7 +18,7 @@ class SettingsScreen extends ConsumerWidget {
     final notifier = ref.read(settingsProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -41,7 +41,7 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: '${settings.timerDurationSeconds} seconds',
             trailing: DropdownButton<int>(
               value: settings.timerDurationSeconds,
-              dropdownColor: AppTheme.dropdownBg,
+              dropdownColor: AppTheme.surfaceDropdown,
               underline: const SizedBox(),
               style: const TextStyle(color: Colors.white70, fontSize: 13),
               items: AppSettings.timerOptions.map((val) {
@@ -66,8 +66,8 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.autoPlayAudio,
               onChanged: notifier.setAutoPlayAudio,
-              activeThumbColor: AppTheme.xpGreen,
-              activeTrackColor: AppTheme.xpGreen.withValues(alpha: 0.3),
+              activeThumbColor: AppTheme.success,
+              activeTrackColor: AppTheme.success.withValues(alpha: 0.3),
             ),
           ),
           SettingsTile(
@@ -76,8 +76,8 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.soundOnTransition,
               onChanged: notifier.setSoundOnTransition,
-              activeThumbColor: AppTheme.royalBlue,
-              activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
+              activeThumbColor: AppTheme.primary,
+              activeTrackColor: AppTheme.primary.withValues(alpha: 0.4),
             ),
           ),
           const SizedBox(height: 24),
@@ -88,8 +88,8 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.showImageInfo,
               onChanged: notifier.setShowImageInfo,
-              activeThumbColor: AppTheme.royalBlue,
-              activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
+              activeThumbColor: AppTheme.primary,
+              activeTrackColor: AppTheme.primary.withValues(alpha: 0.4),
             ),
           ),
           const SizedBox(height: 24),
@@ -106,8 +106,8 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: settings.confirmOnClose,
               onChanged: notifier.setConfirmOnClose,
-              activeThumbColor: AppTheme.royalBlue,
-              activeTrackColor: AppTheme.royalBlue.withValues(alpha: 0.4),
+              activeThumbColor: AppTheme.primary,
+              activeTrackColor: AppTheme.primary.withValues(alpha: 0.4),
             ),
           ),
           const SizedBox(height: 24),
@@ -142,10 +142,10 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Center(
             child: TextButton.icon(
-              icon: const Icon(Icons.add, color: AppTheme.royalBlue, size: 18),
+              icon: const Icon(Icons.add, color: AppTheme.primary, size: 18),
               label: const Text(
                 'Add Custom Class',
-                style: TextStyle(color: AppTheme.royalBlue),
+                style: TextStyle(color: AppTheme.primary),
               ),
               onPressed: () => showEditPresetDialog(context, ref, -1, null),
             ),

@@ -127,7 +127,7 @@ class PresentationControls extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      decoration: AppTheme.silverControlsBar,
+      decoration: AppTheme.controlsBar,
       child: LayoutBuilder(
         builder: (context, constraints) => Stack(
         children: [
@@ -149,14 +149,14 @@ class PresentationControls extends ConsumerWidget {
                       Icon(
                         Icons.audiotrack,
                         size: 16,
-                        color: state.isPlaying ? AppTheme.xpGreen : AppTheme.silverDark,
+                        color: state.isPlaying ? AppTheme.success : AppTheme.surfaceMuted,
                       ),
                       _AudioModeToggle(),
                     ],
                     Icon(
                       Icons.timer_outlined,
                       size: 16,
-                      color: state.isPlaying ? AppTheme.royalBlue : AppTheme.silverDark,
+                      color: state.isPlaying ? AppTheme.primary : AppTheme.surfaceMuted,
                     ),
                     Builder(
                       builder: (context) {
@@ -182,8 +182,8 @@ class PresentationControls extends ConsumerWidget {
                           '${secondsLeft}s',
                           style: TextStyle(
                             color: showAudioCountdown
-                                ? AppTheme.xpGreen
-                                : (isLowTime ? AppTheme.closeRed : AppTheme.textOnSilver),
+                                ? AppTheme.success
+                                : (isLowTime ? AppTheme.error : AppTheme.onSurface),
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
@@ -221,13 +221,13 @@ class PresentationControls extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(2),
                               child: LinearProgressIndicator(
                                 value: progress,
-                                backgroundColor: AppTheme.silverBorder,
+                                backgroundColor: AppTheme.border,
                                 valueColor: AlwaysStoppedAnimation(
                                   showAudioProgress
-                                      ? AppTheme.xpGreen
+                                      ? AppTheme.success
                                       : (state.remainingTime.inSeconds <= 5
-                                            ? AppTheme.closeRed
-                                            : AppTheme.xpGreen),
+                                            ? AppTheme.error
+                                            : AppTheme.success),
                                 ),
                               ),
                             ),
@@ -247,17 +247,17 @@ class PresentationControls extends ConsumerWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.royalBlue.withValues(alpha: 0.2),
+                          color: AppTheme.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: AppTheme.royalBlue.withValues(alpha: 0.4),
+                            color: AppTheme.primary.withValues(alpha: 0.4),
                             width: 1,
                           ),
                         ),
                         child: Text(
                           '${state.timerDuration.inSeconds}s',
                           style: const TextStyle(
-                            color: AppTheme.royalBlueLight,
+                            color: AppTheme.primaryLight,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -283,14 +283,14 @@ class PresentationControls extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  decoration: AppTheme.silverButton(),
+                  decoration: AppTheme.buttonDecoration(),
                   padding: const EdgeInsets.all(2),
                   child: IconButton(
                     icon: const Icon(Icons.skip_previous, size: 20),
                     onPressed: state.images.isEmpty
                         ? null
                         : () => notifier.previousImage(),
-                    color: AppTheme.textOnSilver,
+                    color: AppTheme.onSurface,
                     style: IconButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
@@ -299,13 +299,13 @@ class PresentationControls extends ConsumerWidget {
               ),
               const SizedBox(width: 4),
               Container(
-                decoration: AppTheme.silverButton(),
+                decoration: AppTheme.buttonDecoration(),
                 padding: const EdgeInsets.all(2),
                 child: IconButton(
                   icon: Icon(
                     Icons.shuffle,
                     size: 18,
-                    color: state.isShuffled ? AppTheme.xpGreen : AppTheme.textOnSilver,
+                    color: state.isShuffled ? AppTheme.success : AppTheme.onSurface,
                   ),
                   tooltip: 'Shuffle',
                   onPressed: state.images.isEmpty
@@ -319,7 +319,7 @@ class PresentationControls extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Container(
-                decoration: AppTheme.silverButton(isPlay: true),
+                decoration: AppTheme.buttonDecoration(isPlay: true),
                 padding: const EdgeInsets.all(2),
                 child: IconButton(
                   icon: Icon(
@@ -329,7 +329,7 @@ class PresentationControls extends ConsumerWidget {
                   onPressed: state.images.isEmpty
                       ? null
                       : () => notifier.togglePlay(),
-                  color: AppTheme.royalBlue,
+                  color: AppTheme.primary,
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -338,14 +338,14 @@ class PresentationControls extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Container(
-                decoration: AppTheme.silverButton(),
+                decoration: AppTheme.buttonDecoration(),
                 padding: const EdgeInsets.all(2),
                 child: IconButton(
                   icon: const Icon(Icons.skip_next, size: 20),
                   onPressed: state.images.isEmpty
                       ? null
                       : () => notifier.nextImage(),
-                  color: AppTheme.textOnSilver,
+                  color: AppTheme.onSurface,
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
@@ -364,7 +364,7 @@ class PresentationControls extends ConsumerWidget {
               if (state.hasAudio) ...[
                 _SilverIconButton(
                   icon: Icons.audiotrack,
-                  color: AppTheme.xpGreen,
+                  color: AppTheme.success,
                   tooltip: 'Audio',
                   onPressed: () => notifier.pickAudio(),
                 ),
@@ -401,7 +401,7 @@ class PresentationControls extends ConsumerWidget {
               _SilverPopupButton(
                 icon: Icons.filter,
                 isActive: state.activeFilters.isNotEmpty,
-                activeColor: AppTheme.royalBlue,
+                activeColor: AppTheme.primary,
                 tooltip: 'Image Filters',
                 itemBuilder: (context) {
                   final items = <PopupMenuEntry<void>>[];
@@ -448,7 +448,7 @@ class PresentationControls extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Container(
-                decoration: AppTheme.silverButton(),
+                decoration: AppTheme.buttonDecoration(),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -474,7 +474,7 @@ class PresentationControls extends ConsumerWidget {
                         (Icons.queue_music, 'Load Playlist'),
                       ],
                     ),
-                    Container(width: 1, height: 20, color: AppTheme.silverBorder),
+                    Container(width: 1, height: 20, color: AppTheme.border),
                     _MenuButton(
                       icon: Icons.save_alt,
                       tooltip: 'Save / Export',
@@ -544,11 +544,11 @@ class _SilverIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.silverButton(),
+      decoration: AppTheme.buttonDecoration(),
       padding: const EdgeInsets.all(1),
       child: IconButton(
         tooltip: tooltip,
-        icon: Icon(icon, color: color ?? AppTheme.textOnSilver, size: size),
+        icon: Icon(icon, color: color ?? AppTheme.onSurface, size: size),
         onPressed: onPressed,
         style: IconButton.styleFrom(backgroundColor: Colors.transparent),
         constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
@@ -576,7 +576,7 @@ class _MenuButton<T> extends StatelessWidget {
     return PopupMenuButton<T>(
       tooltip: tooltip,
       onSelected: onSelected,
-      icon: Icon(icon, color: AppTheme.textOnSilver, size: 16),
+      icon: Icon(icon, color: AppTheme.onSurface, size: 16),
       itemBuilder: (context) {
         return items.map((entry) {
           return PopupMenuItem<T>(
@@ -607,7 +607,7 @@ class _SilverPopupButton<T> extends StatelessWidget {
   const _SilverPopupButton({
     required this.icon,
     this.isActive = false,
-    this.activeColor = AppTheme.textOnSilver,
+    this.activeColor = AppTheme.onSurface,
     required this.tooltip,
     this.onSelected,
     this.itemBuilder,
@@ -617,12 +617,12 @@ class _SilverPopupButton<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.silverButton(),
+      decoration: AppTheme.buttonDecoration(),
       padding: const EdgeInsets.all(1),
       child: PopupMenuButton<T>(
         tooltip: tooltip,
         onSelected: onSelected,
-        icon: Icon(icon, color: isActive ? activeColor : AppTheme.textOnSilver, size: 16),
+        icon: Icon(icon, color: isActive ? activeColor : AppTheme.onSurface, size: 16),
         itemBuilder: itemBuilder ?? (context) {
           if (items == null) return [];
           return items!.map((entry) {
@@ -661,13 +661,13 @@ class _TimerAdjustment extends ConsumerWidget {
       onSelected: onChanged,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: AppTheme.xpControlButton(disabled: isDisabled),
+        decoration: AppTheme.controlButton(disabled: isDisabled),
         child: Text(
           '${value}s',
           style: TextStyle(
             color: isDisabled
-                ? AppTheme.textOnSilver.withValues(alpha: 0.4)
-                : AppTheme.textOnSilver,
+                ? AppTheme.onSurface.withValues(alpha: 0.4)
+                : AppTheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -697,7 +697,7 @@ class _ClassModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.xpPillButton(active: isActive),
+      decoration: AppTheme.pillButton(active: isActive),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -711,13 +711,13 @@ class _ClassModeButton extends StatelessWidget {
                 Icon(
                   Icons.school,
                   size: 14,
-                  color: isActive ? Colors.white : AppTheme.textOnSilver,
+                  color: isActive ? Colors.white : AppTheme.onSurface,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isActive ? 'Class' : 'Class Mode',
                   style: TextStyle(
-                    color: isActive ? Colors.white : AppTheme.textOnSilver,
+                    color: isActive ? Colors.white : AppTheme.onSurface,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -750,20 +750,20 @@ class _ClassPhaseIndicator extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
             color: state.isOnBreak
-                ? AppTheme.royalBlue.withValues(alpha: 0.2)
-                : AppTheme.xpGreen.withValues(alpha: 0.2),
+                ? AppTheme.primary.withValues(alpha: 0.2)
+                : AppTheme.success.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: state.isOnBreak
-                  ? AppTheme.royalBlue.withValues(alpha: 0.4)
-                  : AppTheme.xpGreen.withValues(alpha: 0.4),
+                  ? AppTheme.primary.withValues(alpha: 0.4)
+                  : AppTheme.success.withValues(alpha: 0.4),
               width: 1,
             ),
           ),
           child: Text(
             phaseName,
             style: TextStyle(
-              color: state.isOnBreak ? AppTheme.royalBlueLight : AppTheme.xpGreen,
+              color: state.isOnBreak ? AppTheme.primaryLight : AppTheme.success,
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
@@ -988,28 +988,28 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.royalBlue.withValues(alpha: 0.12),
-                      AppTheme.royalBlueDark.withValues(alpha: 0.08),
+                      AppTheme.primary.withValues(alpha: 0.12),
+                      AppTheme.primaryDark.withValues(alpha: 0.08),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.royalBlue.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.photo_library,
-                      color: AppTheme.royalBlueLight,
+                      color: AppTheme.primaryLight,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Images needed: ${_warmUpCount + _earlyCount + _midCount + _finalCount}',
                       style: const TextStyle(
-                        color: AppTheme.royalBlueLight,
+                        color: AppTheme.primaryLight,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1135,16 +1135,16 @@ class _AudioModeToggle extends ConsumerWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: isDisabled
-                  ? [AppTheme.silverShadow, AppTheme.silverMid]
+                  ? [AppTheme.buttonGradientBottom, AppTheme.buttonGradientMid]
                   : (isTimerDriven
-                        ? [AppTheme.silverHighlight, AppTheme.silverShadow]
-                        : [AppTheme.xpGreen, AppTheme.xpGreenDark]),
+                        ? [AppTheme.buttonGradientTop, AppTheme.buttonGradientBottom]
+                        : [AppTheme.success, AppTheme.successDark]),
             ),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: isDisabled
-                  ? AppTheme.silverBorder
-                  : (isTimerDriven ? AppTheme.silverBorder : AppTheme.xpGreenDark),
+                  ? AppTheme.border
+                  : (isTimerDriven ? AppTheme.border : AppTheme.successDark),
               width: 1,
             ),
             boxShadow: [
@@ -1161,8 +1161,8 @@ class _AudioModeToggle extends ConsumerWidget {
               fontSize: 10,
               fontWeight: FontWeight.bold,
               color: isDisabled
-                  ? AppTheme.textOnSilver.withValues(alpha: 0.4)
-                  : (isTimerDriven ? AppTheme.textOnSilver : Colors.white),
+                  ? AppTheme.onSurface.withValues(alpha: 0.4)
+                  : (isTimerDriven ? AppTheme.onSurface : Colors.white),
             ),
           ),
         ),

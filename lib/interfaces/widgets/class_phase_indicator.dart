@@ -22,20 +22,20 @@ class ClassPhaseIndicator extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
             color: state.isOnBreak
-                ? AppTheme.royalBlue.withValues(alpha: 0.2)
-                : AppTheme.xpGreen.withValues(alpha: 0.2),
+                ? AppTheme.primary.withValues(alpha: 0.2)
+                : AppTheme.success.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: state.isOnBreak
-                  ? AppTheme.royalBlue.withValues(alpha: 0.4)
-                  : AppTheme.xpGreen.withValues(alpha: 0.4),
+                  ? AppTheme.primary.withValues(alpha: 0.4)
+                  : AppTheme.success.withValues(alpha: 0.4),
               width: 1,
             ),
           ),
           child: Text(
             phaseName,
             style: TextStyle(
-              color: state.isOnBreak ? AppTheme.royalBlueLight : AppTheme.xpGreen,
+              color: state.isOnBreak ? AppTheme.primaryLight : AppTheme.success,
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),

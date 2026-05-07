@@ -20,11 +20,11 @@ class SilverIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.silverButton(),
+      decoration: AppTheme.buttonDecoration(),
       padding: const EdgeInsets.all(1),
       child: IconButton(
         tooltip: tooltip,
-        icon: Icon(icon, color: color ?? AppTheme.textOnSilver, size: size),
+        icon: Icon(icon, color: color ?? AppTheme.onSurface, size: size),
         onPressed: onPressed,
         style: IconButton.styleFrom(backgroundColor: Colors.transparent),
         constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
@@ -53,7 +53,7 @@ class MenuButton<T> extends StatelessWidget {
     return PopupMenuButton<T>(
       tooltip: tooltip,
       onSelected: onSelected,
-      icon: Icon(icon, color: AppTheme.textOnSilver, size: 16),
+      icon: Icon(icon, color: AppTheme.onSurface, size: 16),
       itemBuilder: (context) {
         return items.map((entry) {
           return PopupMenuItem<T>(
@@ -85,7 +85,7 @@ class SilverPopupButton<T> extends StatelessWidget {
     super.key,
     required this.icon,
     this.isActive = false,
-    this.activeColor = AppTheme.textOnSilver,
+    this.activeColor = AppTheme.onSurface,
     required this.tooltip,
     this.onSelected,
     this.itemBuilder,
@@ -95,12 +95,12 @@ class SilverPopupButton<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.silverButton(),
+      decoration: AppTheme.buttonDecoration(),
       padding: const EdgeInsets.all(1),
       child: PopupMenuButton<T>(
         tooltip: tooltip,
         onSelected: onSelected,
-        icon: Icon(icon, color: isActive ? activeColor : AppTheme.textOnSilver, size: 16),
+        icon: Icon(icon, color: isActive ? activeColor : AppTheme.onSurface, size: 16),
         itemBuilder: itemBuilder ?? (context) {
           if (items == null) return [];
           return items!.map((entry) {

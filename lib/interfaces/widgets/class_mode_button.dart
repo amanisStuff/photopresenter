@@ -16,7 +16,7 @@ class ClassModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.xpPillButton(active: isActive),
+      decoration: AppTheme.pillButton(active: isActive),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -30,13 +30,13 @@ class ClassModeButton extends StatelessWidget {
                 Icon(
                   Icons.school,
                   size: 14,
-                  color: isActive ? Colors.white : AppTheme.textOnSilver,
+                  color: isActive ? Colors.white : AppTheme.onSurface,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isActive ? 'Class' : 'Class Mode',
                   style: TextStyle(
-                    color: isActive ? Colors.white : AppTheme.textOnSilver,
+                    color: isActive ? Colors.white : AppTheme.onSurface,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),

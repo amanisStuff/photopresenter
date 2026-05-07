@@ -25,13 +25,13 @@ class TimerAdjustment extends ConsumerWidget {
       onSelected: onChanged,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: AppTheme.xpControlButton(disabled: isDisabled),
+        decoration: AppTheme.controlButton(disabled: isDisabled),
         child: Text(
           '${value}s',
           style: TextStyle(
             color: isDisabled
-                ? AppTheme.textOnSilver.withValues(alpha: 0.4)
-                : AppTheme.textOnSilver,
+                ? AppTheme.onSurface.withValues(alpha: 0.4)
+                : AppTheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),

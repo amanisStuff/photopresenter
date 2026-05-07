@@ -15,7 +15,7 @@ class CustomTitleBar extends ConsumerWidget {
     return DragToMoveArea(
       child: Container(
         height: 36,
-        decoration: AppTheme.royalBlueHeader,
+        decoration: AppTheme.headerDecoration,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final showTitle = constraints.maxWidth > 300;
@@ -84,7 +84,7 @@ class _WinXpButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         hoverColor: isClose
-            ? AppTheme.closeRed.withValues(alpha: 0.8)
+            ? AppTheme.error.withValues(alpha: 0.8)
             : Colors.white.withValues(alpha: 0.15),
         child: Container(
           width: 44,

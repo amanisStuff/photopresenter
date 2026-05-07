@@ -131,16 +131,16 @@ class DraggableImage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isDropTarget
-                        ? AppTheme.royalBlue
+                        ? AppTheme.primary
                         : isSelected
-                            ? AppTheme.royalBlue
+                            ? AppTheme.primary
                             : Colors.transparent,
                     width: 3,
                   ),
                   boxShadow: [
                     if (isSelected)
                       BoxShadow(
-                        color: AppTheme.royalBlue.withValues(alpha: 0.4),
+                        color: AppTheme.primary.withValues(alpha: 0.4),
                         blurRadius: 12,
                         spreadRadius: 2,
                       ),
@@ -182,13 +182,13 @@ class DraggableImage extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDragging ? AppTheme.royalBlue : Colors.transparent,
+          color: isDragging ? AppTheme.primary : Colors.transparent,
           width: 3,
         ),
         boxShadow: isDragging
             ? [
                 BoxShadow(
-                  color: AppTheme.royalBlue.withValues(alpha: 0.5),
+                  color: AppTheme.primary.withValues(alpha: 0.5),
                   blurRadius: 20,
                   spreadRadius: 4,
                 ),

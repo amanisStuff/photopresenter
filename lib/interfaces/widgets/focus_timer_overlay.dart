@@ -20,10 +20,10 @@ class FocusTimerOverlay extends StatelessWidget {
             vertical: 8,
           ),
           decoration: BoxDecoration(
-            color: AppTheme.bgCard.withValues(alpha: 0.9),
+            color: AppTheme.surfaceOverlay.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: AppTheme.royalBlue.withValues(alpha: 0.5),
+              color: AppTheme.primary.withValues(alpha: 0.5),
               width: 1,
             ),
           ),
@@ -43,8 +43,8 @@ class FocusTimerOverlay extends StatelessWidget {
                     backgroundColor: Colors.white12,
                     valueColor: AlwaysStoppedAnimation(
                       state.remainingTime.inSeconds <= 5
-                          ? AppTheme.closeRed
-                          : AppTheme.xpGreen,
+                          ? AppTheme.error
+                          : AppTheme.success,
                     ),
                   ),
                 ),
@@ -54,7 +54,7 @@ class FocusTimerOverlay extends StatelessWidget {
                 '${state.remainingTime.inSeconds}s',
                 style: TextStyle(
                   color: state.remainingTime.inSeconds <= 5
-                      ? AppTheme.closeRed
+                      ? AppTheme.error
                       : Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

@@ -18,13 +18,13 @@ class AddImageCard extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppTheme.royalBlue.withValues(alpha: 0.12),
-                AppTheme.royalBlueDark.withValues(alpha: 0.06),
+                AppTheme.primary.withValues(alpha: 0.12),
+                AppTheme.primaryDark.withValues(alpha: 0.06),
               ],
             ),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: AppTheme.royalBlue.withValues(alpha: 0.2),
+              color: AppTheme.primary.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -34,13 +34,13 @@ class AddImageCard extends StatelessWidget {
               Icon(
                 Icons.add_photo_alternate_outlined,
                 size: 40,
-                color: AppTheme.royalBlueLight.withValues(alpha: 0.5),
+                color: AppTheme.primaryLight.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 8),
               Text(
                 'Add Images',
                 style: TextStyle(
-                  color: AppTheme.royalBlueLight.withValues(alpha: 0.6),
+                  color: AppTheme.primaryLight.withValues(alpha: 0.6),
                   fontSize: 13,
                 ),
               ),

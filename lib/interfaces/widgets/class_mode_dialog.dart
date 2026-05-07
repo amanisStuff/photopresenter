@@ -198,28 +198,28 @@ class _ClassModeSelectionDialogState extends State<ClassModeSelectionDialog> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.royalBlue.withValues(alpha: 0.12),
-                      AppTheme.royalBlueDark.withValues(alpha: 0.08),
+                      AppTheme.primary.withValues(alpha: 0.12),
+                      AppTheme.primaryDark.withValues(alpha: 0.08),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.royalBlue.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.photo_library,
-                      color: AppTheme.royalBlueLight,
+                      color: AppTheme.primaryLight,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Images needed: ${_warmUpCount + _earlyCount + _midCount + _finalCount}',
                       style: const TextStyle(
-                        color: AppTheme.royalBlueLight,
+                        color: AppTheme.primaryLight,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

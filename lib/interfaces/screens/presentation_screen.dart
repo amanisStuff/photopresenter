@@ -80,10 +80,10 @@ class PresentationScreen extends ConsumerWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.royalBlue.withValues(alpha: 0.2),
+                        color: AppTheme.primary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color: AppTheme.royalBlue.withValues(alpha: 0.3),
+                          color: AppTheme.primary.withValues(alpha: 0.3),
                           width: 0.5,
                         ),
                       ),
@@ -92,7 +92,7 @@ class PresentationScreen extends ConsumerWidget {
                             ? '${state.images.length} / ${state.totalPhaseCount}'
                             : '${state.currentIndex + 1} / ${state.images.length}',
                         style: const TextStyle(
-                          color: AppTheme.royalBlueLight,
+                          color: AppTheme.primaryLight,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -112,10 +112,10 @@ class PresentationScreen extends ConsumerWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.bgCard.withValues(alpha: 0.7),
+                        color: AppTheme.surfaceOverlay.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color: AppTheme.royalBlue.withValues(alpha: 0.25),
+                          color: AppTheme.primary.withValues(alpha: 0.25),
                           width: 0.5,
                         ),
                       ),
