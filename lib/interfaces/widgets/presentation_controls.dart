@@ -257,7 +257,7 @@ class PresentationControls extends ConsumerWidget {
                         child: Text(
                           '${state.timerDuration.inSeconds}s',
                           style: const TextStyle(
-                            color: AppTheme.primaryLight,
+                            color: AppTheme.onSurface,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1009,7 +1009,7 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
                     Text(
                       'Images needed: ${_warmUpCount + _earlyCount + _midCount + _finalCount}',
                       style: const TextStyle(
-                        color: AppTheme.primaryLight,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1161,7 +1161,7 @@ class _AudioModeToggle extends ConsumerWidget {
               fontSize: 10,
               fontWeight: FontWeight.bold,
               color: isDisabled
-                  ? AppTheme.onSurface.withValues(alpha: 0.4)
+                  ? AppTheme.onSurface
                   : (isTimerDriven ? AppTheme.onSurface : Colors.white),
             ),
           ),

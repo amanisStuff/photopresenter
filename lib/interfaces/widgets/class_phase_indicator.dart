@@ -34,8 +34,8 @@ class ClassPhaseIndicator extends StatelessWidget {
           ),
           child: Text(
             phaseName,
-            style: TextStyle(
-              color: state.isOnBreak ? AppTheme.primaryLight : AppTheme.success,
+            style: const TextStyle(
+              color: AppTheme.onSurface,
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
@@ -45,7 +45,7 @@ class ClassPhaseIndicator extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             '(${state.imagesRemainingInPhase} left in phase)',
-            style: const TextStyle(color: Colors.white38, fontSize: 10),
+            style: TextStyle(color: AppTheme.onSurface.withValues(alpha: 0.5), fontSize: 10),
           ),
         ],
       ],

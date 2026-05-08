@@ -34,13 +34,13 @@ class AddImageCard extends StatelessWidget {
               Icon(
                 Icons.add_photo_alternate_outlined,
                 size: 40,
-                color: AppTheme.primaryLight.withValues(alpha: 0.5),
+                color: AppTheme.primaryLight,
               ),
               const SizedBox(height: 8),
               Text(
                 'Add Images',
                 style: TextStyle(
-                  color: AppTheme.primaryLight.withValues(alpha: 0.6),
+                  color: AppTheme.primaryLight,
                   fontSize: 13,
                 ),
               ),

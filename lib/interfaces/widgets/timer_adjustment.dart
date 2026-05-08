@@ -28,10 +28,8 @@ class TimerAdjustment extends ConsumerWidget {
         decoration: AppTheme.controlButton(disabled: isDisabled),
         child: Text(
           '${value}s',
-          style: TextStyle(
-            color: isDisabled
-                ? AppTheme.onSurface.withValues(alpha: 0.4)
-                : AppTheme.onSurface,
+          style: const TextStyle(
+            color: AppTheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),

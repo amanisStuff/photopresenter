@@ -71,7 +71,7 @@ class BreakOverlay extends StatelessWidget {
               child: Text(
                 '${state.remainingTime.inMinutes}:${(state.remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
                 style: const TextStyle(
-                  color: AppTheme.primaryLight,
+                  color: Colors.white,
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
                 ),

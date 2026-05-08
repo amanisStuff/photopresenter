@@ -69,6 +69,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
           mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+          foregroundColor: WidgetStateProperty.all(AppTheme.textOnDarkMedium),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(

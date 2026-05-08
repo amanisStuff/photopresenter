@@ -219,7 +219,7 @@ class _ClassModeSelectionDialogState extends State<ClassModeSelectionDialog> {
                     Text(
                       'Images needed: ${_warmUpCount + _earlyCount + _midCount + _finalCount}',
                       style: const TextStyle(
-                        color: AppTheme.primaryLight,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
