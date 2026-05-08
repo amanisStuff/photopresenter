@@ -23,7 +23,6 @@ The Tech Stack
 - Local/Supportive
   - Riverpod for DI/state
   - Custom services: window, file, clipboard, audio, gallery
-  - Lightweight in-app logger (AppLogger) for debug
 
 Project Topography
 - lib/
@@ -79,17 +78,16 @@ Critical Constraints
 - All state management via Riverpod; no raw setState in presentation layer
 - One source of truth for slideshow state (PresentationState in PresentationNotifier)
 - Use of const constructors and StatelessWidgets where appropriate
-- Debug logging gated behind AppLogger and kDebugMode
+- Debug logging via `debugPrint` gated behind `kDebugMode`
 - Class Mode and timer logic must remain deterministic and tested
 - Avoid direct DOM/OS calls from UI; interactions go through services
 - Ensure that UI components do not cause drift (e.g., fixed widths for headers, centered controls, etc.)
 
 Current State of Play
 - Last major feature implemented
-  - Separation of center playback controls into CenterPlaybackPanel (stateless)
-  - SlideshowHeader with fixed width (ConstrainedBox) to prevent layout drift
+  - Center playback controls rendered inline in presentation_controls.dart
+  - Header content rendered inline with ConstrainedBox for layout stability
   - Auto vs manual timing: 1-second inter-slide delay for auto transitions; manual navigation bypasses the delay
-  - Introduced AppLogger and Debug mode toggle in Settings
   - Complete widget extraction: all private widget classes extracted into separate files under lib/interfaces/widgets/
     (section_header, settings_tile, class_preset_tile, audio_mode_tile, number_input_row, edit_preset_dialog,
      silver_controls, timer_adjustment, class_mode_button, class_phase_indicator, audio_mode_toggle,
@@ -108,10 +106,7 @@ Glossary of Domains
 - ClassPreset / ClassConfig: Models describing class-mode timing presets and run-time configuration
 - ImageSource: Enum used to distinguish file vs memory-based images
 - AudioMode: Enum with audioDriven vs timerDriven
-- SlideshowHeader: Stateless widget for the left-side header line; width-constrained to prevent drift
-- CenterPlaybackPanel: Stateless widget rendering Prev/Play/Pause/Next controls centered in the UI
-- AppSettings: Settings for timer, audio, class presets, and debug flags
-- AppLogger: Lightweight runtime logger for debug output
+- AppSettings: Settings for timer, audio, class presets
 - Widgets (all under lib/interfaces/widgets/): Composable stateless widgets extracted into individual files for single responsibility
 
 Onboarding and Agent Guidance (New)
@@ -127,7 +122,8 @@ Onboarding and Agent Guidance (New)
 Notes
 - This document is intended as a living briefing to minimize context drift. Update as the codebase evolves.
 
-- New Feature: Image Filters
-  - Implemented Black & White and Sepia image rendering for the slideshow.
-  - Access via the Presentation Controls bar: click the Filter menu (palette icon) to choose None / BW / Sepia.
+- Image Filters
+  - 9 filters available: None, Grayscale, Sepia, Invert, Bright, High Contrast, Extreme Contrast, Blur, Heavy Blur
+  - Access via the Presentation Controls bar: click the Filter popup (palette icon) for multi-select
+  - Multiple filters can be combined simultaneously
   - Rendering uses ColorFiltered; the underlying image data remains unchanged.

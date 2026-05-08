@@ -5,14 +5,14 @@
  - Audio Modes: Audio Driven and Timer Driven
  - Class Mode for figure drawing practice with presets and breaks
  - Focus Mode for distraction-free viewing (fullscreen, minimal chrome)
- - Image Filters: None, Black & White, Sepia
+ - Image Filters: 9 color/effect filters via popup menu
  - Gallery save/load and playlists
  - Cross-platform support (Linux, Windows, macOS)
 
 ## Image Filters
 
-- Filters available: None, Black & White (BW), Sepia
-- Access via the Presentation Controls bar (Filter icon) to cycle through None -> BW -> Sepia -> None
+- Filters available: None, Grayscale, Sepia, Invert, Bright, High Contrast, Extreme Contrast, Blur, Heavy Blur
+- Access via the Presentation Controls bar (palette icon) to open a multi-select popup menu
+- Multiple filters can be combined simultaneously
 - Rendering uses ColorFiltered; the source image data remains unchanged
-- This filter is a per-session UI feature and is not persisted across restarts unless extended
- 
+- Filters are a per-session UI feature and are not persisted across restarts

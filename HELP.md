@@ -19,9 +19,13 @@ lib/
 │   │   ├── class_session.dart           # Class mode session model
 │   │   ├── app_settings.dart            # App settings & class presets
 │   │   └── gallery_manifest.dart        # Gallery manifest data model
-│   └── providers/
-│       ├── presentation_provider.dart   # State management (Riverpod)
-│       └── settings_provider.dart       # Settings state management
+│   ├── providers/
+│   │   ├── presentation_provider.dart   # State management (Riverpod)
+│   │   └── settings_provider.dart       # Settings state management
+│   └── strategies/
+│       ├── audio_mode_strategy.dart     # Strategy pattern (audio/timer driven)
+│       ├── strategy_providers.dart      # Strategy provider wiring
+│       └── image_filter_decorator.dart  # Filter effect implementations
 ├── infrastructure/
 │   ├── services/
 │   │   ├── window_service.dart          # Window management (fullscreen, focus mode)
@@ -57,8 +61,9 @@ lib/
 │       ├── silver_controls.dart         # Silver-themed buttons (IconButton, Menu etc.)
 │       └── timer_adjustment.dart        # Timer increment/decrement
 └── shared/
-    ├── clickable.dart                   # Custom clickable widget
-    └── theme.dart                       # App theming (WMP9/Luna aesthetic)
+    ├── theme.dart                       # App theming (WMP9/Luna aesthetic)
+    └── widgets/
+        └── clickable.dart               # Custom clickable widget
 ```
 
 ---
@@ -70,7 +75,6 @@ lib/
 - **Drag & Drop**: Drag image files directly onto the window
 - **File Picker**: Click "Add Images" button or use Load menu
 - **Clipboard Paste**: `Ctrl+V` to paste images from clipboard
-- **Web Images**: Load images from URLs via the Load menu
 - **Reorder Images**: In the Library grid, long-press and drag an image to reorder it
 - **Shuffle**: Click the shuffle button to randomize image order; click again to restore original order
 - Automatic slide transitions with configurable timer
@@ -85,7 +89,8 @@ Class Mode simulates live figure drawing sessions with progressive timing:
 | Warm-up | 30 seconds | Gesture, line of action, basic flow |
 | Early Study | 1 minute | Weight, proportion, major masses |
 | Mid Study | 5 minutes | Refining shapes, silhouettes |
-| Final Study | 10+ minutes | Anatomical detail, lighting, shadow |
+| Final Study | 10 minutes | Anatomical detail, lighting, shadow |
+| Break Time | 3 minutes | Rest break (configurable) |
 
 **Class Length Presets:**
 - **30 Minutes**: 4 warm-up, 4 early, 2 mid, 1 final (11 images)
@@ -101,7 +106,7 @@ Two audio modes available in Settings → Audio Mode:
 | Mode | Behavior |
 |------|----------|
 | **Audio Driven** | Audio plays from start to end. Image changes when audio ends. Timer shows audio countdown when audio is longer than timer. |
-| **Timer Driven** | Timer controls when images change. Audio plays briefly as a signal/beep when image changes (does not play throughout timer). |
+| **Timer Driven** | Timer controls when images change. Audio starts at a random position and image changes when the timer ends. |
 
 ### 4. Custom Class Presets
 
@@ -153,12 +158,20 @@ Settings accessible via the gear icon in controls:
 | `isOnBreak` | `bool` | `false` | Break timer active |
 | `isShuffled` | `bool` | `false` | Shuffle mode active |
 | `originalOrder` | `List<PresentationImage>?` | `null` | Original image order before shuffle |
+| `lastActionWasManual` | `bool` | `false` | Tracks if last navigation was manual (affects inter-slide delay) |
+| `activeFilters` | `Set<ImageFilter>` | `{}` | Currently active image color filters (multi-select) |
 
 ### AppSettings (`app_settings.dart`)
 
 | Property | Type | Default | Description |
 |---------|------|---------|-------------|
 | `timerDurationSeconds` | `int` | `30` | Default timer in seconds |
+| `autoPlayAudio` | `bool` | `true` | Start audio when slideshow begins |
+| `soundOnTransition` | `bool` | `false` | Play sound when moving to next image |
+| `transitionSoundPath` | `String?` | `null` | Custom sound file for transitions |
+| `defaultVolume` | `double` | `1.0` | Audio playback volume |
+| `showImageInfo` | `bool` | `true` | Display image name and count |
+| `confirmOnClose` | `bool` | `false` | Ask before closing the app |
 | `audioMode` | `AudioMode` | `audioDriven` | Audio/Timer driven mode |
 | `customClassPresets` | `List<ClassPreset>` | `[]` | User-created class presets |
 
@@ -180,7 +193,7 @@ Bottom control bar with simplified layout:
 
 ### Save Menu (more options icon)
 - Download Images - Export all images to a folder
-- Save Gallery - Save images and audio as a gallery (saved to user documents directory)
+- Save Gallery - Save images and audio as a gallery (user picks directory via file picker)
 - Save Playlist - Save audio files as a playlist
 
 ### Focus Mode
@@ -209,9 +222,10 @@ Bottom control bar with simplified layout:
 ---
 
 ## Class Mode Dialog
-### New Feature: Image Filters
-- Black & White and Sepia rendering have been added to image display.
-- Access via the Presentation Controls popup menu (palette icon) to switch None / BW / Sepia.
+### Image Filters
+- 9 color/effect filters available: None, Grayscale, Sepia, Invert, Bright, High Contrast, Extreme Contrast, Blur, Heavy Blur
+- Access via the Presentation Controls popup menu (palette icon) for multi-select filter application
+- Multiple filters can be combined simultaneously
 - Rendering uses ColorFiltered; image data is unchanged.
 
 When clicking "Class Mode" button:
@@ -258,4 +272,4 @@ flutter build macos --release
 - Custom class presets persist in app settings
 - Timer and audio mode cannot be changed while playing
 - Progress bar shows remaining time (empties during countdown)
-- Galleries are saved to user documents directory under `galleries/`
+- Galleries can be saved/loaded via file picker or persisted to app documents directory

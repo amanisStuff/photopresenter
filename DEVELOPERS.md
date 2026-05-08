@@ -42,9 +42,13 @@ lib/
 │   │   ├── class_session.dart         # Class mode session model
 │   │   ├── app_settings.dart          # App settings & class presets
 │   │   └── gallery_manifest.dart      # Gallery manifest data model
-│   └── providers/                     # Riverpod Notifier business logic
-│       ├── presentation_provider.dart # Main slideshow state management
-│       └── settings_provider.dart     # Settings state management
+│   ├── providers/                     # Riverpod Notifier business logic
+│   │   ├── presentation_provider.dart # Main slideshow state management
+│   │   └── settings_provider.dart     # Settings state management
+│   └── strategies/                    # Strategy pattern implementations
+│       ├── audio_mode_strategy.dart   # Sealed class for audio/timer driven modes
+│       ├── strategy_providers.dart    # Riverpod provider for strategy selection
+│       └── image_filter_decorator.dart# Color filter effect implementations
 ├── infrastructure/                    # External implementations & DI
 │   ├── services/                      # IO / platform wrappers
 │   │   ├── window_service.dart        # Window management (fullscreen, focus mode)
@@ -57,11 +61,28 @@ lib/
 │   ├── screens/                       # Full-page views
 │   │   ├── presentation_screen.dart   # Main screen with keyboard shortcuts
 │   │   └── settings_screen.dart       # Settings UI
-│   └── widgets/                       # Composable UI components
-│       ├── image_grid.dart            # Image library grid view
+│   └── widgets/                       # Composable UI components (21 widgets)
+│       ├── add_image_card.dart        # Add image placeholder card
+│       ├── audio_mode_tile.dart       # Audio mode radio list (settings)
+│       ├── audio_mode_toggle.dart     # TMR/AUD toggle button (controls)
+│       ├── break_overlay.dart         # Break timer overlay
+│       ├── class_mode_button.dart     # Class mode toggle button
+│       ├── class_mode_dialog.dart     # Class mode configuration dialog
+│       ├── class_phase_indicator.dart # Current phase label
+│       ├── class_preset_tile.dart     # Class preset display tile
+│       ├── custom_title_bar.dart      # Custom window title bar
+│       ├── draggable_image_card.dart  # Draggable/reorderable image card
+│       ├── edit_preset_dialog.dart    # Add/edit class preset dialog
+│       ├── focus_timer_overlay.dart   # Focus mode timer overlay
 │       ├── image_display.dart         # Full-screen image display
+│       ├── image_grid.dart            # Image library grid view
+│       ├── load_gallery_dialog.dart   # Gallery load/delete dialog
+│       ├── number_input_row.dart      # Stepper row for numeric input
 │       ├── presentation_controls.dart # Bottom control bar
-│       └── custom_title_bar.dart      # Custom window title bar
+│       ├── section_header.dart        # Settings section label
+│       ├── settings_tile.dart         # Reusable settings row
+│       ├── silver_controls.dart       # Silver-themed buttons
+│       └── timer_adjustment.dart      # Timer increment/decrement
 └── shared/                            # Reusable utilities & constants
     ├── theme.dart                     # App theming (WMP9/Luna theme)
     └── widgets/
@@ -92,7 +113,7 @@ The app uses **Riverpod** for state management with two main providers:
 1. **PresentationProvider** (`core/providers/presentation_provider.dart`)
    - Manages slideshow state: images, playback, timers, audio, focus mode, class mode
    - Handles all user interactions
-   - Contains ~870 lines of core logic
+   - Contains ~830 lines of core logic
 
 2. **SettingsProvider** (`core/providers/settings_provider.dart`)
    - Manages app settings: timer duration, audio mode, class presets
@@ -108,7 +129,17 @@ Services are injected via Riverpod providers in `infrastructure/service_provider
 | FileService | File picking, gallery save/load, export |
 | ClipboardService | Paste images from clipboard |
 | AudioService | Audio playback with audioplayers package |
-| SettingsProvider | App settings persistence |
+| GalleryService | Gallery manifest save/load operations |
+
+### Strategies
+
+Strategies in `core/strategies/` implement the Strategy and Decorator patterns:
+
+| File | Pattern | Purpose |
+|------|---------|---------|
+| `audio_mode_strategy.dart` | Strategy | Sealed class with `AudioDrivenStrategy` / `TimerDrivenStrategy` for transition logic |
+| `strategy_providers.dart` | Factory | Riverpod provider returning the correct strategy based on `settings.audioMode` |
+| `image_filter_decorator.dart` | Decorator | Abstract filter with 9 implementations (None, Grayscale, Sepia, Invert, Brightness, Contrast, ExtremeContrast, Blur, HeavyBlur) |
 
 ### Models (in `core/entities/`)
 
@@ -189,7 +220,7 @@ The image grid in `interfaces/widgets/image_grid.dart` uses `ValueKey(image.path
 flutter test
 
 # Run specific test file
-flutter test test/presentation_provider_test.dart
+flutter test test/widget_test.dart
 ```
 
 ---
@@ -228,6 +259,12 @@ Key packages in `pubspec.yaml`:
 | file_picker | ^11.0.2 | Native file dialogs |
 | audioplayers | ^6.6.0 | Audio playback |
 | pasteboard | ^0.5.0 | Clipboard access |
+| http | ^1.2.0 | HTTP image loading from URLs |
+| path_provider | ^2.0.0 | Platform-aware app directories |
+| path | ^1.8.0 | File path utilities |
+| uuid | ^4.0.0 | UUID generation for gallery manifests |
+| animate_do | ^5.1.0 | Image transition animations |
+| cupertino_icons | ^1.0.8 | iOS-style icons |
 
 ---
 
