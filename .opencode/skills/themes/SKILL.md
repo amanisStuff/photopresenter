@@ -8,3 +8,7 @@ metadata:
   workflow: debugging, UI-development
   version: 1.0.0
 ---
+
+## Implementation Guidelines
+## 1. Style Dictionary
+The `styles` object acts as the single source of truth for the app's visual identity.

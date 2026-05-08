@@ -67,6 +67,8 @@ class PresentationState {
   }) : images = images ?? [],
       audioPaths = audioPaths ?? [];
 
+  static const _nullSentinel = Object();
+
   PresentationState copyWith({
     List<PresentationImage>? images,
     int? currentIndex,
@@ -79,14 +81,14 @@ class PresentationState {
     Duration? audioPosition,
     Duration? audioDuration,
     bool? isClassMode,
-    ClassConfig? classConfig,
+    Object? classConfig = _nullSentinel,
     List<Duration>? phaseQueue,
     int? phaseQueueIndex,
     bool? isOnBreak,
     bool? lastActionWasManual,
     Set<ImageFilter>? activeFilters,
     bool? isShuffled,
-    List<PresentationImage>? originalOrder,
+    Object? originalOrder = _nullSentinel,
   }) {
     return PresentationState(
       images: images ?? this.images,
@@ -100,14 +102,14 @@ class PresentationState {
       audioPosition: audioPosition ?? this.audioPosition,
       audioDuration: audioDuration ?? this.audioDuration,
       isClassMode: isClassMode ?? this.isClassMode,
-      classConfig: classConfig ?? this.classConfig,
+      classConfig: identical(classConfig, _nullSentinel) ? this.classConfig : classConfig as ClassConfig?,
       phaseQueue: phaseQueue ?? this.phaseQueue,
       phaseQueueIndex: phaseQueueIndex ?? this.phaseQueueIndex,
       isOnBreak: isOnBreak ?? this.isOnBreak,
       lastActionWasManual: lastActionWasManual ?? this.lastActionWasManual,
       activeFilters: activeFilters ?? this.activeFilters,
       isShuffled: isShuffled ?? this.isShuffled,
-      originalOrder: originalOrder ?? this.originalOrder,
+      originalOrder: identical(originalOrder, _nullSentinel) ? this.originalOrder : originalOrder as List<PresentationImage>?,
     );
   }
 
