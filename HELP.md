@@ -78,6 +78,8 @@ lib/
 - **Reorder Images**: In the Library grid, long-press and drag an image to reorder it
 - **Shuffle**: Click the shuffle button to randomize image order; click again to restore original order
 - Automatic slide transitions with configurable timer
+- **Auto-pause between images**: Configurable delay (3s–30s) between automatic slide transitions, with a countdown overlay. Disabled by default; enable in Settings. Press Space or click Play to skip the pause early.
+- **Manual pause/resume**: Click Play/Pause or press Space to freeze the current image and pause audio. Resume from the same position. A blurred overlay with "Press Space to continue" is shown. Press Escape or click X to return to the gallery grid.
 - Inter-slide delay: When auto-advancing between images, a 1 second delay is inserted between slides. This delay does not apply when you actively navigate (next/previous) images.
 
 ### 2. Class Mode (Figure Drawing Practice)
@@ -131,6 +133,7 @@ Settings accessible via the gear icon in controls:
 | Show Image Info | Display image name and count |
 | Confirm on Close | Ask before closing the app |
 | Audio Mode | Audio Driven vs Timer Driven |
+| Pause Between Images | Auto-pause delay between slides (Off / 3s / 5s / 10s / 15s / 30s) |
 | Class Mode Presets | Manage custom class presets |
 
 ---
@@ -144,6 +147,9 @@ Settings accessible via the gear icon in controls:
 | `images` | `List<PresentationImage>` | `[]` | Loaded images |
 | `currentIndex` | `int` | `0` | Currently displayed image index |
 | `isPlaying` | `bool` | `false` | Auto-playback active |
+| `isPaused` | `bool` | `false` | Slideshow manually paused (timer frozen, audio paused) |
+| `isAutoPausing` | `bool` | `false` | Between-images auto-pause active |
+| `autoPauseRemaining` | `Duration` | `0` | Time remaining in auto-pause countdown |
 | `timerDuration` | `Duration` | `30 seconds` | Slideshow interval |
 | `remainingTime` | `Duration` | `30 seconds` | Time until next slide |
 | `isFocusMode` | `bool` | `false` | Focus mode enabled |
@@ -173,6 +179,7 @@ Settings accessible via the gear icon in controls:
 | `showImageInfo` | `bool` | `true` | Display image name and count |
 | `confirmOnClose` | `bool` | `false` | Ask before closing the app |
 | `audioMode` | `AudioMode` | `audioDriven` | Audio/Timer driven mode |
+| `pauseBetweenImagesSeconds` | `int` | `0` | Auto-pause delay between images (0 = off) |
 | `customClassPresets` | `List<ClassPreset>` | `[]` | User-created class presets |
 
 ---
@@ -182,8 +189,8 @@ Settings accessible via the gear icon in controls:
 ### PresentationControls
 
 Bottom control bar with simplified layout:
-- **Left**: Image count, timer countdown, timer selector, class mode toggle, phase indicator
-- **Center**: Previous, Play/Pause, Next buttons
+- **Left**: Image count, timer countdown, timer selector, class mode toggle, phase indicator. Shows "(Paused)" when slideshow is paused.
+- **Center**: Previous, Play/Pause, Next buttons. Play/Pause is three-state: plays when stopped, pauses when playing, resumes when paused. During auto-pause, clicking Play skips the delay and advances immediately.
 - **Right**: Audio toggle, Settings, Focus Mode, Load menu, Save menu
 
 ### Load Menu (folder icon)
@@ -208,11 +215,11 @@ Bottom control bar with simplified layout:
 
 | Shortcut | Action |
 |----------|--------|
-| `Escape` | Exit focus mode |
+| `Escape` | Exit focus mode, or go back to gallery if paused |
 | `F11` or `Ctrl+F` | Toggle focus mode |
-| `Space` | Toggle play/pause |
-| `ArrowRight` | Next image |
-| `ArrowLeft` | Previous image |
+| `Space` | Play / Pause / Resume, or skip auto-pause |
+| `ArrowRight` | Next image (also cancels auto-pause) |
+| `ArrowLeft` | Previous image (also cancels auto-pause) |
 | `Ctrl+V` | Paste from clipboard |
 | `Ctrl+M` | Minimize window |
 | `Ctrl+D` | Download/export images |
