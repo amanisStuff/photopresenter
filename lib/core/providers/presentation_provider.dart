@@ -27,6 +27,9 @@ class PresentationState {
   final List<PresentationImage> images;
   final int currentIndex;
   final bool isPlaying;
+  final bool isPaused;
+  final bool isAutoPausing;
+  final Duration autoPauseRemaining;
   final Duration timerDuration;
   final Duration remainingTime;
   final bool isFocusMode;
@@ -48,6 +51,9 @@ class PresentationState {
     List<PresentationImage>? images,
     this.currentIndex = 0,
     this.isPlaying = false,
+    this.isPaused = false,
+    this.isAutoPausing = false,
+    this.autoPauseRemaining = Duration.zero,
     this.timerDuration = const Duration(seconds: 30),
     this.remainingTime = const Duration(seconds: 30),
     this.isFocusMode = false,
@@ -73,6 +79,9 @@ class PresentationState {
     List<PresentationImage>? images,
     int? currentIndex,
     bool? isPlaying,
+    bool? isPaused,
+    bool? isAutoPausing,
+    Duration? autoPauseRemaining,
     Duration? timerDuration,
     Duration? remainingTime,
     bool? isFocusMode,
@@ -94,6 +103,9 @@ class PresentationState {
       images: images ?? this.images,
       currentIndex: currentIndex ?? this.currentIndex,
       isPlaying: isPlaying ?? this.isPlaying,
+      isPaused: isPaused ?? this.isPaused,
+      isAutoPausing: isAutoPausing ?? this.isAutoPausing,
+      autoPauseRemaining: autoPauseRemaining ?? this.autoPauseRemaining,
       timerDuration: timerDuration ?? this.timerDuration,
       remainingTime: remainingTime ?? this.remainingTime,
       isFocusMode: isFocusMode ?? this.isFocusMode,
@@ -185,6 +197,8 @@ class PresentationNotifier extends Notifier<PresentationState> {
   void _advanceImage() {
     if (state.isClassMode && !state.isOnBreak) {
       _advanceClassPhase();
+    } else if (!state.isClassMode && _shouldAutoPause()) {
+      _startAutoPause();
     } else {
       nextImage();
       if (state.isPlaying && !state.hasAudio) {
@@ -201,6 +215,62 @@ class PresentationNotifier extends Notifier<PresentationState> {
         }
       }
     }
+  }
+
+  bool _shouldAutoPause() {
+    if (state.isAutoPausing) return false;
+    final settings = ref.read(settingsProvider);
+    return settings.pauseBetweenImagesSeconds > 0;
+  }
+
+  void _startAutoPause() {
+    final settings = ref.read(settingsProvider);
+    final pauseDuration = Duration(seconds: settings.pauseBetweenImagesSeconds);
+    _timer?.cancel();
+    state = state.copyWith(
+      isAutoPausing: true,
+      autoPauseRemaining: pauseDuration,
+    );
+    _targetTime = DateTime.now().add(pauseDuration);
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (_targetTime == null || !state.isAutoPausing || !state.isPlaying) {
+        timer.cancel();
+        return;
+      }
+      final now = DateTime.now();
+      final difference = _targetTime!.difference(now);
+      if (difference.inMilliseconds <= 0) {
+        _endAutoPause();
+      } else {
+        state = state.copyWith(
+          autoPauseRemaining: Duration(seconds: difference.inSeconds + 1),
+        );
+      }
+    });
+  }
+
+  void _endAutoPause() {
+    _timer?.cancel();
+    if (state.images.isEmpty) return;
+    final nextIndex = (state.currentIndex + 1) % state.images.length;
+    final nextAudioIndex = state.audioPaths.isNotEmpty
+        ? (state.audioIndex + 1) % state.audioPaths.length
+        : 0;
+    state = state.copyWith(
+      currentIndex: nextIndex,
+      remainingTime: state.timerDuration,
+      audioIndex: nextAudioIndex,
+      lastActionWasManual: false,
+      isAutoPausing: false,
+      autoPauseRemaining: Duration.zero,
+    );
+    if (state.isPlaying && state.hasAudio) {
+      _startAudioPlayback();
+    }
+    if (state.isPlaying && !state.hasAudio) {
+      _playSystemNotificationSound();
+    }
+    _startTimer();
   }
 
   void addImages(List<String> paths) {
@@ -284,6 +354,8 @@ class PresentationNotifier extends Notifier<PresentationState> {
       currentIndex: index,
       remainingTime: state.timerDuration,
       audioIndex: nextAudioIndex,
+      isAutoPausing: false,
+      autoPauseRemaining: Duration.zero,
     );
     if (state.isPlaying && state.hasAudio) {
       _startAudioPlayback();
@@ -302,6 +374,8 @@ class PresentationNotifier extends Notifier<PresentationState> {
       remainingTime: state.timerDuration,
       audioIndex: nextAudioIndex,
       lastActionWasManual: true,
+      isAutoPausing: false,
+      autoPauseRemaining: Duration.zero,
     );
     if (state.isPlaying && state.hasAudio) {
       _startAudioPlayback();
@@ -322,6 +396,8 @@ class PresentationNotifier extends Notifier<PresentationState> {
       remainingTime: state.timerDuration,
       audioIndex: nextAudioIndex,
       lastActionWasManual: true,
+      isAutoPausing: false,
+      autoPauseRemaining: Duration.zero,
     );
     if (state.isPlaying && state.hasAudio) {
       _startAudioPlayback();
@@ -330,17 +406,34 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
   void togglePlay() {
     if (state.images.isEmpty) return;
-    final newState = !state.isPlaying;
-    state = state.copyWith(isPlaying: newState);
 
-    if (newState) {
+    if (state.isPlaying) {
+      if (state.isAutoPausing) {
+        _endAutoPause();
+        return;
+      }
+      _timer?.cancel();
+      ref.read(audioServiceProvider).pause();
+      state = state.copyWith(
+        isPlaying: false,
+        isPaused: true,
+        isAutoPausing: false,
+        autoPauseRemaining: Duration.zero,
+      );
+    } else if (state.isPaused) {
+      state = state.copyWith(isPlaying: true, isPaused: false);
+      _startTimer();
+      ref.read(audioServiceProvider).resume();
+    } else {
+      state = state.copyWith(
+        isPlaying: true,
+        isPaused: false,
+        remainingTime: state.timerDuration,
+      );
       if (state.audioPaths.isNotEmpty) {
         _startAudioPlayback();
       }
       _startTimer();
-    } else {
-      _timer?.cancel();
-      ref.read(audioServiceProvider).stop();
     }
   }
 
@@ -694,6 +787,9 @@ class PresentationNotifier extends Notifier<PresentationState> {
     _timer?.cancel();
     state = state.copyWith(
       isClassMode: false,
+      isPaused: false,
+      isAutoPausing: false,
+      autoPauseRemaining: Duration.zero,
       classConfig: null,
       phaseQueue: [],
       phaseQueueIndex: 0,
@@ -816,6 +912,17 @@ class PresentationNotifier extends Notifier<PresentationState> {
       isPlaying: false,
       isClassMode: false,
       isOnBreak: false,
+    );
+  }
+
+  void stopPlayback() {
+    _timer?.cancel();
+    ref.read(audioServiceProvider).stop();
+    state = state.copyWith(
+      isPlaying: false,
+      isPaused: false,
+      isAutoPausing: false,
+      autoPauseRemaining: Duration.zero,
     );
   }
 

@@ -116,6 +116,7 @@ class AppSettings {
   final double defaultVolume;
   final bool showImageInfo;
   final bool confirmOnClose;
+  final int pauseBetweenImagesSeconds;
   final List<ClassPreset> customClassPresets;
   final AudioMode audioMode;
 
@@ -127,6 +128,7 @@ class AppSettings {
     this.defaultVolume = 1.0,
     this.showImageInfo = true,
     this.confirmOnClose = false,
+    this.pauseBetweenImagesSeconds = 0,
     this.customClassPresets = const [],
     this.audioMode = AudioMode.audioDriven,
   });
@@ -139,6 +141,7 @@ class AppSettings {
     double? defaultVolume,
     bool? showImageInfo,
     bool? confirmOnClose,
+    int? pauseBetweenImagesSeconds,
     List<ClassPreset>? customClassPresets,
     AudioMode? audioMode,
   }) {
@@ -150,10 +153,12 @@ class AppSettings {
       defaultVolume: defaultVolume ?? this.defaultVolume,
       showImageInfo: showImageInfo ?? this.showImageInfo,
       confirmOnClose: confirmOnClose ?? this.confirmOnClose,
+      pauseBetweenImagesSeconds: pauseBetweenImagesSeconds ?? this.pauseBetweenImagesSeconds,
       customClassPresets: customClassPresets ?? this.customClassPresets,
       audioMode: audioMode ?? this.audioMode,
     );
   }
 
   static const List<int> timerOptions = [5, 10, 15, 30, 60, 120, 300, 600];
+  static const List<int> pauseOptions = [0, 3, 5, 10, 15, 30];
 }

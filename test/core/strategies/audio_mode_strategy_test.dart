@@ -4,6 +4,7 @@ import 'package:photopresenter/core/strategies/audio_mode_strategy.dart';
 import 'package:photopresenter/infrastructure/services/audio_service.dart';
 
 class FakeAudioService extends AudioService {
+  // why is there a need
   String? _playedPath;
   void Function()? _onComplete;
 
@@ -36,17 +37,17 @@ void main() {
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('xyz.luan/audioplayers.global'),
-      (MethodCall call) async => null,
-    );
+          const MethodChannel('xyz.luan/audioplayers.global'),
+          (MethodCall call) async => null,
+        );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('xyz.luan/audioplayers'),
-      (MethodCall call) async {
-        if (call.method == 'create') return 'player-id';
-        return null;
-      },
-    );
+          const MethodChannel('xyz.luan/audioplayers'),
+          (MethodCall call) async {
+            if (call.method == 'create') return 'player-id';
+            return null;
+          },
+        );
   });
 
   group('AudioDrivenStrategy', () {
@@ -94,51 +95,60 @@ void main() {
       expect(strategy.timerAdvancesImage, isTrue);
     });
 
-    test('startAudio with short audio (within timer) plays with onComplete', () async {
-      const strategy = TimerDrivenStrategy();
-      final audio = FakeAudioService();
-      bool audioEnded = false;
+    test(
+      'startAudio with short audio (within timer) plays with onComplete',
+      () async {
+        const strategy = TimerDrivenStrategy();
+        final audio = FakeAudioService();
+        bool audioEnded = false;
 
-      await strategy.startAudio(
-        audio,
-        'short.mp3',
-        onAudioEnd: () => audioEnded = true,
-        timerDuration: const Duration(seconds: 30),
-      );
+        await strategy.startAudio(
+          audio,
+          'short.mp3',
+          onAudioEnd: () => audioEnded = true,
+          timerDuration: const Duration(seconds: 30),
+        );
 
-      expect(audio.playedPath, equals('short.mp3'));
-      audio.triggerComplete();
-      expect(audioEnded, isTrue);
-    });
+        expect(audio.playedPath, equals('short.mp3'));
+        audio.triggerComplete();
+        expect(audioEnded, isTrue);
+      },
+    );
 
-    test('startAudio with long audio (exceeds timer) plays without onComplete', () async {
-      const strategy = TimerDrivenStrategy();
-      final audio = FakeAudioService();
-      bool audioEnded = false;
+    test(
+      'startAudio with long audio (exceeds timer) plays without onComplete',
+      () async {
+        const strategy = TimerDrivenStrategy();
+        final audio = FakeAudioService();
+        bool audioEnded = false;
 
-      await strategy.startAudio(
-        audio,
-        'long.mp3',
-        onAudioEnd: () => audioEnded = true,
-        timerDuration: const Duration(seconds: 30),
-      );
+        await strategy.startAudio(
+          audio,
+          'long.mp3',
+          onAudioEnd: () => audioEnded = true,
+          timerDuration: const Duration(seconds: 30),
+        );
 
-      expect(audio.playedPath, equals('long.mp3'));
-    });
+        expect(audio.playedPath, equals('long.mp3'));
+      },
+    );
 
-    test('startAudio returns null when duration cannot be determined', () async {
-      const strategy = TimerDrivenStrategy();
-      final audio = FakeAudioService();
+    test(
+      'startAudio returns null when duration cannot be determined',
+      () async {
+        const strategy = TimerDrivenStrategy();
+        final audio = FakeAudioService();
 
-      final duration = await strategy.startAudio(
-        audio,
-        'nonexistent.mp3',
-        onAudioEnd: () {},
-        timerDuration: const Duration(seconds: 30),
-      );
+        final duration = await strategy.startAudio(
+          audio,
+          'nonexistent.mp3',
+          onAudioEnd: () {},
+          timerDuration: const Duration(seconds: 30),
+        );
 
-      expect(duration, isNull);
-    });
+        expect(duration, isNull);
+      },
+    );
   });
 
   group('AudioModeStrategy sealed class', () {

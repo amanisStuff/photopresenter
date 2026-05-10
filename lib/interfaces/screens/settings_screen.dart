@@ -111,6 +111,32 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
+          SectionHeader(title: 'Pause Between Images'),
+          SettingsTile(
+            title: 'Auto-pause duration',
+            subtitle: settings.pauseBetweenImagesSeconds == 0
+                ? 'Disabled'
+                : '${settings.pauseBetweenImagesSeconds} seconds pause between images',
+            trailing: DropdownButton<int>(
+              value: settings.pauseBetweenImagesSeconds,
+              dropdownColor: AppTheme.surfaceDropdown,
+              underline: const SizedBox(),
+              style: const TextStyle(color: AppTheme.textOnDarkMedium, fontSize: 13),
+              items: AppSettings.pauseOptions.map((val) {
+                return DropdownMenuItem(
+                  value: val,
+                  child: Text(
+                    val == 0 ? 'Off' : '${val}s',
+                    style: const TextStyle(color: AppTheme.textOnDarkMedium),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) notifier.setPauseBetweenImages(val);
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
           SectionHeader(title: 'Class Mode Presets'),
           ...ClassPreset.defaultPresets.asMap().entries.map((entry) {
             final preset = entry.value;

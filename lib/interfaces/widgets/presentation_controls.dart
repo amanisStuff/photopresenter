@@ -179,7 +179,9 @@ class PresentationControls extends ConsumerWidget {
                             !showAudioCountdown && secondsLeft <= 5;
 
                         return Text(
-                          '${secondsLeft}s',
+                          state.isPaused
+                              ? '${secondsLeft}s (Paused)'
+                              : '${secondsLeft}s',
                           style: TextStyle(
                             color: showAudioCountdown
                                 ? AppTheme.success
@@ -323,7 +325,9 @@ class PresentationControls extends ConsumerWidget {
                 padding: const EdgeInsets.all(2),
                 child: IconButton(
                   icon: Icon(
-                    state.isPlaying ? Icons.pause : Icons.play_arrow,
+                    state.isPlaying
+                        ? Icons.pause
+                        : (state.isPaused ? Icons.play_arrow : Icons.play_arrow),
                     size: 26,
                   ),
                   onPressed: state.images.isEmpty

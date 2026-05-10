@@ -6,7 +6,9 @@ sealed class AudioModeStrategy {
 
   bool get timerAdvancesImage;
 
-  Future<Duration?> startAudio(AudioService audio, String path, {
+  Future<Duration?> startAudio(
+    AudioService audio,
+    String path, {
     required VoidCallback onAudioEnd,
     required Duration timerDuration,
   });
@@ -19,7 +21,9 @@ class AudioDrivenStrategy extends AudioModeStrategy {
   bool get timerAdvancesImage => false;
 
   @override
-  Future<Duration?> startAudio(AudioService audio, String path, {
+  Future<Duration?> startAudio(
+    AudioService audio,
+    String path, {
     required VoidCallback onAudioEnd,
     required Duration timerDuration,
   }) async {
@@ -37,7 +41,9 @@ class TimerDrivenStrategy extends AudioModeStrategy {
   bool get timerAdvancesImage => true;
 
   @override
-  Future<Duration?> startAudio(AudioService audio, String path, {
+  Future<Duration?> startAudio(
+    AudioService audio,
+    String path, {
     required VoidCallback onAudioEnd,
     required Duration timerDuration,
   }) async {

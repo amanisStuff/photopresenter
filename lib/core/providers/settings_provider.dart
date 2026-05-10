@@ -61,6 +61,10 @@ class SettingsNotifier extends Notifier<AppSettings> {
     state = state.copyWith(audioMode: mode);
   }
 
+  void setPauseBetweenImages(int seconds) {
+    state = state.copyWith(pauseBetweenImagesSeconds: seconds);
+  }
+
   void resetToDefaults() {
     state = const AppSettings();
   }

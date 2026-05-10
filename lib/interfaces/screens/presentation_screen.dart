@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +22,7 @@ class PresentationScreen extends ConsumerWidget {
     Widget content;
     if (state.images.isEmpty) {
       content = const Center(child: ImageDisplay());
-    } else if (state.isPlaying) {
+    } else if (state.isPlaying || state.isPaused) {
       content = const Center(child: ImageDisplay());
     } else {
       content = const ImageGrid();
@@ -33,6 +34,8 @@ class PresentationScreen extends ConsumerWidget {
           const SingleActivator(LogicalKeyboardKey.escape): () {
             if (state.isFocusMode) {
               notifier.toggleFocusMode();
+            } else if (state.isPaused || state.isAutoPausing) {
+              notifier.stopPlayback();
             }
           },
           const SingleActivator(LogicalKeyboardKey.space): () =>
@@ -127,6 +130,12 @@ class PresentationScreen extends ConsumerWidget {
                     ),
                   ),
 
+                if (state.isPaused)
+                  const _PauseOverlay(),
+
+                if (state.isAutoPausing && !state.isPaused)
+                  const _AutoPauseOverlay(),
+
                 if (!state.isFocusMode || !state.isPlaying)
                   const Positioned(
                     bottom: 0,
@@ -145,6 +154,17 @@ class PresentationScreen extends ConsumerWidget {
                     ),
                   ),
 
+                if (!state.isFocusMode && (state.isPaused || state.isAutoPausing))
+                  Positioned(
+                    top: 12,
+                    right: 16,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white54),
+                      tooltip: 'Back to gallery',
+                      onPressed: () => notifier.stopPlayback(),
+                    ),
+                  ),
+
                 if (state.isPlaying && state.isClassMode && state.isOnBreak)
                   BreakOverlay(state: state),
 
@@ -152,6 +172,117 @@ class PresentationScreen extends ConsumerWidget {
                     state.isPlaying &&
                     state.remainingTime.inSeconds <= 10)
                   FocusTimerOverlay(state: state),
+
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PauseOverlay extends StatelessWidget {
+  const _PauseOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          color: Colors.black54,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceOverlay.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.pause,
+                    size: 64,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'PAUSED',
+                  style: AppTheme.overlayTitleStyle,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Press Space to continue',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AutoPauseOverlay extends ConsumerWidget {
+  const _AutoPauseOverlay();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(presentationProvider);
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          color: Colors.black38,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceOverlay.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.hourglass_bottom,
+                    size: 48,
+                    color: AppTheme.primaryLight,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'NEXT IMAGE IN',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                    letterSpacing: 3,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${state.autoPauseRemaining.inSeconds}s',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
