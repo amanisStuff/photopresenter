@@ -30,15 +30,13 @@ class ClassModeButton extends StatelessWidget {
                 Icon(
                   Icons.school,
                   size: 14,
-                  color: isActive ? Colors.white : AppTheme.onSurface,
+                  color: isActive ? AppTheme.textOnDark : AppTheme.onSurface,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isActive ? 'Class' : 'Class Mode',
-                  style: TextStyle(
-                    color: isActive ? Colors.white : AppTheme.onSurface,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                  style: AppTheme.classLabelStyle.copyWith(
+color: isActive ? AppTheme.textOnDark : AppTheme.onSurface,
                   ),
                 ),
               ],

@@ -12,7 +12,7 @@ class BreakOverlay extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.breakBackgroundStart, AppTheme.breakBackgroundEnd],
+          colors: [Color(0xFF0A0A18), Color(0xFF14142A)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -49,10 +49,7 @@ class BreakOverlay extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Rest your hand',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 14,
-              ),
+              style: AppTheme.overlayHintStyle,
             ),
             const SizedBox(height: 12),
             Container(
@@ -70,11 +67,7 @@ class BreakOverlay extends StatelessWidget {
               ),
               child: Text(
                 '${state.remainingTime.inMinutes}:${(state.remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTheme.overlayCountdownStyle,
               ),
             ),
           ],

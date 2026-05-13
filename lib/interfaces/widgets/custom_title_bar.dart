@@ -22,19 +22,14 @@ class CustomTitleBar extends ConsumerWidget {
             return Row(
               children: [
                 if (showTitle) ...[
-                  const SizedBox(width: 12),
-                  const Icon(Icons.photo_library, size: 16, color: Colors.white),
-                  const SizedBox(width: 8),
-                  const Expanded(
+const SizedBox(width: 12),
+                   Icon(Icons.photo_library, size: 16, color: AppTheme.textOnDark),
+                   const SizedBox(width: 8),
+                  Expanded(
                     child: Text(
                       'PhotoPresenter',
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.3,
-                      ),
+                      style: AppTheme.titleBarTextStyle,
                     ),
                   ),
                 ] else
@@ -67,36 +62,36 @@ class CustomTitleBar extends ConsumerWidget {
 }
 
 class _WinXpButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-  final bool isClose;
+   final IconData icon;
+   final VoidCallback onPressed;
+   final bool isClose;
 
-  const _WinXpButton({
-    required this.icon,
-    required this.onPressed,
-    this.isClose = false,
-  });
+   const _WinXpButton({
+     required this.icon,
+     required this.onPressed,
+     this.isClose = false,
+   });
 
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        onTap: onPressed,
-        hoverColor: isClose
-            ? AppTheme.error.withValues(alpha: 0.8)
-            : Colors.white.withValues(alpha: 0.15),
-        child: Container(
-          width: 44,
-          height: 36,
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            size: 14,
-            color: isClose ? Colors.white : Colors.white.withValues(alpha: 0.85),
-          ),
-        ),
-      ),
-    );
-  }
-}
+   @override
+   Widget build(BuildContext context) {
+     return MouseRegion(
+       cursor: SystemMouseCursors.click,
+       child: InkWell(
+         onTap: onPressed,
+         hoverColor: isClose
+             ? AppTheme.error.withValues(alpha: 0.8)
+             : AppTheme.textOnDarkSubtle.withValues(alpha: 0.15),
+         child: Container(
+           width: 44,
+           height: 36,
+           alignment: Alignment.center,
+           child: Icon(
+             icon,
+             size: 14,
+             color: isClose ? AppTheme.textOnDark : AppTheme.textOnDarkSubtle,
+           ),
+         ),
+       ),
+     );
+   }
+ }

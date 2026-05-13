@@ -49,7 +49,7 @@ class AudioModeToggle extends ConsumerWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppTheme.textOnDarkSubtle.withValues(alpha: isDisabled ? 0.35 : 0.0),
                 blurRadius: 1,
                 offset: const Offset(0, 1),
               ),
@@ -57,12 +57,10 @@ class AudioModeToggle extends ConsumerWidget {
           ),
           child: Text(
             isTimerDriven ? 'TMR' : 'AUD',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+            style: AppTheme.audioToggleStyle.copyWith(
               color: isDisabled
                   ? AppTheme.onSurface.withValues(alpha: 0.4)
-                  : (isTimerDriven ? AppTheme.onSurface : Colors.white),
+                  : (isTimerDriven ? AppTheme.onSurface : AppTheme.textOnDark),
             ),
           ),
         ),

@@ -39,10 +39,7 @@ class AddImageCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Add Images',
-                style: TextStyle(
-                  color: AppTheme.primaryLight,
-                  fontSize: 13,
-                ),
+                style: AppTheme.addImageLabelStyle,
               ),
             ],
           ),

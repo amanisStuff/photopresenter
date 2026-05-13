@@ -73,19 +73,19 @@ class MenuButton<T> extends StatelessWidget {
 }
 
 class SilverPopupButton<T> extends StatelessWidget {
-  final IconData icon;
-  final bool isActive;
-  final Color activeColor;
-  final String tooltip;
-  final void Function(T)? onSelected;
-  final PopupMenuItemBuilder<T>? itemBuilder;
-  final List<(IconData, String)>? items;
+   final IconData icon;
+   final bool isActive;
+   final Color? activeColor;
+   final String tooltip;
+   final void Function(T)? onSelected;
+   final PopupMenuItemBuilder<T>? itemBuilder;
+   final List<(IconData, String)>? items;
 
-  const SilverPopupButton({
-    super.key,
-    required this.icon,
-    this.isActive = false,
-    this.activeColor = AppTheme.onSurface,
+   const SilverPopupButton({
+     super.key,
+     required this.icon,
+     this.isActive = false,
+     this.activeColor,
     required this.tooltip,
     this.onSelected,
     this.itemBuilder,
@@ -100,7 +100,7 @@ class SilverPopupButton<T> extends StatelessWidget {
       child: PopupMenuButton<T>(
         tooltip: tooltip,
         onSelected: onSelected,
-        icon: Icon(icon, color: isActive ? activeColor : AppTheme.onSurface, size: 16),
+        icon: Icon(icon, color: isActive ? (activeColor ?? AppTheme.onSurface) : AppTheme.onSurface, size: 16),
         itemBuilder: itemBuilder ?? (context) {
           if (items == null) return [];
           return items!.map((entry) {

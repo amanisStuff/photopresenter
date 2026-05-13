@@ -40,7 +40,7 @@ class FocusTimerOverlay extends StatelessWidget {
                         ? state.remainingTime.inMilliseconds /
                               state.timerDuration.inMilliseconds
                         : 0,
-                    backgroundColor: Colors.white12,
+                    backgroundColor: AppTheme.background.withValues(alpha: 0.2),
                     valueColor: AlwaysStoppedAnimation(
                       state.remainingTime.inSeconds <= 5
                           ? AppTheme.error
@@ -52,12 +52,10 @@ class FocusTimerOverlay extends StatelessWidget {
               const SizedBox(width: 12),
               Text(
                 '${state.remainingTime.inSeconds}s',
-                style: TextStyle(
-                  color: state.remainingTime.inSeconds <= 5
-                      ? AppTheme.error
-                      : Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                style: AppTheme.overlayTimerStyle.copyWith(
+color: state.remainingTime.inSeconds <= 5
+                       ? AppTheme.error
+                       : AppTheme.textOnDark,
                 ),
               ),
             ],

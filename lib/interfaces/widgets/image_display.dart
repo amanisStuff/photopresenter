@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../shared/theme.dart';
 import '../../core/providers/presentation_provider.dart';
 import '../../core/strategies/image_filter_decorator.dart';
 import '../../core/entities/presentation_image.dart';
@@ -16,21 +17,21 @@ class ImageDisplay extends ConsumerWidget {
     final activeFilters = state.activeFilters;
 
     if (currentImage == null) {
-      return Center(
-        child: FadeIn(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.add_photo_alternate_outlined,
-                size: 80,
-                color: Colors.white24,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Drag & Drop images or Paste (Ctrl+V)',
-                style: TextStyle(color: Colors.white38, fontSize: 18),
-              ),
+return Center(
+         child: FadeIn(
+           child: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               Icon(
+                 Icons.add_photo_alternate_outlined,
+                 size: 80,
+                 color: AppTheme.textOnDarkSubtle,
+               ),
+               const SizedBox(height: 16),
+               Text(
+                 'Drag & Drop images or Paste (Ctrl+V)',
+                 style: AppTheme.emptyStateTextStyle,
+               ),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 onPressed: () =>
@@ -81,16 +82,16 @@ class ImageDisplay extends ConsumerWidget {
     );
   }
 
-  Widget _buildError() {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.broken_image, size: 64, color: Colors.white24),
-          SizedBox(height: 8),
-          Text('Failed to load image', style: TextStyle(color: Colors.white38)),
-        ],
-      ),
-    );
-  }
+Widget _buildError() {
+     return Center(
+       child: Column(
+         mainAxisSize: MainAxisSize.min,
+         children: [
+           Icon(Icons.broken_image, size: 64, color: AppTheme.textOnDarkSubtle),
+           const SizedBox(height: 8),
+           Text('Failed to load image', style: AppTheme.errorTextStyle),
+         ],
+       ),
+     );
+   }
 }

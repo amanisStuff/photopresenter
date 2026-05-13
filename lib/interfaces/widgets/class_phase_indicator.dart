@@ -34,18 +34,14 @@ class ClassPhaseIndicator extends StatelessWidget {
           ),
           child: Text(
             phaseName,
-            style: const TextStyle(
-              color: AppTheme.onSurface,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTheme.phaseLabelStyle,
           ),
         ),
         if (!state.isOnBreak && state.imagesRemainingInPhase > 1) ...[
           const SizedBox(width: 4),
           Text(
             '(${state.imagesRemainingInPhase} left in phase)',
-            style: TextStyle(color: AppTheme.onSurface.withValues(alpha: 0.5), fontSize: 10),
+            style: AppTheme.phaseCountStyle,
           ),
         ],
       ],

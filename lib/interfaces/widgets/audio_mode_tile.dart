@@ -18,7 +18,6 @@ class AudioModeTile extends StatelessWidget {
       decoration: AppTheme.tileOuterDecoration,
       child: Row(
         children: [
-          Container(width: 4, decoration: AppTheme.tileAccentBarDecoration),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(14),
@@ -38,7 +37,7 @@ class AudioModeTile extends StatelessWidget {
                           children: [
                             Icon(
                               isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                              color: isSelected ? AppTheme.primary : Colors.white38,
+                              color: isSelected ? AppTheme.primary : AppTheme.textOnDark.withValues(alpha: 0.4),
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -48,16 +47,15 @@ class AudioModeTile extends StatelessWidget {
                                 children: [
                                   Text(
                                     mode.displayName,
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.white70,
-                                      fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                                      fontSize: 14,
+                                    style: AppTheme.tileTitleStyle.copyWith(
+                                      color: isSelected ? AppTheme.primary : AppTheme.textOnDark,
+                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                                     ),
                                   ),
                                   const SizedBox(height: 1),
                                   Text(
                                     mode.description,
-                                    style: AppTheme.cardSubtitleStyle,
+                                    style: AppTheme.tileSubtitleStyle,
                                   ),
                                 ],
                               ),

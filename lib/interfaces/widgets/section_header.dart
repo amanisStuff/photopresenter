@@ -12,12 +12,7 @@ class SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: AppTheme.primaryLight,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.5,
-          ),
+          style: AppTheme.sectionHeaderStyle,
         ),
         const SizedBox(height: 4),
         Container(height: 1, color: AppTheme.primary.withValues(alpha: 0.2)),

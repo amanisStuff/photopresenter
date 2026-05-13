@@ -33,13 +33,9 @@ class _ImageGridState extends ConsumerState<ImageGrid> {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: Row(
                 children: [
-                  const Text(
+                  Text(
                     'Library',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: AppTheme.screenTitleStyle,
                   ),
                   const SizedBox(width: 12),
                   Container(
@@ -64,11 +60,7 @@ class _ImageGridState extends ConsumerState<ImageGrid> {
                     ),
                     child: Text(
                       '${state.images.length} images',
-                      style: const TextStyle(
-                        color: AppTheme.primaryLight,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: AppTheme.badgeCounterStyle,
                     ),
                   ),
                 ],
@@ -180,7 +172,7 @@ class _DraggableImage extends StatelessWidget {
                         ? AppTheme.primary
                         : isSelected
                             ? AppTheme.primary
-                            : Colors.transparent,
+                            : AppTheme.textOnDarkSubtle,
                     width: 3,
                   ),
                   boxShadow: [
@@ -201,14 +193,14 @@ class _DraggableImage extends StatelessWidget {
                       top: 4,
                       right: 4,
                       child: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.close,
                           size: 18,
-                          color: Colors.white70,
+                          color: AppTheme.textOnDarkMedium,
                         ),
                         onPressed: onRemove,
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.black54,
+                          backgroundColor: AppTheme.surfaceDark,
                         ),
                       ),
                     ),
@@ -228,7 +220,7 @@ class _DraggableImage extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDragging ? AppTheme.primary : Colors.transparent,
+          color: isDragging ? AppTheme.primary : AppTheme.textOnDarkSubtle,
           width: 3,
         ),
         boxShadow: isDragging
@@ -248,9 +240,9 @@ class _DraggableImage extends StatelessWidget {
           _GridImage(image: image),
           if (isDragging)
             Container(
-              color: Colors.black26,
-              child: const Center(
-                child: Icon(Icons.drag_indicator, color: Colors.white70, size: 40),
+color: AppTheme.surfaceMuted.withValues(alpha: 0.4),
+              child: Center(
+                child: Icon(Icons.drag_indicator, color: AppTheme.textOnDarkSubtle, size: 40),
               ),
             ),
         ],
@@ -278,31 +270,31 @@ class _GridImageState extends State<_GridImage> {
     super.initState();
     _imageProvider =
         widget.image.source == ImageSource.file && widget.image.path != null
-        ? FileImage(File(widget.image.path!))
-        : widget.image.source == ImageSource.memory &&
-              widget.image.bytes != null
-        ? MemoryImage(widget.image.bytes!)
-        : const NetworkImage('about:blank');
+            ? FileImage(File(widget.image.path!))
+            : widget.image.source == ImageSource.memory &&
+                    widget.image.bytes != null
+                ? MemoryImage(widget.image.bytes!)
+                : const NetworkImage('about:blank');
 
     _imageProvider
         .resolve(ImageConfiguration.empty)
         .addListener(
           ImageStreamListener(
              (imageInfo, synchronousCall) {
-               if (mounted) setState(() => _loaded = true);
-             },
-            onError: (error, stackTrace) {
-              if (mounted) setState(() => _error = true);
-            },
-          ),
+                if (mounted) setState(() => _loaded = true);
+              },
+              onError: (error, stackTrace) {
+                if (mounted) setState(() => _error = true);
+              },
+           ),
         );
   }
 
   @override
   Widget build(BuildContext context) {
     if (_error) {
-      return const Center(
-        child: Icon(Icons.broken_image, color: Colors.white38),
+      return Center(
+        child: Icon(Icons.broken_image, color: AppTheme.textOnDarkSubtle),
       );
     }
 
@@ -319,8 +311,8 @@ class _GridImageState extends State<_GridImage> {
     return Image(
       image: _imageProvider,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) =>
-          const Center(child: Icon(Icons.broken_image, color: Colors.white38)),
+errorBuilder: (context, error, stackTrace) =>
+          Center(child: Icon(Icons.broken_image, color: AppTheme.textOnDarkSubtle)),
     );
   }
 }

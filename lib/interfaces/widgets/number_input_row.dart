@@ -22,7 +22,7 @@ class NumberInputRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              style: AppTheme.inputLabelStyle,
             ),
           ),
           _StepperButton(
@@ -67,7 +67,7 @@ class _StepperButton extends StatelessWidget {
       decoration: AppTheme.buttonDecoration(pressed: false),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       child: IconButton(
-        icon: Icon(icon, size: 14, color: onPressed == null ? Colors.grey : AppTheme.onSurface),
+        icon: Icon(icon, size: 14, color: onPressed == null ? AppTheme.surfaceMuted : AppTheme.onSurface),
         onPressed: onPressed,
         style: IconButton.styleFrom(backgroundColor: Colors.transparent),
         constraints: const BoxConstraints(minWidth: 28, minHeight: 28),

@@ -54,7 +54,7 @@ class PhaseConfigRow extends StatelessWidget {
             child: Text(
               '$value',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: AppTheme.configValueStyle,
             ),
           ),
           IconButton(
@@ -105,9 +105,9 @@ class _ClassModeSelectionDialogState extends State<ClassModeSelectionDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Quick Start',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: AppTheme.dialogSectionTitleStyle,
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -135,9 +135,9 @@ class _ClassModeSelectionDialogState extends State<ClassModeSelectionDialog> {
                 ],
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Custom Configuration',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: AppTheme.dialogSectionTitleStyle,
               ),
               const SizedBox(height: 12),
               PhaseConfigRow(
@@ -207,21 +207,17 @@ class _ClassModeSelectionDialogState extends State<ClassModeSelectionDialog> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.photo_library,
-                      color: AppTheme.primaryLight,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
+child: Row(
+                   mainAxisAlignment: MainAxisAlignment.center,
+children: [
+                      Icon(
+                        Icons.photo_library,
+                        color: AppTheme.primaryLight,
+                        size: 20,
+                      ),
                     Text(
                       'Images needed: ${_warmUpCount + _earlyCount + _midCount + _finalCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppTheme.imagesNeededStyle,
                     ),
                   ],
                 ),

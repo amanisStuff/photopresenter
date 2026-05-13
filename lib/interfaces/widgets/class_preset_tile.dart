@@ -35,7 +35,6 @@ class ClassPresetTile extends StatelessWidget {
       decoration: AppTheme.tileOuterDecoration,
       child: Row(
         children: [
-          Container(width: 4, decoration: AppTheme.tileAccentBarDecoration),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -46,22 +45,22 @@ class ClassPresetTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name, style: AppTheme.cardTitleStyle),
+                        Text(name, style: AppTheme.tileTitleStyle),
                         const SizedBox(height: 4),
                         Text(
                           '$warmUp warm-up, $early early, $mid mid, $finalCount final ($total total)${hasBreak ? ', break at img ${(total/2).floor() + 1}' : ''}',
-                          style: AppTheme.cardSubtitleStyle,
+                          style: AppTheme.tileSubtitleStyle,
                         ),
                       ],
                     ),
                   ),
                   if (isCustom) ...[
                     IconButton(
-                      icon: const Icon(Icons.edit, size: 18, color: Colors.white54),
+                      icon: Icon(Icons.edit, size: 18, color: AppTheme.onSurface),
                       onPressed: onEdit,
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, size: 18, color: Colors.redAccent),
+                      icon: Icon(Icons.delete, size: 18, color: AppTheme.error),
                       onPressed: onDelete,
                     ),
                   ],

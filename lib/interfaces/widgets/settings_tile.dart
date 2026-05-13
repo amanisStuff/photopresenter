@@ -20,7 +20,6 @@ class SettingsTile extends StatelessWidget {
       decoration: AppTheme.tileOuterDecoration,
       child: Row(
         children: [
-          Container(width: 4, decoration: AppTheme.tileAccentBarDecoration),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -31,9 +30,9 @@ class SettingsTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: AppTheme.cardTitleStyle),
+                        Text(title, style: AppTheme.tileTitleStyle),
                         const SizedBox(height: 2),
-                        Text(subtitle, style: AppTheme.cardSubtitleStyle),
+                        Text(subtitle, style: AppTheme.tileSubtitleStyle),
                       ],
                     ),
                   ),

@@ -36,7 +36,7 @@ Future<void> showEditPresetDialog(
            backgroundColor: AppTheme.surfaceOverlay,
           title: Text(
             existingPreset == null ? 'Add Custom Class' : 'Edit Class',
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+            style: AppTheme.dialogTitleStyle,
           ),
           content: SizedBox(
             width: 380,
@@ -54,12 +54,12 @@ Future<void> showEditPresetDialog(
                     ),
                     child: TextField(
                       controller: nameController,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: const InputDecoration(
+                      style: AppTheme.textFieldInputStyle,
+                      decoration: InputDecoration(
                         labelText: 'Class Name',
-                        labelStyle: TextStyle(color: AppTheme.textTertiary, fontSize: 13),
+                        labelStyle: AppTheme.textFieldLabelStyle,
                         hintText: 'e.g., Quick 15 Min',
-                        hintStyle: TextStyle(color: Colors.white24),
+                        hintStyle: AppTheme.textFieldHintStyle,
                         border: InputBorder.none,
                       ),
                     ),
@@ -85,10 +85,10 @@ Future<void> showEditPresetDialog(
                         Checkbox(
                           value: hasBreak,
                           onChanged: (v) => setState(() => hasBreak = v ?? false),
-                          activeColor: AppTheme.primary,
-                          checkColor: Colors.white,
+activeColor: AppTheme.primary,
+                           checkColor: AppTheme.textOnDark,
                         ),
-                        const Text('Break', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        Text('Break', style: AppTheme.dialogBreakLabelStyle),
                         if (hasBreak) ...[
                           SizedBox(
                             width: 75,
@@ -97,15 +97,15 @@ Future<void> showEditPresetDialog(
                               isDense: true,
                               dropdownColor: AppTheme.surfaceDropdown,
                               underline: const SizedBox(),
-                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                              style: AppTheme.dialogBreakLabelStyle,
                               items: [3, 5, 10, 15].map((m) => DropdownMenuItem(
                                 value: m,
-                                child: Text('$m min', style: const TextStyle(color: Colors.white70)),
+                                child: Text('$m min', style: AppTheme.dialogDropdownItemStyle),
                               )).toList(),
                               onChanged: (v) { if (v != null) setState(() => breakMinutes = v); },
                             ),
                           ),
-                          const Text('at img', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                          Text('at img', style: AppTheme.dialogBreakSubtextStyle),
                           SizedBox(
                             width: 50,
                             height: 32,
@@ -113,7 +113,7 @@ Future<void> showEditPresetDialog(
                               controller: breakAfterController,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                              style: AppTheme.textFieldInputStyle,
                               decoration: InputDecoration(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                                 isDense: true,
@@ -149,7 +149,7 @@ Future<void> showEditPresetDialog(
                       ),
                       child: Text(
                         'Total: $totalImages images',
-                        style: const TextStyle(color: AppTheme.primaryLight, fontSize: 13, fontWeight: FontWeight.w500),
+                        style: AppTheme.infoTextStyle,
                       ),
                     ),
                   ),
@@ -160,12 +160,12 @@ Future<void> showEditPresetDialog(
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              child: Text('Cancel', style: AppTheme.cancelActionStyle),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AppTheme.textOnDark,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               ),
               onPressed: () {

@@ -182,12 +182,10 @@ class PresentationControls extends ConsumerWidget {
                           state.isPaused
                               ? '${secondsLeft}s (Paused)'
                               : '${secondsLeft}s',
-                          style: TextStyle(
+                          style: AppTheme.timerDisplayStyle.copyWith(
                             color: showAudioCountdown
                                 ? AppTheme.success
                                 : (isLowTime ? AppTheme.error : AppTheme.onSurface),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
                           ),
                         );
                       },
@@ -258,10 +256,7 @@ class PresentationControls extends ConsumerWidget {
                         ),
                         child: Text(
                           '${state.timerDuration.inSeconds}s',
-                          style: const TextStyle(
-                            color: AppTheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTheme.timerValueStyle,
                         ),
                       ),
                     _ClassModeButton(
@@ -271,10 +266,6 @@ class PresentationControls extends ConsumerWidget {
                     ),
                   ],
                 ),
-                if (state.isClassMode) ...[
-                  const SizedBox(height: 4),
-                  _ClassPhaseIndicator(state: state),
-                ],
               ],
             ),
             ),
@@ -362,7 +353,16 @@ class PresentationControls extends ConsumerWidget {
 
           Positioned(
             right: 0,
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (state.isClassMode)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: _ClassPhaseIndicator(state: state),
+                  ),
+                Row(
               mainAxisSize: MainAxisSize.min,
             children: [
               if (state.hasAudio) ...[
@@ -415,9 +415,9 @@ class PresentationControls extends ConsumerWidget {
                         onTap: () => notifier.clearFilters(),
                         child: Row(
                           children: [
-                            Icon(Icons.clear_all, size: 18, color: Colors.red),
+                            Icon(Icons.clear_all, size: 18, color: AppTheme.filterClearStyle.color),
                             const SizedBox(width: 8),
-                            Text('None (Clear All)', style: TextStyle(color: Colors.red)),
+                            Text('None (Clear All)', style: AppTheme.filterClearStyle),
                           ],
                         ),
                       ),
@@ -507,6 +507,8 @@ class PresentationControls extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+          ],
           ),
           ),
         ],
@@ -600,18 +602,18 @@ class _MenuButton<T> extends StatelessWidget {
 }
 
 class _SilverPopupButton<T> extends StatelessWidget {
-  final IconData icon;
-  final bool isActive;
-  final Color activeColor;
+   final IconData icon;
+   final bool isActive;
+   final Color? activeColor;
   final String tooltip;
   final void Function(T)? onSelected;
   final PopupMenuItemBuilder<T>? itemBuilder;
   final List<(IconData, String)>? items;
 
-  const _SilverPopupButton({
-    required this.icon,
-    this.isActive = false,
-    this.activeColor = AppTheme.onSurface,
+const _SilverPopupButton({
+     required this.icon,
+     this.isActive = false,
+     this.activeColor,
     required this.tooltip,
     this.onSelected,
     this.itemBuilder,
@@ -626,7 +628,7 @@ class _SilverPopupButton<T> extends StatelessWidget {
       child: PopupMenuButton<T>(
         tooltip: tooltip,
         onSelected: onSelected,
-        icon: Icon(icon, color: isActive ? activeColor : AppTheme.onSurface, size: 16),
+        icon: Icon(icon, color: isActive ? (activeColor ?? AppTheme.onSurface) : AppTheme.onSurface, size: 16),
         itemBuilder: itemBuilder ?? (context) {
           if (items == null) return [];
           return items!.map((entry) {
@@ -666,15 +668,14 @@ class _TimerAdjustment extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: AppTheme.controlButton(disabled: isDisabled),
-        child: Text(
-          '${value}s',
-          style: TextStyle(
-            color: isDisabled
-                ? AppTheme.onSurface.withValues(alpha: 0.4)
-                : AppTheme.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+                child: Text(
+                  '${value}s',
+                  style: AppTheme.timerValueStyle.copyWith(
+                    color: isDisabled
+                        ? AppTheme.onSurface.withValues(alpha: 0.4)
+                        : AppTheme.onSurface,
+                  ),
+                ),
       ),
       itemBuilder: (context) => [
         const PopupMenuItem(value: 5, child: Text('5 seconds')),
@@ -715,15 +716,13 @@ class _ClassModeButton extends StatelessWidget {
                 Icon(
                   Icons.school,
                   size: 14,
-                  color: isActive ? Colors.white : AppTheme.onSurface,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  isActive ? 'Class' : 'Class Mode',
-                  style: TextStyle(
-                    color: isActive ? Colors.white : AppTheme.onSurface,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+color: isActive ? AppTheme.textOnDark : AppTheme.onSurface,
+                 ),
+                 const SizedBox(width: 4),
+                 Text(
+                   isActive ? 'Class' : 'Class Mode',
+                   style: AppTheme.classLabelStyle.copyWith(
+                     color: isActive ? AppTheme.textOnDark : AppTheme.onSurface,
                   ),
                 ),
               ],
@@ -750,26 +749,27 @@ class _ClassPhaseIndicator extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: state.isOnBreak
-                ? AppTheme.primary.withValues(alpha: 0.2)
-                : AppTheme.success.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
               color: state.isOnBreak
-                  ? AppTheme.primary.withValues(alpha: 0.4)
-                  : AppTheme.success.withValues(alpha: 0.4),
-              width: 1,
+                  ? AppTheme.primary.withValues(alpha: 0.2)
+                  : AppTheme.success.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: state.isOnBreak
+                    ? AppTheme.primary.withValues(alpha: 0.4)
+                    : AppTheme.success.withValues(alpha: 0.4),
+                width: 1,
+              ),
             ),
-          ),
-          child: Text(
-            phaseName,
-            style: TextStyle(
-              color: state.isOnBreak ? AppTheme.primaryLight : AppTheme.success,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+            child: Text(
+              phaseName,
+              overflow: TextOverflow.ellipsis,
+              style: AppTheme.phaseLabelStyle.copyWith(
+                color: state.isOnBreak ? AppTheme.primaryLight : AppTheme.success,
+              ),
             ),
           ),
         ),
@@ -777,7 +777,8 @@ class _ClassPhaseIndicator extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             '(${state.imagesRemainingInPhase} left in phase)',
-            style: const TextStyle(color: Colors.white38, fontSize: 10),
+            overflow: TextOverflow.ellipsis,
+            style: AppTheme.phaseCountStyle,
           ),
         ],
       ],
@@ -899,9 +900,9 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Quick Start',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: AppTheme.dialogSectionTitleStyle,
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -929,9 +930,9 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
                 ],
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Custom Configuration',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: AppTheme.dialogSectionTitleStyle,
               ),
               const SizedBox(height: 12),
               _PhaseConfigRow(
@@ -1004,18 +1005,15 @@ class _ClassModeSelectionDialogState extends State<_ClassModeSelectionDialog> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.photo_library,
-                      color: AppTheme.primaryLight,
-                      size: 20,
-                    ),
+Icon(
+                        Icons.photo_library,
+                        color: AppTheme.primaryLight,
+                        size: 20,
+                      ),
                     const SizedBox(width: 8),
                     Text(
                       'Images needed: ${_warmUpCount + _earlyCount + _midCount + _finalCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppTheme.imagesNeededStyle,
                     ),
                   ],
                 ),
@@ -1096,7 +1094,7 @@ class _PhaseConfigRow extends StatelessWidget {
             child: Text(
               '$value',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: AppTheme.configValueStyle,
             ),
           ),
           IconButton(
@@ -1153,7 +1151,7 @@ class _AudioModeToggle extends ConsumerWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppTheme.textOnDark.withValues(alpha: isDisabled ? 0.35 : 0.6),
                 blurRadius: 1,
                 offset: const Offset(0, 1),
               ),
@@ -1161,12 +1159,10 @@ class _AudioModeToggle extends ConsumerWidget {
           ),
           child: Text(
             isTimerDriven ? 'TMR' : 'AUD',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+            style: AppTheme.audioToggleStyle.copyWith(
               color: isDisabled
                   ? AppTheme.onSurface
-                  : (isTimerDriven ? AppTheme.onSurface : Colors.white),
+                  : (isTimerDriven ? AppTheme.onSurface : AppTheme.textOnDark),
             ),
           ),
         ),
