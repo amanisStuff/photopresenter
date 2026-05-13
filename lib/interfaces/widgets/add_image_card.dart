@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/theme.dart';
+import '../../shared/theme/theme_notifier.dart';
 
-class AddImageCard extends StatelessWidget {
+class AddImageCard extends ConsumerWidget {
   final VoidCallback onTap;
 
   const AddImageCard({super.key, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeProvider);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(

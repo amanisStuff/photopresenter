@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../shared/theme.dart';
+import '../../shared/theme/theme_notifier.dart';
 import '../../core/providers/presentation_provider.dart';
 import '../../core/strategies/image_filter_decorator.dart';
 import '../../core/entities/presentation_image.dart';
@@ -12,6 +13,7 @@ class ImageDisplay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeProvider);
     final state = ref.watch(presentationProvider);
     final currentImage = state.currentImage;
     final activeFilters = state.activeFilters;

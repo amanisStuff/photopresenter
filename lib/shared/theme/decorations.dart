@@ -21,6 +21,8 @@ class SkeuomorphicDecorations implements DecorationSet {
   final ColorPalette palette;
   const SkeuomorphicDecorations(this.palette);
 
+  bool get _isDarkPalette => palette.background.computeLuminance() < 0.3;
+
   @override
   BoxDecoration get controlsBar => BoxDecoration(
     gradient: LinearGradient(
@@ -29,10 +31,10 @@ class SkeuomorphicDecorations implements DecorationSet {
       stops: const [0.0, 0.5, 1.0],
     ),
     border: Border(
-      top: BorderSide(color: Colors.white.withValues(alpha: palette is RoyalBlueDark ? 0.15 : 0.8), width: 1),
+      top: BorderSide(color: Colors.white.withValues(alpha: _isDarkPalette ? 0.15 : 0.8), width: 1),
       bottom: BorderSide(color: palette.insetBorderDark, width: 1),
     ),
-    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: palette is RoyalBlueDark ? 0.4 : 0.08), blurRadius: 4, offset: const Offset(0, -2))],
+    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: _isDarkPalette ? 0.4 : 0.08), blurRadius: 4, offset: const Offset(0, -2))],
   );
 
   @override
@@ -42,17 +44,16 @@ class SkeuomorphicDecorations implements DecorationSet {
       colors: [palette.primaryLight, palette.primary, palette.primaryDark],
     ),
     border: Border(bottom: BorderSide(color: palette.primaryDark, width: 1)),
-    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: palette is RoyalBlueDark ? 0.3 : 0.15), blurRadius: 4, offset: const Offset(0, 1))],
+    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: _isDarkPalette ? 0.3 : 0.15), blurRadius: 4, offset: const Offset(0, 1))],
   );
 
   @override
   List<BoxShadow> get bevelInset => [
-    BoxShadow(color: Colors.black.withValues(alpha: palette is RoyalBlueDark ? 0.15 : 0.08), blurRadius: 2, offset: const Offset(0, 1)),
+    BoxShadow(color: Colors.black.withValues(alpha: _isDarkPalette ? 0.15 : 0.08), blurRadius: 2, offset: const Offset(0, 1)),
   ];
 
   @override
   BoxDecoration buttonDecoration({bool pressed = false, bool isPlay = false}) {
-    final isDark = palette is RoyalBlueDark;
     return BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topCenter, end: Alignment.bottomCenter,
@@ -64,15 +65,14 @@ class SkeuomorphicDecorations implements DecorationSet {
       borderRadius: BorderRadius.circular(isPlay ? 20 : 4),
       border: Border.all(color: palette.insetBorderDark, width: 1),
       boxShadow: [
-        BoxShadow(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.8), blurRadius: 1, offset: const Offset(0, 1)),
-        BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.1), blurRadius: 2, offset: const Offset(0, 1)),
+        BoxShadow(color: Colors.white.withValues(alpha: _isDarkPalette ? 0.15 : 0.8), blurRadius: 1, offset: const Offset(0, 1)),
+        BoxShadow(color: Colors.black.withValues(alpha: _isDarkPalette ? 0.5 : 0.1), blurRadius: 2, offset: const Offset(0, 1)),
       ],
     );
   }
 
   @override
   BoxDecoration pillButton({bool active = false}) {
-    final isDark = palette is RoyalBlueDark;
     return BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topCenter, end: Alignment.bottomCenter,
@@ -85,8 +85,8 @@ class SkeuomorphicDecorations implements DecorationSet {
         color: active ? palette.primaryDark : palette.insetBorderDark, width: 1,
       ),
       boxShadow: [
-        BoxShadow(color: Colors.white.withValues(alpha: isDark ? 0.1 : 0), blurRadius: 1, offset: const Offset(0, 1)),
-        BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.4 : 0), blurRadius: 1, offset: const Offset(0, 1)),
+        BoxShadow(color: Colors.white.withValues(alpha: _isDarkPalette ? 0.1 : 0), blurRadius: 1, offset: const Offset(0, 1)),
+        BoxShadow(color: Colors.black.withValues(alpha: _isDarkPalette ? 0.4 : 0), blurRadius: 1, offset: const Offset(0, 1)),
       ],
     );
   }
@@ -109,7 +109,6 @@ class SkeuomorphicDecorations implements DecorationSet {
 
   @override
   BoxDecoration controlButton({bool disabled = false}) {
-    final isDark = palette is RoyalBlueDark;
     return BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topCenter, end: Alignment.bottomCenter,
@@ -120,8 +119,8 @@ class SkeuomorphicDecorations implements DecorationSet {
       borderRadius: BorderRadius.circular(4),
       border: Border.all(color: palette.insetBorderDark, width: 1),
       boxShadow: [
-        BoxShadow(color: Colors.white.withValues(alpha: isDark ? 0.1 : 0), blurRadius: 1, offset: const Offset(0, 1)),
-        BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.4 : 0), blurRadius: 1, offset: const Offset(0, 1)),
+        BoxShadow(color: Colors.white.withValues(alpha: _isDarkPalette ? 0.1 : 0), blurRadius: 1, offset: const Offset(0, 1)),
+        BoxShadow(color: Colors.black.withValues(alpha: _isDarkPalette ? 0.4 : 0), blurRadius: 1, offset: const Offset(0, 1)),
       ],
     );
   }
