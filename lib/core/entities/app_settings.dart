@@ -119,6 +119,8 @@ class AppSettings {
   final int pauseBetweenImagesSeconds;
   final List<ClassPreset> customClassPresets;
   final AudioMode audioMode;
+  final bool useViewport3D;
+  final bool scatterMode;
 
   const AppSettings({
     this.timerDurationSeconds = 30,
@@ -131,6 +133,8 @@ class AppSettings {
     this.pauseBetweenImagesSeconds = 0,
     this.customClassPresets = const [],
     this.audioMode = AudioMode.audioDriven,
+    this.useViewport3D = false,
+    this.scatterMode = false,
   });
 
   AppSettings copyWith({
@@ -144,6 +148,8 @@ class AppSettings {
     int? pauseBetweenImagesSeconds,
     List<ClassPreset>? customClassPresets,
     AudioMode? audioMode,
+    bool? useViewport3D,
+    bool? scatterMode,
   }) {
     return AppSettings(
       timerDurationSeconds: timerDurationSeconds ?? this.timerDurationSeconds,
@@ -156,6 +162,8 @@ class AppSettings {
       pauseBetweenImagesSeconds: pauseBetweenImagesSeconds ?? this.pauseBetweenImagesSeconds,
       customClassPresets: customClassPresets ?? this.customClassPresets,
       audioMode: audioMode ?? this.audioMode,
+      useViewport3D: useViewport3D ?? this.useViewport3D,
+      scatterMode: scatterMode ?? this.scatterMode,
     );
   }
 

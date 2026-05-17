@@ -65,6 +65,14 @@ class SettingsNotifier extends Notifier<AppSettings> {
     state = state.copyWith(pauseBetweenImagesSeconds: seconds);
   }
 
+  void setUseViewport3D(bool value) {
+    state = state.copyWith(useViewport3D: value);
+  }
+
+  void setScatterMode(bool value) {
+    state = state.copyWith(scatterMode: value);
+  }
+
   void resetToDefaults() {
     state = const AppSettings();
   }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/section_header.dart';
-import '../widgets/settings_tile.dart';
-import '../widgets/class_preset_tile.dart';
-import '../widgets/audio_mode_tile.dart';
-import '../widgets/retro_switch.dart';
-import '../widgets/edit_preset_dialog.dart';
+import '../widgets/common/section_header.dart';
+import '../widgets/settings/settings_tile.dart';
+import '../widgets/settings/class_preset_tile.dart';
+import '../widgets/settings/audio_mode_tile.dart';
+import '../widgets/common/retro_switch.dart';
+import '../widgets/dialogs/edit_preset_dialog.dart';
 import '../../shared/theme.dart';
 import '../../shared/theme/theme_mode.dart';
 import '../../shared/theme/theme_choices.dart';

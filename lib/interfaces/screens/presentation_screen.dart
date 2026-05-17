@@ -6,26 +6,37 @@ import 'package:desktop_drop/desktop_drop.dart';
 import '../../shared/theme.dart';
 import '../../shared/theme/theme_notifier.dart';
 import '../../core/providers/presentation_provider.dart';
-import '../widgets/image_grid.dart';
-import '../widgets/image_display.dart';
-import '../widgets/presentation_controls.dart';
-import '../widgets/break_overlay.dart';
-import '../widgets/focus_timer_overlay.dart';
+import '../../core/providers/settings_provider.dart';
+import '../widgets/image_media/image_grid.dart';
+import '../widgets/image_media/image_display.dart';
+import '../widgets/overlays/viewport_3d.dart';
+import '../widgets/controls/presentation_controls.dart';
+import '../widgets/overlays/break_overlay.dart';
+import '../widgets/overlays/focus_timer_overlay.dart';
 
 class PresentationScreen extends ConsumerWidget {
   const PresentationScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(themeProvider); // force rebuild on theme changes
+    ref.watch(themeProvider);
     final state = ref.watch(presentationProvider);
+    final settings = ref.watch(settingsProvider);
     final notifier = ref.read(presentationProvider.notifier);
 
     Widget content;
     if (state.images.isEmpty) {
-      content = const Center(child: ImageDisplay());
+      content = Center(
+        child: settings.useViewport3D
+            ? const Viewport3D()
+            : const ImageDisplay(),
+      );
     } else if (state.isPlaying || state.isPaused) {
-      content = const Center(child: ImageDisplay());
+      content = Center(
+        child: settings.useViewport3D
+            ? const Viewport3D()
+            : const ImageDisplay(),
+      );
     } else {
       content = const ImageGrid();
     }
@@ -75,95 +86,95 @@ class PresentationScreen extends ConsumerWidget {
 
                 content,
 
-if (!state.isFocusMode && state.images.isNotEmpty)
-                   Positioned(
-                     top: 12,
-                     left: 16,
-                     child: Container(
-                       padding: const EdgeInsets.symmetric(
-                         horizontal: 10,
-                         vertical: 4,
-                       ),
-                       decoration: BoxDecoration(
-                         color: AppTheme.primary.withValues(alpha: 0.2),
-                         borderRadius: BorderRadius.circular(4),
-                         border: Border.all(
-                           color: AppTheme.primary.withValues(alpha: 0.3),
-                           width: 0.5,
-                         ),
-                       ),
-                       child: Text(
-                         state.isClassMode
-                             ? '${state.images.length} / ${state.totalPhaseCount}'
-                             : '${state.currentIndex + 1} / ${state.images.length}',
-                         style: AppTheme.imageCounterStyle,
-                       ),
-                     ),
-                   ),
-
-                 if (!state.isFocusMode &&
-                     state.images.isNotEmpty &&
-                     state.currentImage != null)
-                   Positioned(
-                     bottom: 80,
-                     left: 16,
-                     child: Container(
-                       padding: const EdgeInsets.symmetric(
-                         horizontal: 12,
-                         vertical: 6,
-                       ),
-                       decoration: BoxDecoration(
-                         color: AppTheme.surfaceOverlay.withValues(alpha: 0.7),
-                         borderRadius: BorderRadius.circular(4),
-                         border: Border.all(
-                           color: AppTheme.primary.withValues(alpha: 0.25),
-                           width: 0.5,
-                         ),
-                       ),
-                       child: Text(
-                         state.currentImage!.name,
-                         style: AppTheme.overlayTextStyle.copyWith(
-                           fontWeight: FontWeight.w500,
-                         ),
-                         overflow: TextOverflow.ellipsis,
-                       ),
-                     ),
-                   ),
-
-                 if (state.isPaused) const _PauseOverlay(),
-
-                 if (state.isAutoPausing && !state.isPaused)
-                   const _AutoPauseOverlay(),
-
-                 if (!state.isFocusMode || !state.isPlaying)
-                   const Positioned(
-                     bottom: 0,
-                     left: 0,
-                     right: 0,
-                     child: PresentationControls(),
-                   ),
-
-                 if (state.isFocusMode)
-                   Positioned(
-                     top: 20,
-                     right: 20,
-child: IconButton(
-                        icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
-                        onPressed: () => notifier.toggleFocusMode(),
+                if (!state.isFocusMode && state.images.isNotEmpty)
+                  Positioned(
+                    bottom: 72,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                   ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.3),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        state.isClassMode
+                            ? '${state.images.length} / ${state.totalPhaseCount}'
+                            : '${state.currentIndex + 1} / ${state.images.length}',
+                        style: AppTheme.imageCounterStyle,
+                      ),
+                    ),
+                  ),
 
-                 if (!state.isFocusMode &&
-                     (state.isPaused || state.isAutoPausing))
-                   Positioned(
-                     top: 12,
-                     right: 16,
-child: IconButton(
-                        icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
-                        tooltip: 'Back to gallery',
-                       onPressed: () => notifier.stopPlayback(),
-                     ),
-                   ),
+                if (!state.isFocusMode &&
+                    state.images.isNotEmpty &&
+                    state.currentImage != null)
+                  Positioned(
+                    bottom: 80,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceOverlay.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.25),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        state.currentImage!.name,
+                        style: AppTheme.overlayTextStyle.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+
+                if (state.isPaused) const _PauseOverlay(),
+
+                if (state.isAutoPausing && !state.isPaused)
+                  const _AutoPauseOverlay(),
+
+                if (!state.isFocusMode || !state.isPlaying)
+                  const Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: PresentationControls(),
+                  ),
+
+                if (state.isFocusMode)
+                  Positioned(
+                    top: 20,
+                    right: 20,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
+                      onPressed: () => notifier.toggleFocusMode(),
+                    ),
+                  ),
+
+                if (!state.isFocusMode &&
+                    (state.isPaused || state.isAutoPausing))
+                  Positioned(
+                    top: 12,
+                    right: 16,
+                    child: IconButton(
+                      icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
+                      tooltip: 'Back to gallery',
+                      onPressed: () => notifier.stopPlayback(),
+                    ),
+                  ),
 
                 if (state.isPlaying && state.isClassMode && state.isOnBreak)
                   BreakOverlay(state: state),
@@ -182,78 +193,82 @@ child: IconButton(
 }
 
 class _PauseOverlay extends StatelessWidget {
-   const _PauseOverlay();
+  const _PauseOverlay();
 
-   @override
-   Widget build(BuildContext context) {
-     return ClipRect(
-       child: BackdropFilter(
-         filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-         child: Container(
-           color: AppTheme.background.withValues(alpha: 0.7),
-           child: Center(
-             child: Column(
-               mainAxisSize: MainAxisSize.min,
-               children: [
-                 Container(
-                   padding: const EdgeInsets.all(20),
-                   decoration: BoxDecoration(
-                     color: AppTheme.surfaceOverlay.withValues(alpha: 0.9),
-                     borderRadius: BorderRadius.circular(20),
-                     border: Border.all(
-                       color: AppTheme.primary.withValues(alpha: 0.4),
-                       width: 2,
-                     ),
-                   ),
-                   child: Icon(Icons.pause, size: 64, color: AppTheme.textOnDark),
-                 ),
-                 const SizedBox(height: 20),
-                 Text('PAUSED', style: AppTheme.overlayTitleStyle),
-                 const SizedBox(height: 8),
-                 Text(
-                   'Press Space to continue',
-                   style: AppTheme.overlayHintStyle,
-                 ),
-               ],
-             ),
-           ),
-         ),
-       ),
-     );
-   }
- }
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          color: AppTheme.background.withValues(alpha: 0.7),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceOverlay.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.pause,
+                    size: 64,
+                    color: AppTheme.textOnDark,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text('PAUSED', style: AppTheme.overlayTitleStyle),
+                const SizedBox(height: 8),
+                Text(
+                  'Press Space to continue',
+                  style: AppTheme.overlayHintStyle,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
- class _AutoPauseOverlay extends ConsumerWidget {
-   const _AutoPauseOverlay();
+class _AutoPauseOverlay extends ConsumerWidget {
+  const _AutoPauseOverlay();
 
-   @override
-   Widget build(BuildContext context, WidgetRef ref) {
-     final state = ref.watch(presentationProvider);
-     return ClipRect(
-       child: BackdropFilter(
-         filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-         child: Container(
-           color: AppTheme.background.withValues(alpha: 0.6),
-           child: Center(
-             child: Column(
-               mainAxisSize: MainAxisSize.min,
-               children: [
-                 Container(
-                   padding: const EdgeInsets.all(16),
-                   decoration: BoxDecoration(
-                     color: AppTheme.surfaceOverlay.withValues(alpha: 0.9),
-                     borderRadius: BorderRadius.circular(16),
-                     border: Border.all(
-                       color: AppTheme.primary.withValues(alpha: 0.4),
-                       width: 2,
-                     ),
-                   ),
-                   child: Icon(
-                     Icons.hourglass_bottom,
-                     size: 48,
-                     color: AppTheme.primaryLight,
-                   ),
-                 ),
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(presentationProvider);
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          color: AppTheme.background.withValues(alpha: 0.6),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceOverlay.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.hourglass_bottom,
+                    size: 48,
+                    color: AppTheme.primaryLight,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Text('NEXT IMAGE IN', style: AppTheme.overlaySubtextStyle),
                 const SizedBox(height: 4),

@@ -363,7 +363,12 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void nextImage() {
-    if (state.images.isEmpty) return;
+    final settings = ref.read(settingsProvider);
+    if (state.images.isEmpty && !settings.useViewport3D) return;
+    if (state.images.isEmpty) {
+      state = state.copyWith(currentIndex: state.currentIndex + 1);
+      return;
+    }
     final nextIndex = (state.currentIndex + 1) % state.images.length;
     final nextAudioIndex = state.audioPaths.isNotEmpty
         ? (state.audioIndex + 1) % state.audioPaths.length
@@ -383,7 +388,12 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void previousImage() {
-    if (state.images.isEmpty) return;
+    final settings = ref.read(settingsProvider);
+    if (state.images.isEmpty && !settings.useViewport3D) return;
+    if (state.images.isEmpty) {
+      state = state.copyWith(currentIndex: state.currentIndex + 1);
+      return;
+    }
     final prevIndex =
         (state.currentIndex - 1 + state.images.length) % state.images.length;
     final nextAudioIndex = state.audioPaths.isNotEmpty
@@ -405,7 +415,8 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void togglePlay() {
-    if (state.images.isEmpty) return;
+    final settings = ref.read(settingsProvider);
+    if (state.images.isEmpty && !settings.useViewport3D) return;
 
     if (state.isPlaying) {
       if (state.isAutoPausing) {
