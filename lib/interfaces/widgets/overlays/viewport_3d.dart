@@ -16,7 +16,9 @@ class Viewport3D extends ConsumerStatefulWidget {
 class _Viewport3DState extends ConsumerState<Viewport3D>
     with SingleTickerProviderStateMixin {
   Scene? _scene;
+  Object? _floor;
   bool lightLocked = false;
+  bool _floorAdded = false;
   bool sizeLocked = false;
   bool _showSizePanel = false;
   double _uniformScale = 1.0;
@@ -87,7 +89,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
       do {
         pos = Vector3(
           _clampComponent((random.nextDouble() * range * 2) - range, half),
-          _clampComponent((random.nextDouble() * range * 2) - range, half),
+          _clampComponent((random.nextDouble() * range * 2) - range, half, isY: true),
           _clampComponent((random.nextDouble() * range * 2) - range, half),
         );
         attempts++;
@@ -104,10 +106,13 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
   }
 
   static const double _viewLimit = 5.0;
+  static const double _floorLevel = -2.5;
 
-  double _clampComponent(double value, double halfSize) {
+  double _clampComponent(double value, double halfSize, {bool isY = false}) {
     final double bound = _viewLimit - halfSize;
-    return value.clamp(-bound, bound);
+    final clamped = value.clamp(-bound, bound);
+    if (isY) return clamped.clamp(_floorLevel + halfSize, bound);
+    return clamped;
   }
 
   double get _positionRange {
@@ -155,11 +160,11 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
       final double range = _positionRange;
       final Vector3 pos;
       if (count == 1) {
-        pos = Vector3(0, 0, 0);
+        pos = Vector3(0, 1, 0);
       } else {
         pos = Vector3(
           _clampComponent((random.nextDouble() * range * 2) - range, half),
-          _clampComponent((random.nextDouble() * range * 2) - range, half),
+          _clampComponent((random.nextDouble() * range * 2) - range, half, isY: true),
           _clampComponent((random.nextDouble() * range * 2) - range, half),
         );
       }
@@ -223,7 +228,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
             anyIntersection = true;
             _targetPositions[j] = Vector3(
               _clampComponent((random.nextDouble() * range * 2) - range, halfJ),
-              _clampComponent((random.nextDouble() * range * 2) - range, halfJ),
+              _clampComponent((random.nextDouble() * range * 2) - range, halfJ, isY: true),
               _clampComponent((random.nextDouble() * range * 2) - range, halfJ),
             );
           }
@@ -336,6 +341,18 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
       onSceneCreated: (Scene scene) {
         _scene = scene;
         scene.light.position.setFrom(scene.camera.position);
+
+        if (!_floorAdded) {
+          _floor = Object(
+            fileName: "assets/floor/floor.obj",
+            lighting: false,
+            backfaceCulling: false,
+            position: Vector3(0, -3, 0),
+            scale: Vector3(10, 1, 10),
+          );
+          scene.world.add(_floor!);
+          _floorAdded = true;
+        }
         final count = isScatter ? (2 + math.Random().nextInt(9)) : 1;
         _generateCubes(count: count);
         _lastScatter = isScatter;
