@@ -80,109 +80,116 @@ class PresentationScreen extends ConsumerWidget {
             onDragDone: (details) {
               notifier.addImages(details.files.map((f) => f.path).toList());
             },
-            child: Stack(
+            child: Row(
               children: [
-                Container(decoration: AppTheme.presentationBackground),
+                Expanded(
+                  flex: 3,
+                  child: Stack(
+                    children: [
+                      Container(decoration: AppTheme.presentationBackground),
 
-                content,
+                      content,
 
-                if (!state.isFocusMode && state.images.isNotEmpty)
-                  Positioned(
-                    bottom: 72,
-                    right: 4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: AppTheme.primary.withValues(alpha: 0.3),
-                          width: 0.5,
+                      if (!state.isFocusMode && state.images.isNotEmpty)
+                        Positioned(
+                          bottom: 16,
+                          right: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              state.isClassMode
+                                  ? '${state.images.length} / ${state.totalPhaseCount}'
+                                  : '${state.currentIndex + 1} / ${state.images.length}',
+                              style: AppTheme.imageCounterStyle,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        state.isClassMode
-                            ? '${state.images.length} / ${state.totalPhaseCount}'
-                            : '${state.currentIndex + 1} / ${state.images.length}',
-                        style: AppTheme.imageCounterStyle,
-                      ),
-                    ),
+
+                      if (!state.isFocusMode &&
+                          state.images.isNotEmpty &&
+                          state.currentImage != null)
+                        Positioned(
+                          bottom: 16,
+                          left: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceOverlay.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppTheme.primary.withValues(alpha: 0.25),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              state.currentImage!.name,
+                              style: AppTheme.overlayTextStyle.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+
+                      if (state.isPaused) const _PauseOverlay(),
+
+                      if (state.isAutoPausing && !state.isPaused)
+                        const _AutoPauseOverlay(),
+
+                      if (state.isFocusMode)
+                        Positioned(
+                          top: 20,
+                          right: 20,
+                          child: IconButton(
+                            icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
+                            onPressed: () => notifier.toggleFocusMode(),
+                          ),
+                        ),
+
+                      if (!state.isFocusMode &&
+                          (state.isPaused || state.isAutoPausing))
+                        Positioned(
+                          top: 12,
+                          right: 16,
+                          child: IconButton(
+                            icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
+                            tooltip: 'Back to gallery',
+                            onPressed: () => notifier.stopPlayback(),
+                          ),
+                        ),
+
+                      if (state.isPlaying && state.isClassMode && state.isOnBreak)
+                        BreakOverlay(state: state),
+
+                      if (state.isFocusMode &&
+                          state.isPlaying &&
+                          state.remainingTime.inSeconds <= 10)
+                        FocusTimerOverlay(state: state),
+                    ],
                   ),
+                ),
 
-                if (!state.isFocusMode &&
-                    state.images.isNotEmpty &&
-                    state.currentImage != null)
-                  Positioned(
-                    bottom: 80,
-                    left: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceOverlay.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: AppTheme.primary.withValues(alpha: 0.25),
-                          width: 0.5,
-                        ),
-                      ),
-                      child: Text(
-                        state.currentImage!.name,
-                        style: AppTheme.overlayTextStyle.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-
-                if (state.isPaused) const _PauseOverlay(),
-
-                if (state.isAutoPausing && !state.isPaused)
-                  const _AutoPauseOverlay(),
+                Container(width: 1, color: AppTheme.border),
 
                 if (!state.isFocusMode || !state.isPlaying)
-                  const Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
+                  const Expanded(
+                    flex: 1,
                     child: PresentationControls(),
                   ),
-
-                if (state.isFocusMode)
-                  Positioned(
-                    top: 20,
-                    right: 20,
-                    child: IconButton(
-                      icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
-                      onPressed: () => notifier.toggleFocusMode(),
-                    ),
-                  ),
-
-                if (!state.isFocusMode &&
-                    (state.isPaused || state.isAutoPausing))
-                  Positioned(
-                    top: 12,
-                    right: 16,
-                    child: IconButton(
-                      icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
-                      tooltip: 'Back to gallery',
-                      onPressed: () => notifier.stopPlayback(),
-                    ),
-                  ),
-
-                if (state.isPlaying && state.isClassMode && state.isOnBreak)
-                  BreakOverlay(state: state),
-
-                if (state.isFocusMode &&
-                    state.isPlaying &&
-                    state.remainingTime.inSeconds <= 10)
-                  FocusTimerOverlay(state: state),
               ],
             ),
           ),

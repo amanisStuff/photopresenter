@@ -46,6 +46,7 @@ class PresentationState {
   final Set<ImageFilter> activeFilters;
   final bool isShuffled;
   final List<PresentationImage>? originalOrder;
+  final int viewportTrigger;
 
   PresentationState({
     List<PresentationImage>? images,
@@ -70,6 +71,7 @@ class PresentationState {
     this.activeFilters = const {},
     this.isShuffled = false,
     this.originalOrder,
+    this.viewportTrigger = 0,
   }) : images = images ?? [],
       audioPaths = audioPaths ?? [];
 
@@ -98,6 +100,7 @@ class PresentationState {
     Set<ImageFilter>? activeFilters,
     bool? isShuffled,
     Object? originalOrder = _nullSentinel,
+    int? viewportTrigger,
   }) {
     return PresentationState(
       images: images ?? this.images,
@@ -122,6 +125,7 @@ class PresentationState {
       activeFilters: activeFilters ?? this.activeFilters,
       isShuffled: isShuffled ?? this.isShuffled,
       originalOrder: identical(originalOrder, _nullSentinel) ? this.originalOrder : originalOrder as List<PresentationImage>?,
+      viewportTrigger: viewportTrigger ?? this.viewportTrigger,
     );
   }
 
@@ -364,11 +368,11 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
   void nextImage() {
     final settings = ref.read(settingsProvider);
-    if (state.images.isEmpty && !settings.useViewport3D) return;
-    if (state.images.isEmpty) {
-      state = state.copyWith(currentIndex: state.currentIndex + 1);
+    if (settings.useViewport3D) {
+      state = state.copyWith(viewportTrigger: state.viewportTrigger + 1);
       return;
     }
+    if (state.images.isEmpty) return;
     final nextIndex = (state.currentIndex + 1) % state.images.length;
     final nextAudioIndex = state.audioPaths.isNotEmpty
         ? (state.audioIndex + 1) % state.audioPaths.length
@@ -389,11 +393,8 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
   void previousImage() {
     final settings = ref.read(settingsProvider);
-    if (state.images.isEmpty && !settings.useViewport3D) return;
-    if (state.images.isEmpty) {
-      state = state.copyWith(currentIndex: state.currentIndex + 1);
-      return;
-    }
+    if (settings.useViewport3D) return;
+    if (state.images.isEmpty) return;
     final prevIndex =
         (state.currentIndex - 1 + state.images.length) % state.images.length;
     final nextAudioIndex = state.audioPaths.isNotEmpty

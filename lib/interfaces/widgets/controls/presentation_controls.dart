@@ -126,23 +126,24 @@ class PresentationControls extends ConsumerWidget {
     final notifier = ref.read(presentationProvider.notifier);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      height: double.infinity,
       decoration: AppTheme.controlsBar,
-      child: LayoutBuilder(
-        builder: (context, constraints) => Stack(
-        children: [
-          Positioned(
-            left: 0,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.35),
-              child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // --- Timer / Status ---
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
+                  alignment: WrapAlignment.center,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (state.hasAudio) ...[
@@ -215,7 +216,7 @@ class PresentationControls extends ConsumerWidget {
                                     : 0.0);
 
                           return SizedBox(
-                            width: 100,
+                            width: double.infinity,
                             height: 4,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(2),
@@ -268,318 +269,316 @@ class PresentationControls extends ConsumerWidget {
                 ),
               ],
             ),
-            ),
-          ),
 
-          Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-              Builder(
-                builder: (context) {
-                  final settings = ref.watch(settingsProvider);
-                  final canNav = state.images.isNotEmpty || settings.useViewport3D;
-                  return Container(
-                    decoration: AppTheme.buttonDecoration(),
-                    padding: const EdgeInsets.all(2),
-                    child: IconButton(
-                      icon: const Icon(Icons.skip_previous, size: 20),
-                      onPressed: canNav
-                          ? () => notifier.previousImage()
-                          : null,
-                      color: AppTheme.onSurface,
-                      style: IconButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                    ),
-                  ),
-                );
-                },
-              ),
-              const SizedBox(width: 4),
-              Builder(
-                builder: (context) {
-                  final settings = ref.watch(settingsProvider);
-                  if (settings.useViewport3D) {
-                    return Container(
-                      decoration: AppTheme.buttonDecoration(),
-                      padding: const EdgeInsets.all(2),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.blur_on,
-                          size: 18,
-                          color: settings.scatterMode
-                              ? AppTheme.success
-                              : AppTheme.onSurface,
-                        ),
-                        tooltip: 'Scatter',
-                        onPressed: () {
-                          final notifier = ref.read(settingsProvider.notifier);
-                          notifier.setScatterMode(!settings.scatterMode);
-                        },
-                        style: IconButton.styleFrom(
+            const SizedBox(height: 12),
+            Container(height: 1, color: AppTheme.border),
+            const SizedBox(height: 12),
+
+            // --- Playback ---
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Builder(
+                    builder: (context) {
+                      final settings = ref.watch(settingsProvider);
+                      final canPrev = state.images.isNotEmpty && !settings.useViewport3D;
+                      return Container(
+                        decoration: AppTheme.buttonDecoration(),
+                        padding: const EdgeInsets.all(2),
+                        child: IconButton(
+                          icon: const Icon(Icons.skip_previous, size: 20),
+                          onPressed: canPrev
+                              ? () => notifier.previousImage()
+                              : null,
+                          color: AppTheme.onSurface,
+                          style: IconButton.styleFrom(
                           backgroundColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                        ),
+                      ),
+                    );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  Builder(
+                    builder: (context) {
+                      final settings = ref.watch(settingsProvider);
+                      if (settings.useViewport3D) {
+                        return Container(
+                          decoration: AppTheme.buttonDecoration(),
+                          padding: const EdgeInsets.all(2),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.blur_on,
+                              size: 18,
+                              color: settings.scatterMode
+                                  ? AppTheme.success
+                                  : AppTheme.onSurface,
+                            ),
+                            tooltip: 'Scatter',
+                            onPressed: () {
+                              final notifier = ref.read(settingsProvider.notifier);
+                              notifier.setScatterMode(!settings.scatterMode);
+                            },
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Container(
+                        decoration: AppTheme.buttonDecoration(),
+                        padding: const EdgeInsets.all(2),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.shuffle,
+                            size: 18,
+                            color: state.isShuffled ? AppTheme.success : AppTheme.onSurface,
+                          ),
+                          tooltip: 'Shuffle',
+                          onPressed: state.images.isEmpty
+                              ? null
+                              : () => notifier.toggleShuffle(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
                           ),
                         ),
-                      ),
-                    );
-                  }
-                  return Container(
-                    decoration: AppTheme.buttonDecoration(),
-                    padding: const EdgeInsets.all(2),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.shuffle,
-                        size: 18,
-                        color: state.isShuffled ? AppTheme.success : AppTheme.onSurface,
-                      ),
-                      tooltip: 'Shuffle',
-                      onPressed: state.images.isEmpty
-                          ? null
-                          : () => notifier.toggleShuffle(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 6),
-              Builder(
-                builder: (context) {
-                  final settings = ref.watch(settingsProvider);
-                  final canPlay = state.images.isNotEmpty || settings.useViewport3D;
-                  return Container(
-                    decoration: AppTheme.buttonDecoration(isPlay: true),
-                    padding: const EdgeInsets.all(2),
-                    child: IconButton(
-                      icon: Icon(
-                        state.isPlaying
-                            ? Icons.pause
-                            : (state.isPaused ? Icons.play_arrow : Icons.play_arrow),
-                        size: 26,
-                      ),
-                      onPressed: canPlay ? () => notifier.togglePlay() : null,
-                      color: AppTheme.primary,
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 6),
-              Builder(
-                builder: (context) {
-                  final settings = ref.watch(settingsProvider);
-                  final canNav = state.images.isNotEmpty || settings.useViewport3D;
-                  return Container(
-                    decoration: AppTheme.buttonDecoration(),
-                    padding: const EdgeInsets.all(2),
-                    child: IconButton(
-                      icon: const Icon(Icons.skip_next, size: 20),
-                      onPressed: canNav
-                          ? () => notifier.nextImage()
-                          : null,
-                      color: AppTheme.onSurface,
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          ),
-
-          Positioned(
-            right: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (state.isClassMode)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: _ClassPhaseIndicator(state: state),
-                  ),
-                Row(
-              mainAxisSize: MainAxisSize.min,
-            children: [
-              if (state.hasAudio) ...[
-                _SilverIconButton(
-                  icon: Icons.audiotrack,
-                  color: AppTheme.success,
-                  tooltip: 'Audio',
-                  onPressed: () => notifier.pickAudio(),
-                ),
-                const SizedBox(width: 2),
-                _SilverIconButton(
-                  icon: Icons.clear,
-                  size: 12,
-                  tooltip: 'Clear audio',
-                  onPressed: () => notifier.clearAudio(),
-                ),
-              ] else
-                _SilverIconButton(
-                  icon: Icons.library_music,
-                  tooltip: 'Add audio',
-                  onPressed: () => notifier.pickAudio(),
-                ),
-              const SizedBox(width: 4),
-              _SilverIconButton(
-                icon: Icons.settings,
-                tooltip: 'Settings',
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Builder(
-                builder: (context) {
-                  final settings = ref.watch(settingsProvider);
-                  return _SilverIconButton(
-                    icon: settings.useViewport3D
-                        ? Icons.view_in_ar
-                        : Icons.crop_original,
-                    tooltip: settings.useViewport3D
-                        ? '3D Viewport (tap to switch)'
-                        : 'Flat View (tap for 3D)',
-                    onPressed: () {
-                      final notifier = ref.read(settingsProvider.notifier);
-                      notifier.setUseViewport3D(!settings.useViewport3D);
+                      );
                     },
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              _SilverIconButton(
-                icon: Icons.fullscreen,
-                tooltip: 'Focus Mode',
-                onPressed: () => notifier.toggleFocusMode(),
-              ),
-              const SizedBox(width: 4),
-              _SilverPopupButton(
-                icon: Icons.filter,
-                isActive: state.activeFilters.isNotEmpty,
-                activeColor: AppTheme.primary,
-                tooltip: 'Image Filters',
-                itemBuilder: (context) {
-                  final items = <PopupMenuEntry<void>>[];
-                  if (state.activeFilters.isNotEmpty) {
-                    items.add(
-                      PopupMenuItem<void>(
-                        onTap: () => notifier.clearFilters(),
-                        child: Row(
-                          children: [
-                            Icon(Icons.clear_all, size: 18, color: AppTheme.filterClearStyle.color),
-                            const SizedBox(width: 8),
-                            Text('None (Clear All)', style: AppTheme.filterClearStyle),
-                          ],
+                  ),
+                  const SizedBox(width: 6),
+                  Builder(
+                    builder: (context) {
+                      final settings = ref.watch(settingsProvider);
+                      final canPlay = state.images.isNotEmpty || settings.useViewport3D;
+                      return Container(
+                        decoration: AppTheme.buttonDecoration(isPlay: true),
+                        padding: const EdgeInsets.all(2),
+                        child: IconButton(
+                          icon: Icon(
+                            state.isPlaying
+                                ? Icons.pause
+                                : (state.isPaused ? Icons.play_arrow : Icons.play_arrow),
+                            size: 26,
+                          ),
+                          onPressed: canPlay ? () => notifier.togglePlay() : null,
+                          color: AppTheme.primary,
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          ),
                         ),
-                      ),
-                    );
-                    items.add(const PopupMenuDivider());
-                  }
-                  for (final filter in ImageFilter.values) {
-                    if (filter == ImageFilter.none) continue;
-                    items.add(
-                      PopupMenuItem<void>(
-                        onTap: () => notifier.toggleFilter(filter),
-                        child: Row(
-                          children: [
-                            Icon(
-                              state.activeFilters.contains(filter)
-                                  ? Icons.check_box
-                                  : Icons.check_box_outline_blank,
-                              size: 18,
-                              color: state.activeFilters.contains(filter) ? Colors.amber : null,
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(_filterIconData(filter), size: 18),
-                            const SizedBox(width: 8),
-                            Text(filter.displayName),
-                          ],
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  Builder(
+                    builder: (context) {
+                      final settings = ref.watch(settingsProvider);
+                      final canNav = state.images.isNotEmpty || settings.useViewport3D;
+                      return Container(
+                        decoration: AppTheme.buttonDecoration(),
+                        padding: const EdgeInsets.all(2),
+                        child: IconButton(
+                          icon: const Icon(Icons.skip_next, size: 20),
+                          onPressed: canNav
+                              ? () => notifier.nextImage()
+                              : null,
+                          color: AppTheme.onSurface,
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                          ),
                         ),
-                      ),
-                    );
-                  }
-                  return items;
-                },
+                      );
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(width: 6),
-              Container(
-                decoration: AppTheme.buttonDecoration(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _MenuButton(
-                      icon: Icons.folder_open,
-                      tooltip: 'Load',
-                      onSelected: (String value) {
-                        switch (value) {
-                          case 'images':
-                            notifier.pickFiles();
-                            break;
-                          case 'gallery':
-                            _showLoadGalleryDialog(context, ref);
-                            break;
-                          case 'playlist':
-                            notifier.loadPlaylist();
-                            break;
-                        }
-                      },
-                      items: const [
-                        (Icons.image, 'Add Images'),
-                        (Icons.collections, 'Load Gallery'),
-                        (Icons.queue_music, 'Load Playlist'),
-                      ],
+            ),
+
+            if (state.isClassMode)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _ClassPhaseIndicator(state: state),
+              ),
+
+            const SizedBox(height: 12),
+            Container(height: 1, color: AppTheme.border),
+            const SizedBox(height: 12),
+
+            // --- Actions ---
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 4,
+              runSpacing: 8,
+              children: [
+                if (state.hasAudio) ...[
+                  _SilverIconButton(
+                    icon: Icons.audiotrack,
+                    color: AppTheme.success,
+                    tooltip: 'Audio',
+                    onPressed: () => notifier.pickAudio(),
+                  ),
+                  _SilverIconButton(
+                    icon: Icons.clear,
+                    size: 12,
+                    tooltip: 'Clear audio',
+                    onPressed: () => notifier.clearAudio(),
+                  ),
+                ] else
+                  _SilverIconButton(
+                    icon: Icons.library_music,
+                    tooltip: 'Add audio',
+                    onPressed: () => notifier.pickAudio(),
+                  ),
+                _SilverIconButton(
+                  icon: Icons.settings,
+                  tooltip: 'Settings',
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
                     ),
-                    Container(width: 1, height: 20, color: AppTheme.border),
-                    _MenuButton(
-                      icon: Icons.save_alt,
-                      tooltip: 'Save / Export',
-                      onSelected: (String value) {
-                        switch (value) {
-                          case 'export':
-                            notifier.exportAllImages();
-                            break;
-                          case 'gallery':
-                            notifier.saveGallery(
-                              'Gallery ${DateTime.now().millisecondsSinceEpoch}',
-                            );
-                            break;
-                          case 'playlist':
-                            notifier.savePlaylist();
-                            break;
-                        }
-                      },
-                      items: const [
-                        (Icons.download, 'Download Images'),
-                        (Icons.collections, 'Save Gallery'),
-                        (Icons.queue_music, 'Save Playlist'),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+                Builder(
+                  builder: (context) {
+                    final settings = ref.watch(settingsProvider);
+                    return _SilverIconButton(
+                      icon: settings.useViewport3D
+                          ? Icons.view_in_ar
+                          : Icons.crop_original,
+                      tooltip: settings.useViewport3D
+                          ? '3D Viewport (tap to switch)'
+                          : 'Flat View (tap for 3D)',
+                      onPressed: () {
+                        final notifier = ref.read(settingsProvider.notifier);
+                        notifier.setUseViewport3D(!settings.useViewport3D);
+                      },
+                    );
+                  },
+                ),
+                _SilverIconButton(
+                  icon: Icons.fullscreen,
+                  tooltip: 'Focus Mode',
+                  onPressed: () => notifier.toggleFocusMode(),
+                ),
+                _SilverPopupButton(
+                  icon: Icons.filter,
+                  isActive: state.activeFilters.isNotEmpty,
+                  activeColor: AppTheme.primary,
+                  tooltip: 'Image Filters',
+                  itemBuilder: (context) {
+                    final items = <PopupMenuEntry<void>>[];
+                    if (state.activeFilters.isNotEmpty) {
+                      items.add(
+                        PopupMenuItem<void>(
+                          onTap: () => notifier.clearFilters(),
+                          child: Row(
+                            children: [
+                              Icon(Icons.clear_all, size: 18, color: AppTheme.filterClearStyle.color),
+                              const SizedBox(width: 8),
+                              Text('None (Clear All)', style: AppTheme.filterClearStyle),
+                            ],
+                          ),
+                        ),
+                      );
+                      items.add(const PopupMenuDivider());
+                    }
+                    for (final filter in ImageFilter.values) {
+                      if (filter == ImageFilter.none) continue;
+                      items.add(
+                        PopupMenuItem<void>(
+                          onTap: () => notifier.toggleFilter(filter),
+                          child: Row(
+                            children: [
+                              Icon(
+                                state.activeFilters.contains(filter)
+                                    ? Icons.check_box
+                                    : Icons.check_box_outline_blank,
+                                size: 18,
+                                color: state.activeFilters.contains(filter) ? Colors.amber : null,
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(_filterIconData(filter), size: 18),
+                              const SizedBox(width: 8),
+                              Text(filter.displayName),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return items;
+                  },
+                ),
+                Container(
+                  decoration: AppTheme.buttonDecoration(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _MenuButton(
+                        icon: Icons.folder_open,
+                        tooltip: 'Load',
+                        onSelected: (String value) {
+                          switch (value) {
+                            case 'images':
+                              notifier.pickFiles();
+                              break;
+                            case 'gallery':
+                              _showLoadGalleryDialog(context, ref);
+                              break;
+                            case 'playlist':
+                              notifier.loadPlaylist();
+                              break;
+                          }
+                        },
+                        items: const [
+                          (Icons.image, 'Add Images'),
+                          (Icons.collections, 'Load Gallery'),
+                          (Icons.queue_music, 'Load Playlist'),
+                        ],
+                      ),
+                      Container(width: 1, height: 20, color: AppTheme.border),
+                      _MenuButton(
+                        icon: Icons.save_alt,
+                        tooltip: 'Save / Export',
+                        onSelected: (String value) {
+                          switch (value) {
+                            case 'export':
+                              notifier.exportAllImages();
+                              break;
+                            case 'gallery':
+                              notifier.saveGallery(
+                                'Gallery ${DateTime.now().millisecondsSinceEpoch}',
+                              );
+                              break;
+                            case 'playlist':
+                              notifier.savePlaylist();
+                              break;
+                          }
+                        },
+                        items: const [
+                          (Icons.download, 'Download Images'),
+                          (Icons.collections, 'Save Gallery'),
+                          (Icons.queue_music, 'Save Playlist'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
-          ),
-          ),
-        ],
+        ),
       ),
-      ),
-      );
+    );
   }
 }
 

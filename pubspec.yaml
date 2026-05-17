@@ -45,6 +45,7 @@ dependencies:
   path_provider: ^2.0.0
   path: ^1.8.0
   uuid: ^4.0.0
+  flutter_cube: ^0.1.1
 
 dev_dependencies:
   flutter_test:
@@ -68,5 +69,6 @@ flutter:
 
   assets:
     - assets/beep.wav
+    - assets/cube/
 
   shaders: []
