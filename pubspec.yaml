@@ -71,5 +71,6 @@ flutter:
     - assets/beep.wav
     - assets/cube/
     - assets/floor/
+    - assets/sphere/
 
   shaders: []

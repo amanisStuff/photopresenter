@@ -31,6 +31,14 @@ Riverpod is the only state management — no `setState` for business logic. `Pre
 - **`useMaterial3: false`** — custom theme, not M3
 - Dialog text contrast fix: use `AppTheme.onSurface` (#2A2A2A) on silver controls bar; avoid `primaryLight` (#4A7AE8) on dark surfaces (fails WCAG AA)
 
+## Widget composition rules
+
+- **One widget per file** — every public widget class gets its own `.dart` file
+- **Every section extracted** — any widget subtree with 15+ lines or 3+ children in a `Wrap`/`Row`/`Column` must be extracted into a named `ConsumerWidget`/`StatelessWidget`
+- **`build()` as a table of contents** — a `build()` method should compose named children, not inline entire UIs. Target <60 lines per `build()`
+- **No abbreviations** in any name: `canGoToPrevious` not `canPrev`, `value` not `val`, `remainingTimerSeconds` not `secondsLeft`
+- **Descriptive file names** match the widget class name (e.g., `timer_status_section.dart` contains `TimerStatusSection`)
+
 ## State management
 
 - `presentationProvider` / `PresentationNotifier` — slideshow, audio, class mode, filters
