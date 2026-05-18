@@ -35,11 +35,6 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
   double _cameraDistance = 15.0;
   double _cameraPanX = 0.0;
   double _cameraPanZ = 0.0;
-  bool _cameraPanXLocked = false;
-  bool _cameraPanZLocked = false;
-  bool _cameraHorizontalLocked = false;
-  bool _cameraVerticalLocked = false;
-  bool _cameraDistanceLocked = false;
   bool _floorAdded = false;
   late final AnimationController _controller;
 
