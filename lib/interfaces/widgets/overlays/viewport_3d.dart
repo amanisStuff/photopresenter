@@ -9,6 +9,7 @@ import '../../../core/providers/presentation_provider.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/providers/viewport_controls_provider.dart';
 import '../../../core/strategies/image_filter_decorator.dart';
+import '../../../core/providers/shape_manager.dart';
 
 class Viewport3D extends ConsumerStatefulWidget {
   const Viewport3D({super.key});
@@ -40,10 +41,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
   bool _floorAdded = false;
   late final AnimationController _controller;
 
-  final List<Object> _cubes = [];
-  final List<Vector3> _targetPositions = [];
-  final List<Vector3> _targetRotations = [];
-  final List<Vector3> _targetScales = [];
+  ShapeManager _shapeManager = CubeShapeManager();
 
   final GlobalKey _cubeKey = GlobalKey();
   Offset _lastFocalPoint = Offset.zero;
@@ -62,6 +60,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
   bool _lastLightHorizontalLocked = false;
   bool _lastLightVerticalLocked = false;
   bool _lastLightDistanceLocked = false;
+  String _lastObjectPath = 'assets/cube/cube.obj';
 
   @override
   void initState() {
@@ -86,33 +85,8 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
   }
 
   void _onTick() {
-    if (_scene == null || _cubes.isEmpty) return;
-
-    for (int i = 0; i < _cubes.length; i++) {
-      final cube = _cubes[i];
-      final tPos = _targetPositions[i];
-      final tRot = _targetRotations[i];
-      final tScale = _targetScales[i];
-
-      cube.position.x += (tPos.x - cube.position.x) * 0.06;
-      if (_gravityMode) {
-        cube.position.y = _floorLevel + tScale.x * 0.5;
-      } else {
-        cube.position.y += (tPos.y - cube.position.y) * 0.06;
-      }
-      cube.position.z += (tPos.z - cube.position.z) * 0.06;
-
-      cube.rotation.x += (tRot.x - cube.rotation.x) * 0.06;
-      cube.rotation.y += (tRot.y - cube.rotation.y) * 0.06;
-      cube.rotation.z += (tRot.z - cube.rotation.z) * 0.06;
-
-      cube.scale.x += (tScale.x - cube.scale.x) * 0.06;
-      cube.scale.y += (tScale.y - cube.scale.y) * 0.06;
-      cube.scale.z += (tScale.z - cube.scale.z) * 0.06;
-
-      cube.updateTransform();
-    }
-
+    if (_scene == null || _shapeManager.isEmpty) return;
+    _shapeManager.animate();
     if (_scene == null) return;
 
     final theta = (_lightHorizontalLocked
@@ -127,7 +101,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
 
     _scene!.light.position.setValues(
       dist * math.sin(phi) * math.sin(theta),
-      dist * math.cos(phi) + _floorLevel,
+      dist * math.cos(phi) + ShapeManager.floorLevel,
       dist * math.sin(phi) * math.cos(theta),
     );
 
@@ -144,200 +118,11 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
 
     _scene!.camera.position.setValues(
       panX + _cameraDistance * math.cos(elev) * math.sin(azim),
-      _cameraDistance * math.sin(elev) + _floorLevel + panY,
+      _cameraDistance * math.sin(elev) + ShapeManager.floorLevel + panY,
       panZ + _cameraDistance * math.cos(elev) * math.cos(azim),
     );
-    _scene!.camera.target.setValues(panX, _floorLevel + panY, panZ);
+    _scene!.camera.target.setValues(panX, ShapeManager.floorLevel + panY, panZ);
     _scene!.camera.up.setValues(0, 1, 0);
-  }
-
-  void _setNewTargets() {
-    final random = math.Random();
-    final double? lockedScale = _sizeLocked && _cubes.length > 1
-        ? _uniformScale
-        : null;
-    for (int i = 0; i < _cubes.length; i++) {
-      final s = lockedScale ?? (random.nextDouble() * 2.0) + 0.5;
-
-      final double half = s * 0.5;
-      final double range = _positionRange;
-      Vector3 pos;
-      if (_gravityMode) {
-        pos = Vector3(
-          _clampComponent((random.nextDouble() * range * 2) - range, half),
-          _floorLevel + half,
-          _clampComponent((random.nextDouble() * range * 2) - range, half),
-        );
-      } else {
-        int attempts = 0;
-        do {
-          pos = Vector3(
-            _clampComponent((random.nextDouble() * range * 2) - range, half),
-            _clampComponent(
-              (random.nextDouble() * range * 2) - range,
-              half,
-              isY: true,
-            ),
-            _clampComponent((random.nextDouble() * range * 2) - range, half),
-          );
-          attempts++;
-        } while (attempts < 80 && _intersectsAny(pos, i, s));
-      }
-
-      _targetPositions[i] = pos;
-      _targetRotations[i] = _gravityMode
-          ? Vector3(0, random.nextDouble() * 360, 0)
-          : Vector3(
-              random.nextDouble() * 360,
-              random.nextDouble() * 360,
-              random.nextDouble() * 360,
-            );
-      _targetScales[i] = Vector3(s, s, s);
-    }
-  }
-
-  static const double _viewLimit = 5.0;
-  static const double _floorLevel = -3.0;
-
-  double _clampComponent(double value, double halfSize, {bool isY = false}) {
-    final double bound = _viewLimit - halfSize;
-    final clamped = value.clamp(-bound, bound);
-    if (isY) return clamped.clamp(_floorLevel + halfSize, bound);
-    return clamped;
-  }
-
-  double get _positionRange {
-    if (_targetScales.isEmpty) return 5.0;
-    final double maxScale = _targetScales.map((s) => s.x).reduce(math.max);
-    return math.max(5.0, _cubes.length * maxScale * 0.5);
-  }
-
-  bool _intersectsAny(Vector3 pos, int upTo, double newScale) {
-    final newHalf = newScale * 0.5;
-    for (int j = 0; j < upTo; j++) {
-      final existingHalf = _targetScales[j].x * 0.5;
-      final minDist = (newHalf + existingHalf) * 1.3;
-      if (pos.distanceTo(_targetPositions[j]) < minDist) return true;
-    }
-    return false;
-  }
-
-  void _clearCubes() {
-    if (_scene == null) return;
-    for (final cube in _cubes) {
-      _scene!.world.remove(cube);
-    }
-    _cubes.clear();
-    _targetPositions.clear();
-    _targetRotations.clear();
-    _targetScales.clear();
-  }
-
-  void _generateCubes({required int count}) {
-    if (_scene == null) return;
-    _clearCubes();
-
-    final random = math.Random();
-    final double? uniformScale = _sizeLocked && count > 1 ? _uniformScale : null;
-    int attempts = 0;
-
-    while (_cubes.length < count && attempts < 200) {
-      attempts++;
-
-      final s = uniformScale ?? (random.nextDouble() * 2.0) + 0.5;
-      final halfSize = s * 0.5;
-
-      final double half = s * 0.5;
-      final double range = _positionRange;
-      final Vector3 pos;
-      if (count == 1) {
-        pos = Vector3(0, _gravityMode ? _floorLevel + halfSize : 1, 0);
-      } else {
-        pos = Vector3(
-          _clampComponent((random.nextDouble() * range * 2) - range, half),
-          _gravityMode
-              ? _floorLevel + halfSize
-              : _clampComponent(
-                  (random.nextDouble() * range * 2) - range,
-                  half,
-                  isY: true,
-                ),
-          _clampComponent((random.nextDouble() * range * 2) - range, half),
-        );
-      }
-
-      bool intersects = false;
-      for (int j = 0; j < _cubes.length; j++) {
-        final existingScale = _targetScales[j].x;
-        final minDist = (halfSize + existingScale * 0.5) * 1.3;
-        if (pos.distanceTo(_targetPositions[j]) < minDist) {
-          intersects = true;
-          break;
-        }
-      }
-      if (intersects) continue;
-
-      final rot = _gravityMode
-          ? Vector3(0, random.nextDouble() * 360, 0)
-          : Vector3(
-              random.nextDouble() * 360,
-              random.nextDouble() * 360,
-              random.nextDouble() * 360,
-            );
-      final scale = Vector3(s, s, s);
-
-      final cube = Object(
-        fileName: "assets/cube/cube.obj",
-        lighting: true,
-        position: pos,
-        rotation: rot,
-        scale: scale,
-      );
-
-      _cubes.add(cube);
-      _targetPositions.add(pos);
-      _targetRotations.add(rot);
-      _targetScales.add(scale);
-      _scene!.world.add(cube);
-    }
-  }
-
-  void _applySizeToCubes(double scale) {
-    if (_cubes.length <= 1) return;
-
-    for (int i = 0; i < _cubes.length; i++) {
-      final s = Vector3(scale, scale, scale);
-      _targetScales[i] = s;
-    }
-    _resolveIntersections();
-  }
-
-  void _resolveIntersections() {
-    final random = math.Random();
-    final double range = _positionRange;
-    for (int iter = 0; iter < 100; iter++) {
-      bool anyIntersection = false;
-      for (int i = 0; i < _cubes.length; i++) {
-        for (int j = i + 1; j < _cubes.length; j++) {
-          final halfI = _targetScales[i].x * 0.5;
-          final halfJ = _targetScales[j].x * 0.5;
-          final minDist = (halfI + halfJ) * 1.3;
-          if (_targetPositions[i].distanceTo(_targetPositions[j]) < minDist) {
-            anyIntersection = true;
-            _targetPositions[j] = Vector3(
-              _clampComponent((random.nextDouble() * range * 2) - range, halfJ),
-              _clampComponent(
-                (random.nextDouble() * range * 2) - range,
-                halfJ,
-                isY: true,
-              ),
-              _clampComponent((random.nextDouble() * range * 2) - range, halfJ),
-            );
-          }
-        }
-      }
-      if (!anyIntersection) break;
-    }
   }
 
   void _onPointerSignal(PointerSignalEvent event) {
@@ -357,6 +142,9 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
     _gravityMode = vpState.gravityMode;
     _sizeLocked = vpState.sizeLocked;
     _uniformScale = vpState.uniformScale;
+    _shapeManager.gravityMode = _gravityMode;
+    _shapeManager.sizeLocked = _sizeLocked;
+    _shapeManager.uniformScale = _uniformScale;
     _lightHorizontalLocked = vpState.lightHorizontalLocked;
     _lightVerticalLocked = vpState.lightVerticalLocked;
     _lightDistanceLocked = vpState.lightDistanceLocked;
@@ -390,27 +178,27 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
     if (_initialized) {
       if (_lastGravity != _gravityMode) {
         if (_gravityMode) {
-          _generateCubes(count: _cubes.length);
+          _shapeManager.generate(count: _shapeManager.length);
         } else {
-          _setNewTargets();
+          _shapeManager.setNewTargets();
         }
         _lastGravity = _gravityMode;
       }
       if (_lastSizeLocked != _sizeLocked) {
-        if (_sizeLocked && _cubes.length > 1) {
-          _applySizeToCubes(_uniformScale);
-        } else if (!_sizeLocked && _cubes.length > 1) {
-          _setNewTargets();
+        if (_sizeLocked && _shapeManager.length > 1) {
+          _shapeManager.applySize(_uniformScale);
+        } else if (!_sizeLocked && _shapeManager.length > 1) {
+          _shapeManager.setNewTargets();
         }
         _lastSizeLocked = _sizeLocked;
         _lastUniformScale = _uniformScale;
-      } else if (_lastUniformScale != _uniformScale && _sizeLocked && _cubes.length > 1) {
-        _applySizeToCubes(_uniformScale);
+      } else if (_lastUniformScale != _uniformScale && _sizeLocked && _shapeManager.length > 1) {
+        _shapeManager.applySize(_uniformScale);
         _lastUniformScale = _uniformScale;
       }
       if (_lastScatter != isScatter) {
         final count = isScatter ? (2 + math.Random().nextInt(9)) : 1;
-        _generateCubes(count: count);
+        _shapeManager.generate(count: count);
         _lastScatter = isScatter;
       } else if (_lastTrigger != trigger) {
         if (!_lightHorizontalLocked) {
@@ -424,10 +212,21 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
         }
         if (isScatter) {
           final count = 2 + math.Random().nextInt(9);
-          _generateCubes(count: count);
+          _shapeManager.generate(count: count);
         } else {
-          _setNewTargets();
+          _shapeManager.setNewTargets();
         }
+      }
+      if (_lastObjectPath != vpState.objectPath) {
+        _lastObjectPath = vpState.objectPath;
+        final count = _shapeManager.length;
+        _shapeManager.clear();
+        _shapeManager = ShapeManager.fromPath(vpState.objectPath);
+        _shapeManager.scene = _scene;
+        _shapeManager.gravityMode = _gravityMode;
+        _shapeManager.sizeLocked = _sizeLocked;
+        _shapeManager.uniformScale = _uniformScale;
+        _shapeManager.generate(count: count);
       }
     }
     _lastTrigger = trigger;
@@ -437,6 +236,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
       interactive: false,
       onSceneCreated: (Scene scene) {
         _scene = scene;
+        _shapeManager.scene = scene;
         scene.light.position.setFrom(scene.camera.position);
 
         if (!_floorAdded) {
@@ -461,8 +261,9 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
           scene.world.add(_lightIndicator!);
         }
         final count = isScatter ? (2 + math.Random().nextInt(9)) : 1;
-        _generateCubes(count: count);
+        _shapeManager.generate(count: count);
         _lastScatter = isScatter;
+        _lastObjectPath = vpState.objectPath;
         _initialized = true;
       },
     );

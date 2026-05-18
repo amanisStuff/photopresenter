@@ -4,6 +4,15 @@ import '../../../core/providers/settings_provider.dart';
 import '../../../core/providers/viewport_controls_provider.dart';
 import 'silver_controls.dart';
 
+const _objectOptions = [
+  ('assets/cube/cube.obj', 'Cube'),
+  ('assets/sphere/sphere.obj', 'Sphere'),
+  ('assets/cone/cone.obj', 'Cone'),
+  ('assets/cylinder/cylinder.obj', 'Cylinder'),
+  ('assets/pyramid/pyramid.obj', 'Pyramid'),
+  ('assets/Torus/Torus.obj', 'Torus'),
+];
+
 class ViewportControlsSection extends ConsumerWidget {
   const ViewportControlsSection({super.key});
 
@@ -53,10 +62,29 @@ class ViewportControlsSection extends ConsumerWidget {
           onPressed: () =>
               ref.read(viewportProvider.notifier).toggleCameraOptions(),
         ),
-        SilverIconButton(
-          icon: Icons.code,
-          tooltip: 'Code',
-          onPressed: () {},
+        SilverPopupButton<String>(
+          icon: Icons.view_in_ar,
+          tooltip: 'Object',
+          onSelected: (path) =>
+              ref.read(viewportProvider.notifier).setObjectPath(path),
+          itemBuilder: (context) => _objectOptions.map((entry) {
+            final (path, name) = entry;
+            final isSelected = path == vpState.objectPath;
+            return PopupMenuItem<String>(
+              value: path,
+              child: Row(
+                children: [
+                  Icon(
+                    isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                    size: 16,
+                    color: isSelected ? Colors.amberAccent : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(name),
+                ],
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

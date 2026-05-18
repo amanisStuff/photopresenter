@@ -25,6 +25,7 @@ class ViewportControlsState {
   final bool cameraHorizontalLocked;
   final bool cameraVerticalLocked;
   final bool cameraDistanceLocked;
+  final String objectPath;
 
   const ViewportControlsState({
     this.gravityMode = false,
@@ -49,6 +50,7 @@ class ViewportControlsState {
     this.cameraHorizontalLocked = false,
     this.cameraVerticalLocked = false,
     this.cameraDistanceLocked = false,
+    this.objectPath = 'assets/cube/cube.obj',
   });
 
   ViewportControlsState copyWith({
@@ -74,6 +76,7 @@ class ViewportControlsState {
     bool? cameraHorizontalLocked,
     bool? cameraVerticalLocked,
     bool? cameraDistanceLocked,
+    String? objectPath,
   }) {
     return ViewportControlsState(
       gravityMode: gravityMode ?? this.gravityMode,
@@ -103,6 +106,7 @@ class ViewportControlsState {
           cameraVerticalLocked ?? this.cameraVerticalLocked,
       cameraDistanceLocked:
           cameraDistanceLocked ?? this.cameraDistanceLocked,
+      objectPath: objectPath ?? this.objectPath,
     );
   }
 }
@@ -229,6 +233,10 @@ class ViewportControlsNotifier extends Notifier<ViewportControlsState> {
     state = state.copyWith(
       cameraDistanceLocked: !state.cameraDistanceLocked,
     );
+  }
+
+  void setObjectPath(String path) {
+    state = state.copyWith(objectPath: path);
   }
 }
 

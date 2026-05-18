@@ -8,11 +8,7 @@ void main() {
 
   Widget _makeTestable() {
     return const ProviderScope(
-      child: MaterialApp(
-        home: Scaffold(
-          body: Viewport3D(),
-        ),
-      ),
+      child: MaterialApp(home: Scaffold(body: Viewport3D())),
     );
   }
 
