@@ -202,6 +202,18 @@ class OptionsSection extends ConsumerWidget {
           locked: vpState.cameraPanZLocked,
           onToggleLock: () => notifier.toggleCameraPanZLocked(),
         ),
+        const SizedBox(height: 4),
+        _cameraSliderRow(
+          label: 'Y',
+          value: vpState.cameraPanY,
+          min: -10,
+          max: 10,
+          divisions: 200,
+          formatValue: (v) => v.toStringAsFixed(1),
+          onChanged: (v) => notifier.setCameraPanY(v),
+          locked: vpState.cameraPanYLocked,
+          onToggleLock: () => notifier.toggleCameraPanYLocked(),
+        ),
       ],
     );
   }

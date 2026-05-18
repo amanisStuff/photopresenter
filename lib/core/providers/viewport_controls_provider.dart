@@ -17,8 +17,10 @@ class ViewportControlsState {
   final double cameraVerticalAngle;
   final double cameraDistance;
   final double cameraPanX;
+  final double cameraPanY;
   final double cameraPanZ;
   final bool cameraPanXLocked;
+  final bool cameraPanYLocked;
   final bool cameraPanZLocked;
   final bool cameraHorizontalLocked;
   final bool cameraVerticalLocked;
@@ -39,8 +41,10 @@ class ViewportControlsState {
     this.cameraVerticalAngle = 30.0,
     this.cameraDistance = 15.0,
     this.cameraPanX = 0.0,
+    this.cameraPanY = 0.0,
     this.cameraPanZ = 0.0,
     this.cameraPanXLocked = false,
+    this.cameraPanYLocked = false,
     this.cameraPanZLocked = false,
     this.cameraHorizontalLocked = false,
     this.cameraVerticalLocked = false,
@@ -62,8 +66,10 @@ class ViewportControlsState {
     double? cameraVerticalAngle,
     double? cameraDistance,
     double? cameraPanX,
+    double? cameraPanY,
     double? cameraPanZ,
     bool? cameraPanXLocked,
+    bool? cameraPanYLocked,
     bool? cameraPanZLocked,
     bool? cameraHorizontalLocked,
     bool? cameraVerticalLocked,
@@ -86,8 +92,10 @@ class ViewportControlsState {
       cameraVerticalAngle: cameraVerticalAngle ?? this.cameraVerticalAngle,
       cameraDistance: cameraDistance ?? this.cameraDistance,
       cameraPanX: cameraPanX ?? this.cameraPanX,
+      cameraPanY: cameraPanY ?? this.cameraPanY,
       cameraPanZ: cameraPanZ ?? this.cameraPanZ,
       cameraPanXLocked: cameraPanXLocked ?? this.cameraPanXLocked,
+      cameraPanYLocked: cameraPanYLocked ?? this.cameraPanYLocked,
       cameraPanZLocked: cameraPanZLocked ?? this.cameraPanZLocked,
       cameraHorizontalLocked:
           cameraHorizontalLocked ?? this.cameraHorizontalLocked,
@@ -185,12 +193,20 @@ class ViewportControlsNotifier extends Notifier<ViewportControlsState> {
     state = state.copyWith(cameraPanX: value);
   }
 
+  void setCameraPanY(double value) {
+    state = state.copyWith(cameraPanY: value);
+  }
+
   void setCameraPanZ(double value) {
     state = state.copyWith(cameraPanZ: value);
   }
 
   void toggleCameraPanXLocked() {
     state = state.copyWith(cameraPanXLocked: !state.cameraPanXLocked);
+  }
+
+  void toggleCameraPanYLocked() {
+    state = state.copyWith(cameraPanYLocked: !state.cameraPanYLocked);
   }
 
   void toggleCameraPanZLocked() {

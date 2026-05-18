@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_cube/flutter_cube.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/presentation_provider.dart';
@@ -34,6 +35,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
   double _cameraVerticalAngle = 30.0;
   double _cameraDistance = 15.0;
   double _cameraPanX = 0.0;
+  double _cameraPanY = 0.0;
   double _cameraPanZ = 0.0;
   bool _floorAdded = false;
   late final AnimationController _controller;
@@ -137,14 +139,15 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
     final elev = _cameraVerticalAngle * math.pi / 180;
     final azim = _cameraHorizontalAngle * math.pi / 180;
     final panX = _cameraPanX;
+    final panY = _cameraPanY;
     final panZ = _cameraPanZ;
 
     _scene!.camera.position.setValues(
       panX + _cameraDistance * math.cos(elev) * math.sin(azim),
-      _cameraDistance * math.sin(elev) + _floorLevel,
+      _cameraDistance * math.sin(elev) + _floorLevel + panY,
       panZ + _cameraDistance * math.cos(elev) * math.cos(azim),
     );
-    _scene!.camera.target.setValues(panX, _floorLevel, panZ);
+    _scene!.camera.target.setValues(panX, _floorLevel + panY, panZ);
     _scene!.camera.up.setValues(0, 1, 0);
   }
 
@@ -364,6 +367,7 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
     _cameraVerticalAngle = vpState.cameraVerticalAngle;
     _cameraDistance = vpState.cameraDistance;
     _cameraPanX = vpState.cameraPanX;
+    _cameraPanY = vpState.cameraPanY;
     _cameraPanZ = vpState.cameraPanZ;
 
     if (_lastLightHorizontalLocked && !_lightHorizontalLocked) {
@@ -491,22 +495,35 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
           if (_isPanning && _scene != null) {
             final delta = event.localPosition - _lastPanPoint;
             _lastPanPoint = event.localPosition;
-            final camera = _scene!.camera;
-            final right = camera.up
-                .cross(camera.position - camera.target)
-                .normalized();
-            final localUp =
-                (camera.position - camera.target).cross(right).normalized();
-            const speed = 0.005;
-            final panVec =
-                right * delta.dx * speed + localUp * delta.dy * speed;
+            final keyboard = HardwareKeyboard.instance;
+            final ctrl = keyboard.isControlPressed;
+            final alt = keyboard.isAltPressed;
+            final shift = keyboard.isShiftPressed;
+            final speed = 0.005 * (_cameraDistance / 15.0);
             final notifier = ref.read(viewportProvider.notifier);
-            notifier.setCameraPanX(
-              (_cameraPanX + panVec.x).clamp(-10.0, 10.0),
-            );
-            notifier.setCameraPanZ(
-              (_cameraPanZ + panVec.z).clamp(-10.0, 10.0),
-            );
+            final elev = _cameraVerticalAngle * math.pi / 180;
+            final forward = math.cos(elev);
+
+            if (shift) {
+              notifier.setCameraPanY(
+                (_cameraPanY - delta.dy * speed).clamp(-10.0, 10.0),
+              );
+            } else if (ctrl) {
+              notifier.setCameraPanX(
+                (_cameraPanX + delta.dx * speed).clamp(-10.0, 10.0),
+              );
+            } else if (alt) {
+              notifier.setCameraPanZ(
+                (_cameraPanZ - delta.dy * speed * forward).clamp(-10.0, 10.0),
+              );
+            } else {
+              notifier.setCameraPanZ(
+                (_cameraPanZ - delta.dy * speed * forward).clamp(-10.0, 10.0),
+              );
+              notifier.setCameraPanX(
+                (_cameraPanX + delta.dx * speed).clamp(-10.0, 10.0),
+              );
+            }
           } else if (_scene != null &&
               (event.buttons & kPrimaryMouseButton) != 0) {
             final delta = event.localPosition - _lastFocalPoint;
