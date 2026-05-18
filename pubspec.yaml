@@ -72,5 +72,9 @@ flutter:
     - assets/cube/
     - assets/floor/
     - assets/sphere/
+    - assets/cone/
+    - assets/cylinder/
+    - assets/pyramid/
+    - assets/Torus/
 
   shaders: []

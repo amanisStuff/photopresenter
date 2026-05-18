@@ -242,7 +242,7 @@ abstract class ShapeManager {
       'assets/cone/cone.obj' => ConeShapeManager(),
       'assets/cylinder/cylinder.obj' => CylinderShapeManager(),
       'assets/pyramid/pyramid.obj' => PyramidShapeManager(),
-      'assets/torus/torus.obj' => TorusShapeManager(),
+      'assets/Torus/Torus.obj' => TorusShapeManager(),
       _ => CubeShapeManager(),
     };
   }
@@ -261,31 +261,19 @@ class SphereShapeManager extends ShapeManager {
 class ConeShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/cone/cone.obj';
-
-  @override
-  bool get lighting => false;
 }
 
 class CylinderShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/cylinder/cylinder.obj';
-
-  @override
-  bool get lighting => false;
 }
 
 class PyramidShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/pyramid/pyramid.obj';
-
-  @override
-  bool get lighting => false;
 }
 
 class TorusShapeManager extends ShapeManager {
   @override
-  String get objectPath => 'assets/torus/torus.obj';
-
-  @override
-  bool get lighting => false;
+  String get objectPath => 'assets/Torus/Torus.obj';
 }
