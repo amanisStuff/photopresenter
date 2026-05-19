@@ -185,14 +185,14 @@ class _Viewport3DState extends ConsumerState<Viewport3D>
         _lastGravity = _gravityMode;
       }
       if (_lastSizeLocked != _sizeLocked) {
-        if (_sizeLocked && _shapeManager.length > 1) {
+        if (_sizeLocked) {
           _shapeManager.applySize(_uniformScale);
-        } else if (!_sizeLocked && _shapeManager.length > 1) {
+        } else if (!_sizeLocked) {
           _shapeManager.setNewTargets();
         }
         _lastSizeLocked = _sizeLocked;
         _lastUniformScale = _uniformScale;
-      } else if (_lastUniformScale != _uniformScale && _sizeLocked && _shapeManager.length > 1) {
+      } else if (_lastUniformScale != _uniformScale && _sizeLocked) {
         _shapeManager.applySize(_uniformScale);
         _lastUniformScale = _uniformScale;
       }

@@ -12,6 +12,10 @@ abstract class ShapeManager {
 
   String get objectPath;
   bool get lighting => true;
+  bool get originIsCenter;
+  double get scaleMultiplier => 1.0;
+  double get modelHalfWidth;
+  double get modelHalfHeight;
 
   static const double viewLimit = 5.0;
   static const double floorLevel = -3.0;
@@ -28,7 +32,7 @@ abstract class ShapeManager {
 
       obj.position.x += (tPos.x - obj.position.x) * 0.06;
       if (gravityMode) {
-        obj.position.y = floorLevel + tScale.x * 0.5;
+        obj.position.y = gravityY(tScale.x);
       } else {
         obj.position.y += (tPos.y - obj.position.y) * 0.06;
       }
@@ -48,33 +52,35 @@ abstract class ShapeManager {
 
   void setNewTargets() {
     final random = math.Random();
-    final double? lockedScale = sizeLocked && _shapeObjects.length > 1
-        ? uniformScale
-        : null;
+    final double? lockedScale = sizeLocked ? uniformScale : null;
 
     for (int i = 0; i < _shapeObjects.length; i++) {
-      final s = lockedScale ?? (random.nextDouble() * 2.0) + 0.5;
+      final double s = math.min(
+        (lockedScale ?? (random.nextDouble() * 2.0) + 0.5) * scaleMultiplier,
+        viewLimit / modelHalfWidth,
+      );
 
-      final double half = s * 0.5;
+      final double radius = s * modelHalfWidth;
+      final double height = s * modelHalfHeight;
       final double range = positionRange;
       Vector3 pos;
       if (gravityMode) {
         pos = Vector3(
-          clampComponent((random.nextDouble() * range * 2) - range, half),
-          floorLevel + half,
-          clampComponent((random.nextDouble() * range * 2) - range, half),
+          clampComponent((random.nextDouble() * range * 2) - range, radius),
+          gravityY(s),
+          clampComponent((random.nextDouble() * range * 2) - range, radius),
         );
       } else {
         int attempts = 0;
         do {
           pos = Vector3(
-            clampComponent((random.nextDouble() * range * 2) - range, half),
+            clampComponent((random.nextDouble() * range * 2) - range, radius),
             clampComponent(
               (random.nextDouble() * range * 2) - range,
-              half,
+              height,
               isY: true,
             ),
-            clampComponent((random.nextDouble() * range * 2) - range, half),
+            clampComponent((random.nextDouble() * range * 2) - range, radius),
           );
           attempts++;
         } while (attempts < 80 && intersectsAny(pos, i, s));
@@ -105,38 +111,42 @@ abstract class ShapeManager {
     clear();
 
     final random = math.Random();
-    final double? uniform = sizeLocked && count > 1 ? uniformScale : null;
+    final double? uniform = sizeLocked && count >= 1 ? uniformScale : null;
     int attempts = 0;
 
     while (_shapeObjects.length < count && attempts < 200) {
       attempts++;
 
-      final s = uniform ?? (random.nextDouble() * 2.0) + 0.5;
-      final halfSize = s * 0.5;
+      final double s = math.min(
+        (uniform ?? (random.nextDouble() * 2.0) + 0.5) * scaleMultiplier,
+        viewLimit / modelHalfWidth,
+      );
+      final double radius = s * modelHalfWidth;
+      final double height = s * modelHalfHeight;
 
-      final double half = s * 0.5;
       final double range = positionRange;
       final Vector3 pos;
       if (count == 1) {
-        pos = Vector3(0, gravityMode ? floorLevel + halfSize : 1, 0);
+        pos = Vector3(0, gravityMode ? gravityY(s) : 1, 0);
       } else {
         pos = Vector3(
-          clampComponent((random.nextDouble() * range * 2) - range, half),
+          clampComponent((random.nextDouble() * range * 2) - range, radius),
           gravityMode
-              ? floorLevel + halfSize
+              ? gravityY(s)
               : clampComponent(
                   (random.nextDouble() * range * 2) - range,
-                  half,
+                  height,
                   isY: true,
                 ),
-          clampComponent((random.nextDouble() * range * 2) - range, half),
+          clampComponent((random.nextDouble() * range * 2) - range, radius),
         );
       }
 
       bool intersects = false;
+      final double newRadius = s * modelHalfWidth;
       for (final existing in _shapeObjects) {
-        final existingScale = existing.targetScale.x;
-        final minDist = (halfSize + existingScale * 0.5) * 1.3;
+        final double existingRadius = existing.targetScale.x * modelHalfWidth;
+        final double minDist = (newRadius + existingRadius) * 1.1;
         if (pos.distanceTo(existing.targetPosition) < minDist) {
           intersects = true;
           break;
@@ -169,10 +179,12 @@ abstract class ShapeManager {
   }
 
   void applySize(double scale) {
-    if (_shapeObjects.length <= 1) return;
-
     for (final shapeObject in _shapeObjects) {
-      shapeObject.targetScale = Vector3(scale, scale, scale);
+      shapeObject.targetScale = Vector3(
+        scale * scaleMultiplier,
+        scale * scaleMultiplier,
+        scale * scaleMultiplier,
+      );
     }
     resolveIntersections();
   }
@@ -184,9 +196,9 @@ abstract class ShapeManager {
       bool anyIntersection = false;
       for (int i = 0; i < _shapeObjects.length; i++) {
         for (int j = i + 1; j < _shapeObjects.length; j++) {
-          final halfI = _shapeObjects[i].targetScale.x * 0.5;
-          final halfJ = _shapeObjects[j].targetScale.x * 0.5;
-          final minDist = (halfI + halfJ) * 1.3;
+          final halfI = _shapeObjects[i].targetScale.x * modelHalfWidth;
+          final halfJ = _shapeObjects[j].targetScale.x * modelHalfWidth;
+          final minDist = (halfI + halfJ) * 1.1;
           if (_shapeObjects[i].targetPosition.distanceTo(
                 _shapeObjects[j].targetPosition,
               ) <
@@ -209,10 +221,11 @@ abstract class ShapeManager {
   }
 
   bool intersectsAny(Vector3 pos, int upTo, double newScale) {
-    final newHalf = newScale * 0.5;
+    final double newRadius = newScale * modelHalfWidth;
     for (int j = 0; j < upTo; j++) {
-      final existingHalf = _shapeObjects[j].targetScale.x * 0.5;
-      final minDist = (newHalf + existingHalf) * 1.3;
+      final double existingRadius =
+          _shapeObjects[j].targetScale.x * modelHalfWidth;
+      final double minDist = (newRadius + existingRadius) * 1.1;
       if (pos.distanceTo(_shapeObjects[j].targetPosition) < minDist) {
         return true;
       }
@@ -221,10 +234,13 @@ abstract class ShapeManager {
   }
 
   double clampComponent(double value, double halfSize, {bool isY = false}) {
+    if (isY) {
+      final double yMin = floorLevel + halfSize;
+      final double yMax = viewLimit - halfSize;
+      return value.clamp(math.min(yMin, yMax), math.max(yMin, yMax));
+    }
     final double bound = viewLimit - halfSize;
-    final clamped = value.clamp(-bound, bound);
-    if (isY) return clamped.clamp(floorLevel + halfSize, bound);
-    return clamped;
+    return value.clamp(-bound, bound);
   }
 
   double get positionRange {
@@ -232,8 +248,11 @@ abstract class ShapeManager {
     final double maxScale = _shapeObjects
         .map((c) => c.targetScale.x)
         .reduce(math.max);
-    return math.max(5.0, _shapeObjects.length * maxScale * 0.5);
+    return math.max(5.0, _shapeObjects.length * maxScale * modelHalfWidth);
   }
+
+  double gravityY(double scale) =>
+      originIsCenter ? floorLevel + scale * modelHalfHeight : floorLevel;
 
   static ShapeManager fromPath(String path) {
     return switch (path) {
@@ -251,29 +270,71 @@ abstract class ShapeManager {
 class CubeShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/cube/cube.obj';
+  @override
+  bool get originIsCenter => true;
+  @override
+  double get modelHalfWidth => 1.0;
+  @override
+  double get modelHalfHeight => 1.0;
 }
 
 class SphereShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/sphere/sphere.obj';
+  @override
+  bool get originIsCenter => true;
+  @override
+  double get modelHalfWidth => 1.0;
+  @override
+  double get modelHalfHeight => 1.0;
 }
 
 class ConeShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/cone/cone.obj';
+  @override
+  bool get originIsCenter => false;
+  @override
+  double get scaleMultiplier => 3.0;
+  @override
+  double get modelHalfWidth => 0.953;
+  @override
+  double get modelHalfHeight => 2.0;
 }
 
 class CylinderShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/cylinder/cylinder.obj';
+  @override
+  bool get originIsCenter => false;
+  @override
+  double get scaleMultiplier => 2.0;
+  @override
+  double get modelHalfWidth => 1.0;
+  @override
+  double get modelHalfHeight => 2.0;
 }
 
 class PyramidShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/pyramid/pyramid.obj';
+  @override
+  bool get originIsCenter => false;
+  @override
+  double get scaleMultiplier => 3.0;
+  @override
+  double get modelHalfWidth => 0.983;
+  @override
+  double get modelHalfHeight => 1.96;
 }
 
 class TorusShapeManager extends ShapeManager {
   @override
   String get objectPath => 'assets/Torus/Torus.obj';
+  @override
+  bool get originIsCenter => false;
+  @override
+  double get modelHalfWidth => 1.25;
+  @override
+  double get modelHalfHeight => 0.5;
 }
