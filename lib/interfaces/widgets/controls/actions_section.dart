@@ -7,6 +7,7 @@ import '../../../core/providers/drawing_provider.dart';
 import '../../screens/settings_screen.dart';
 import '../../../infrastructure/service_providers.dart';
 import 'silver_controls.dart';
+import '../dialogs/add_video_dialog.dart';
 
 Future<void> showLoadGalleryDialog(
   BuildContext context,
@@ -278,23 +279,27 @@ class ActionsSection extends ConsumerWidget {
                 icon: Icons.folder_open,
                 tooltip: 'Load',
                 onSelected: (String value) {
-                  switch (value) {
-                    case 'images':
-                      notifier.pickFiles();
-                      break;
-                    case 'gallery':
-                      showLoadGalleryDialog(context, ref);
-                      break;
-                    case 'playlist':
-                      notifier.loadPlaylist();
-                      break;
-                  }
-                },
-                items: const [
-                  (Icons.image, 'Add Images'),
-                  (Icons.collections, 'Load Gallery'),
-                  (Icons.queue_music, 'Load Playlist'),
-                ],
+                    switch (value) {
+                      case 'images':
+                        notifier.pickFiles();
+                        break;
+                      case 'gallery':
+                        showLoadGalleryDialog(context, ref);
+                        break;
+                      case 'playlist':
+                        notifier.loadPlaylist();
+                        break;
+                      case 'video':
+                        showAddVideoDialog(context, ref);
+                        break;
+                    }
+                  },
+                  items: const [
+                    (Icons.image, 'Add Images', 'images'),
+                    (Icons.videocam, 'Add Video', 'video'),
+                    (Icons.collections, 'Load Gallery', 'gallery'),
+                    (Icons.queue_music, 'Load Playlist', 'playlist'),
+                  ],
               ),
               Container(width: 1, height: 20, color: AppTheme.border),
               MenuButton(
@@ -316,9 +321,9 @@ class ActionsSection extends ConsumerWidget {
                   }
                 },
                 items: const [
-                  (Icons.download, 'Download Images'),
-                  (Icons.collections, 'Save Gallery'),
-                  (Icons.queue_music, 'Save Playlist'),
+                  (Icons.download, 'Download Images', 'export'),
+                  (Icons.collections, 'Save Gallery', 'gallery'),
+                  (Icons.queue_music, 'Save Playlist', 'playlist'),
                 ],
               ),
             ],

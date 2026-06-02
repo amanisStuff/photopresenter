@@ -11,6 +11,7 @@ export 'controls/timer_adjustment.dart';
 
 export 'dialogs/class_mode_dialog.dart';
 export 'dialogs/edit_preset_dialog.dart';
+export 'dialogs/add_video_dialog.dart';
 export 'dialogs/load_gallery_dialog.dart';
 
 export 'image_media/add_image_card.dart';

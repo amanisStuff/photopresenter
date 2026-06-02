@@ -34,11 +34,11 @@ class SilverIconButton extends StatelessWidget {
   }
 }
 
-class MenuButton<T> extends StatelessWidget {
+class MenuButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
-  final void Function(T)? onSelected;
-  final List<(IconData, String)> items;
+  final void Function(String)? onSelected;
+  final List<(IconData, String, String)> items;
 
   const MenuButton({
     super.key,
@@ -50,19 +50,20 @@ class MenuButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<T>(
+    return PopupMenuButton<String>(
       tooltip: tooltip,
       onSelected: onSelected,
       icon: Icon(icon, color: AppTheme.onSurface, size: 16),
       itemBuilder: (context) {
         return items.map((entry) {
-          return PopupMenuItem<T>(
-            value: (entry.$2 as dynamic) as T,
+          final (icon, label, value) = entry;
+          return PopupMenuItem<String>(
+            value: value,
             child: Row(
               children: [
-                Icon(entry.$1, size: 18),
+                Icon(icon, size: 18),
                 const SizedBox(width: 8),
-                Text(entry.$2),
+                Text(label),
               ],
             ),
           );

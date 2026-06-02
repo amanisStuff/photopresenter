@@ -15,6 +15,21 @@ class FileService {
     return [];
   }
 
+  Future<String?> pickVideo() async {
+    FilePickerResult? result = await FilePicker.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: [
+        'mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm',
+      ],
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      return result.files.first.path;
+    }
+    return null;
+  }
+
   Future<String?> pickAudio() async {
     FilePickerResult? result = await FilePicker.pickFiles(
       allowMultiple: false,
