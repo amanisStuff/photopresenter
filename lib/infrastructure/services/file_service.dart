@@ -174,4 +174,13 @@ class FileService {
     final content = await manifestFile.readAsString();
     return jsonDecode(content) as Map<String, dynamic>;
   }
+
+  Future<String?> saveRenderedImage(List<int> bytes, String fileName) async {
+    String? directoryPath = await FilePicker.getDirectoryPath();
+    if (directoryPath == null) return null;
+
+    final filePath = '$directoryPath/$fileName';
+    await File(filePath).writeAsBytes(bytes);
+    return filePath;
+  }
 }

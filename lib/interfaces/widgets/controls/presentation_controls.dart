@@ -8,9 +8,12 @@ import 'playback_section.dart';
 import 'viewport_controls_section.dart';
 import 'actions_section.dart';
 import 'options_section.dart';
+import '../drawing/drawing_section.dart';
 
 class PresentationControls extends ConsumerWidget {
-  const PresentationControls({super.key});
+  final VoidCallback? onSaveImage;
+
+  const PresentationControls({super.key, this.onSaveImage});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,6 +50,8 @@ class PresentationControls extends ConsumerWidget {
             const SizedBox(height: 12),
 
             const ActionsSection(),
+
+            DrawingSection(onSaveImage: onSaveImage),
 
             if (settings.useViewport3D &&
                 vpState.activeOptionsPanel != ActiveOptionsPanel.none) ...[

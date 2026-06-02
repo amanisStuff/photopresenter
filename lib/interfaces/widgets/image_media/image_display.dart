@@ -19,21 +19,21 @@ class ImageDisplay extends ConsumerWidget {
     final activeFilters = state.activeFilters;
 
     if (currentImage == null) {
-return Center(
-         child: FadeIn(
-           child: Column(
-             mainAxisSize: MainAxisSize.min,
-             children: [
-               Icon(
-                 Icons.add_photo_alternate_outlined,
-                 size: 80,
-                 color: AppTheme.textOnDarkSubtle,
-               ),
-               const SizedBox(height: 16),
-               Text(
-                 'Drag & Drop images or Paste (Ctrl+V)',
-                 style: AppTheme.emptyStateTextStyle,
-               ),
+      return Center(
+        child: FadeIn(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.add_photo_alternate_outlined,
+                size: 80,
+                color: AppTheme.textOnDarkSubtle,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Drag & Drop images or Paste (Ctrl+V)',
+                style: AppTheme.emptyStateTextStyle,
+              ),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 onPressed: () =>
@@ -84,16 +84,16 @@ return Center(
     );
   }
 
-Widget _buildError() {
-     return Center(
-       child: Column(
-         mainAxisSize: MainAxisSize.min,
-         children: [
-           Icon(Icons.broken_image, size: 64, color: AppTheme.textOnDarkSubtle),
-           const SizedBox(height: 8),
-           Text('Failed to load image', style: AppTheme.errorTextStyle),
-         ],
-       ),
-     );
-   }
+  Widget _buildError() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.broken_image, size: 64, color: AppTheme.textOnDarkSubtle),
+          const SizedBox(height: 8),
+          Text('Failed to load image', style: AppTheme.errorTextStyle),
+        ],
+      ),
+    );
+  }
 }

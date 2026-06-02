@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:desktop_drop/desktop_drop.dart';
@@ -7,21 +8,66 @@ import '../../shared/theme.dart';
 import '../../shared/theme/theme_notifier.dart';
 import '../../core/providers/presentation_provider.dart';
 import '../../core/providers/settings_provider.dart';
+import '../../core/providers/drawing_provider.dart';
+import '../../infrastructure/service_providers.dart';
 import '../widgets/image_media/image_grid.dart';
 import '../widgets/image_media/image_display.dart';
 import '../widgets/overlays/viewport_3d.dart';
 import '../widgets/controls/presentation_controls.dart';
 import '../widgets/overlays/break_overlay.dart';
 import '../widgets/overlays/focus_timer_overlay.dart';
+import '../widgets/drawing/drawing_canvas.dart';
+import '../widgets/drawing/drawing_toolbar.dart';
 
-class PresentationScreen extends ConsumerWidget {
+class PresentationScreen extends ConsumerStatefulWidget {
   const PresentationScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PresentationScreen> createState() =>
+      _PresentationScreenState();
+}
+
+class _PresentationScreenState extends ConsumerState<PresentationScreen> {
+  final GlobalKey _captureKey = GlobalKey();
+
+  Future<void> saveAsImage() async {
+    try {
+      final boundary = _captureKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: 2.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return;
+
+      final fileService = ref.read(fileServiceProvider);
+      final name =
+          'Drawing_${DateTime.now().millisecondsSinceEpoch}.png';
+      final result = await fileService.saveRenderedImage(
+        byteData.buffer.asUint8List(),
+        name,
+      );
+
+      if (result != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Image saved to $result')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save image: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(themeProvider);
     final state = ref.watch(presentationProvider);
     final settings = ref.watch(settingsProvider);
+    final drawingState = ref.watch(drawingProvider);
     final notifier = ref.read(presentationProvider.notifier);
 
     Widget content;
@@ -65,6 +111,11 @@ class PresentationScreen extends ConsumerWidget {
               notifier.toggleFocusMode(),
           const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
               notifier.toggleFocusMode(),
+          const SingleActivator(
+            LogicalKeyboardKey.keyD,
+            control: true,
+            shift: true,
+          ): () => ref.read(drawingProvider.notifier).toggleDrawing(),
           const SingleActivator(LogicalKeyboardKey.keyD, control: true): () =>
               notifier.exportAllImages(),
           const SingleActivator(LogicalKeyboardKey.keyG, control: true): () =>
@@ -86,10 +137,24 @@ class PresentationScreen extends ConsumerWidget {
                   flex: 3,
                   child: Stack(
                     children: [
-                      Container(decoration: AppTheme.presentationBackground),
-
-                      content,
-
+                      RepaintBoundary(
+                        key: _captureKey,
+                        child: Stack(
+                          children: [
+                            Container(
+                              decoration: AppTheme.presentationBackground,
+                            ),
+                            content,
+                            if (drawingState.drawingEnabled &&
+                                state.images.isNotEmpty)
+                              const Positioned.fill(
+                                child: DrawingCanvas(),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (drawingState.drawingEnabled)
+                        const DrawingToolbar(),
                       if (!state.isFocusMode && state.images.isNotEmpty)
                         Positioned(
                           bottom: 16,
@@ -115,7 +180,6 @@ class PresentationScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-
                       if (!state.isFocusMode &&
                           state.images.isNotEmpty &&
                           state.currentImage != null)
@@ -128,7 +192,8 @@ class PresentationScreen extends ConsumerWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.surfaceOverlay.withValues(alpha: 0.7),
+                              color:
+                                  AppTheme.surfaceOverlay.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
                                 color: AppTheme.primary.withValues(alpha: 0.25),
@@ -144,37 +209,39 @@ class PresentationScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-
                       if (state.isPaused) const _PauseOverlay(),
-
                       if (state.isAutoPausing && !state.isPaused)
                         const _AutoPauseOverlay(),
-
                       if (state.isFocusMode)
                         Positioned(
                           top: 20,
                           right: 20,
                           child: IconButton(
-                            icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
+                            icon: Icon(
+                              Icons.close,
+                              color: AppTheme.textOnDarkSubtle,
+                            ),
                             onPressed: () => notifier.toggleFocusMode(),
                           ),
                         ),
-
                       if (!state.isFocusMode &&
                           (state.isPaused || state.isAutoPausing))
                         Positioned(
                           top: 12,
                           right: 16,
                           child: IconButton(
-                            icon: Icon(Icons.close, color: AppTheme.textOnDarkSubtle),
+                            icon: Icon(
+                              Icons.close,
+                              color: AppTheme.textOnDarkSubtle,
+                            ),
                             tooltip: 'Back to gallery',
                             onPressed: () => notifier.stopPlayback(),
                           ),
                         ),
-
-                      if (state.isPlaying && state.isClassMode && state.isOnBreak)
+                      if (state.isPlaying &&
+                          state.isClassMode &&
+                          state.isOnBreak)
                         BreakOverlay(state: state),
-
                       if (state.isFocusMode &&
                           state.isPlaying &&
                           state.remainingTime.inSeconds <= 10)
@@ -182,13 +249,13 @@ class PresentationScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-
                 Container(width: 1, color: AppTheme.border),
-
                 if (!state.isFocusMode || !state.isPlaying)
-                  const Expanded(
+                  Expanded(
                     flex: 1,
-                    child: PresentationControls(),
+                    child: PresentationControls(
+                      onSaveImage: saveAsImage,
+                    ),
                   ),
               ],
             ),
@@ -277,7 +344,10 @@ class _AutoPauseOverlay extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text('NEXT IMAGE IN', style: AppTheme.overlaySubtextStyle),
+                Text(
+                  'NEXT IMAGE IN',
+                  style: AppTheme.overlaySubtextStyle,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '${state.autoPauseRemaining.inSeconds}s',

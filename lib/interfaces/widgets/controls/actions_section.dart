@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/theme.dart';
 import '../../../core/providers/presentation_provider.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/providers/drawing_provider.dart';
 import '../../screens/settings_screen.dart';
 import '../../../infrastructure/service_providers.dart';
 import 'silver_controls.dart';
@@ -203,6 +204,22 @@ class ActionsSection extends ConsumerWidget {
           icon: Icons.fullscreen,
           tooltip: 'Focus Mode',
           onPressed: () => notifier.toggleFocusMode(),
+        ),
+        Consumer(
+          builder: (context, ref, child) {
+            final drawingState = ref.watch(drawingProvider);
+            return SilverIconButton(
+              icon: Icons.brush,
+              color: drawingState.drawingEnabled
+                  ? AppTheme.primaryLight
+                  : null,
+              tooltip: drawingState.drawingEnabled
+                  ? 'Disable Drawing'
+                  : 'Enable Drawing (Ctrl+Shift+D)',
+              onPressed: () =>
+                  ref.read(drawingProvider.notifier).toggleDrawing(),
+            );
+          },
         ),
         SilverPopupButton(
           icon: Icons.filter,

@@ -23,6 +23,10 @@ export 'overlays/class_phase_indicator.dart';
 export 'overlays/focus_timer_overlay.dart';
 export 'overlays/viewport_3d.dart';
 
+export 'drawing/drawing_canvas.dart';
+export 'drawing/drawing_toolbar.dart';
+export 'drawing/drawing_section.dart';
+
 export 'settings/audio_mode_tile.dart';
 export 'settings/class_preset_tile.dart';
 export 'settings/settings_tile.dart';

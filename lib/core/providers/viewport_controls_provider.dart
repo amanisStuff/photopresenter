@@ -102,10 +102,8 @@ class ViewportControlsState {
       cameraPanZLocked: cameraPanZLocked ?? this.cameraPanZLocked,
       cameraHorizontalLocked:
           cameraHorizontalLocked ?? this.cameraHorizontalLocked,
-      cameraVerticalLocked:
-          cameraVerticalLocked ?? this.cameraVerticalLocked,
-      cameraDistanceLocked:
-          cameraDistanceLocked ?? this.cameraDistanceLocked,
+      cameraVerticalLocked: cameraVerticalLocked ?? this.cameraVerticalLocked,
+      cameraDistanceLocked: cameraDistanceLocked ?? this.cameraDistanceLocked,
       objectPath: objectPath ?? this.objectPath,
     );
   }
@@ -152,21 +150,15 @@ class ViewportControlsNotifier extends Notifier<ViewportControlsState> {
   }
 
   void toggleHorizontalLocked() {
-    state = state.copyWith(
-      lightHorizontalLocked: !state.lightHorizontalLocked,
-    );
+    state = state.copyWith(lightHorizontalLocked: !state.lightHorizontalLocked);
   }
 
   void toggleVerticalLocked() {
-    state = state.copyWith(
-      lightVerticalLocked: !state.lightVerticalLocked,
-    );
+    state = state.copyWith(lightVerticalLocked: !state.lightVerticalLocked);
   }
 
   void toggleDistanceLocked() {
-    state = state.copyWith(
-      lightDistanceLocked: !state.lightDistanceLocked,
-    );
+    state = state.copyWith(lightDistanceLocked: !state.lightDistanceLocked);
   }
 
   void setLightHorizontalAngle(double value) {
@@ -224,15 +216,11 @@ class ViewportControlsNotifier extends Notifier<ViewportControlsState> {
   }
 
   void toggleCameraVerticalLocked() {
-    state = state.copyWith(
-      cameraVerticalLocked: !state.cameraVerticalLocked,
-    );
+    state = state.copyWith(cameraVerticalLocked: !state.cameraVerticalLocked);
   }
 
   void toggleCameraDistanceLocked() {
-    state = state.copyWith(
-      cameraDistanceLocked: !state.cameraDistanceLocked,
-    );
+    state = state.copyWith(cameraDistanceLocked: !state.cameraDistanceLocked);
   }
 
   void setObjectPath(String path) {
@@ -242,5 +230,5 @@ class ViewportControlsNotifier extends Notifier<ViewportControlsState> {
 
 final viewportProvider =
     NotifierProvider<ViewportControlsNotifier, ViewportControlsState>(() {
-  return ViewportControlsNotifier();
-});
+      return ViewportControlsNotifier();
+    });
