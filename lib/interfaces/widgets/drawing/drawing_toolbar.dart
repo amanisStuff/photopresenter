@@ -4,6 +4,7 @@ import '../../../shared/theme.dart';
 import '../../../core/providers/drawing_provider.dart';
 import '../../../core/providers/presentation_provider.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/entities/drawing_state.dart';
 
 const List<Color> _colorOptions = [
   Color(0xFFE53935),
@@ -77,6 +78,47 @@ class DrawingToolbar extends ConsumerWidget {
                   active: drawingState.eraserMode,
                   tooltip: 'Eraser',
                   onTap: () => notifier.toggleEraser(),
+                ),
+                const SizedBox(width: 2),
+                _ShapeButton(
+                  type: ShapeType.freehand,
+                  selected: drawingState.currentShapeType == ShapeType.freehand,
+                  onTap: () => notifier.setShapeType(ShapeType.freehand),
+                ),
+                const SizedBox(width: 2),
+                _ShapeButton(
+                  type: ShapeType.rectangle,
+                  selected: drawingState.currentShapeType == ShapeType.rectangle,
+                  onTap: () => notifier.setShapeType(ShapeType.rectangle),
+                ),
+                const SizedBox(width: 2),
+                _ShapeButton(
+                  type: ShapeType.circle,
+                  selected: drawingState.currentShapeType == ShapeType.circle,
+                  onTap: () => notifier.setShapeType(ShapeType.circle),
+                ),
+                const SizedBox(width: 2),
+                _ShapeButton(
+                  type: ShapeType.line,
+                  selected: drawingState.currentShapeType == ShapeType.line,
+                  onTap: () => notifier.setShapeType(ShapeType.line),
+                ),
+                const SizedBox(width: 2),
+                _ShapeButton(
+                  type: ShapeType.arrow,
+                  selected: drawingState.currentShapeType == ShapeType.arrow,
+                  onTap: () => notifier.setShapeType(ShapeType.arrow),
+                ),
+                const SizedBox(width: 2),
+                _ToolButton(
+                  icon: Icons.format_color_fill,
+                  active: drawingState.shapeFillMode,
+                  tooltip: 'Fill',
+                  onTap: () {
+                    if (drawingState.currentShapeType != ShapeType.freehand) {
+                      notifier.toggleShapeFill();
+                    }
+                  },
                 ),
                 const SizedBox(width: 4),
                 _ToolButton(
@@ -213,6 +255,77 @@ class _ToolButton extends StatelessWidget {
                 : null,
           ),
           child: Icon(icon, size: 16, color: active ? AppTheme.primaryLight : AppTheme.onSurface),
+        ),
+      ),
+    );
+  }
+}
+
+class _ShapeButton extends StatelessWidget {
+  final ShapeType type;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ShapeButton({
+    required this.type,
+    required this.selected,
+    required this.onTap,
+  });
+
+  IconData get _icon {
+    switch (type) {
+      case ShapeType.freehand:
+        return Icons.brush;
+      case ShapeType.rectangle:
+        return Icons.crop_square;
+      case ShapeType.circle:
+        return Icons.radio_button_unchecked;
+      case ShapeType.line:
+        return Icons.remove;
+      case ShapeType.arrow:
+        return Icons.arrow_right_alt;
+    }
+  }
+
+  String get _label {
+    switch (type) {
+      case ShapeType.freehand:
+        return 'Freehand';
+      case ShapeType.rectangle:
+        return 'Rectangle';
+      case ShapeType.circle:
+        return 'Circle';
+      case ShapeType.line:
+        return 'Line';
+      case ShapeType.arrow:
+        return 'Arrow';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Tooltip(
+        message: _label,
+        child: Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected
+                ? AppTheme.primary.withValues(alpha: 0.3)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+            border: selected
+                ? Border.all(color: AppTheme.primary, width: 1)
+                : null,
+          ),
+          child: Icon(
+            _icon,
+            size: 14,
+            color: selected ? AppTheme.primaryLight : AppTheme.onSurface,
+          ),
         ),
       ),
     );

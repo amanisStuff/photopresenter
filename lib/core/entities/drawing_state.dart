@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
+enum ShapeType { freehand, rectangle, circle, line, arrow }
+
 class DrawingStroke {
   final List<Offset> points;
   final Color color;
   final double strokeWidth;
   final double opacity;
   final bool isEraser;
+  final ShapeType shapeType;
+  final bool isFilled;
 
   const DrawingStroke({
     required this.points,
@@ -13,15 +17,23 @@ class DrawingStroke {
     required this.strokeWidth,
     this.opacity = 0.55,
     this.isEraser = false,
+    this.shapeType = ShapeType.freehand,
+    this.isFilled = false,
   });
 
-  DrawingStroke copyWith({List<Offset>? points}) {
+  DrawingStroke copyWith({
+    List<Offset>? points,
+    ShapeType? shapeType,
+    bool? isFilled,
+  }) {
     return DrawingStroke(
       points: points ?? this.points,
       color: color,
       strokeWidth: strokeWidth,
       opacity: opacity,
       isEraser: isEraser,
+      shapeType: shapeType ?? this.shapeType,
+      isFilled: isFilled ?? this.isFilled,
     );
   }
 }
@@ -34,6 +46,8 @@ class DrawingState {
   final double currentOpacity;
   final bool eraserMode;
   final bool drawingEnabled;
+  final ShapeType currentShapeType;
+  final bool shapeFillMode;
 
   const DrawingState({
     this.imageDrawings = const {},
@@ -43,6 +57,8 @@ class DrawingState {
     this.currentOpacity = 0.55,
     this.eraserMode = false,
     this.drawingEnabled = false,
+    this.currentShapeType = ShapeType.freehand,
+    this.shapeFillMode = false,
   });
 
   DrawingState copyWith({
@@ -53,6 +69,8 @@ class DrawingState {
     double? currentOpacity,
     bool? eraserMode,
     bool? drawingEnabled,
+    ShapeType? currentShapeType,
+    bool? shapeFillMode,
   }) {
     return DrawingState(
       imageDrawings: imageDrawings ?? this.imageDrawings,
@@ -62,6 +80,8 @@ class DrawingState {
       currentOpacity: currentOpacity ?? this.currentOpacity,
       eraserMode: eraserMode ?? this.eraserMode,
       drawingEnabled: drawingEnabled ?? this.drawingEnabled,
+      currentShapeType: currentShapeType ?? this.currentShapeType,
+      shapeFillMode: shapeFillMode ?? this.shapeFillMode,
     );
   }
 

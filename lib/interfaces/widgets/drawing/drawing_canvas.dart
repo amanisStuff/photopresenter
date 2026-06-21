@@ -77,25 +77,39 @@ class _DrawingCanvasState extends ConsumerState<DrawingCanvas> {
           onPanStart: (details) {
             if (!canvasValid) return;
             final np = normalizePoint(details.localPosition);
+            final isShape = drawingState.currentShapeType != ShapeType.freehand;
             _currentStroke = DrawingStroke(
               points: [np],
               color: drawingState.currentColor,
               strokeWidth: normalizeWidth(drawingState.currentStrokeWidth),
               opacity: drawingState.currentOpacity,
               isEraser: drawingState.eraserMode,
+              shapeType: isShape ? drawingState.currentShapeType : ShapeType.freehand,
+              isFilled: isShape && drawingState.shapeFillMode,
             );
           },
           onPanUpdate: (details) {
             if (_currentStroke == null || !canvasValid) return;
             final np = normalizePoint(details.localPosition);
             setState(() {
-              _currentStroke = _currentStroke!.copyWith(
-                points: [..._currentStroke!.points, np],
-              );
+              if (_currentStroke!.shapeType != ShapeType.freehand) {
+                _currentStroke = _currentStroke!.copyWith(
+                  points: [_currentStroke!.points.first, np],
+                );
+              } else {
+                _currentStroke = _currentStroke!.copyWith(
+                  points: [..._currentStroke!.points, np],
+                );
+              }
             });
           },
           onPanEnd: (details) {
             if (_currentStroke == null) return;
+            if (_currentStroke!.shapeType != ShapeType.freehand &&
+                _currentStroke!.points.length < 2) {
+              setState(() => _currentStroke = null);
+              return;
+            }
             drawingNotifier.addStroke(imageId, _currentStroke!);
             setState(() => _currentStroke = null);
           },

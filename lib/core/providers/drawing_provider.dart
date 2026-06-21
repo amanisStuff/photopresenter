@@ -22,6 +22,17 @@ class DrawingNotifier extends Notifier<DrawingState> {
     state = state.copyWith(currentOpacity: opacity);
   }
 
+  void setShapeType(ShapeType type) {
+    state = state.copyWith(
+      currentShapeType: type,
+      eraserMode: type == ShapeType.freehand ? state.eraserMode : false,
+    );
+  }
+
+  void toggleShapeFill() {
+    state = state.copyWith(shapeFillMode: !state.shapeFillMode);
+  }
+
   void toggleEraser() {
     state = state.copyWith(eraserMode: !state.eraserMode);
   }

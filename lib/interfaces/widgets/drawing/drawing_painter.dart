@@ -63,7 +63,13 @@ class DrawingPainter extends CustomPainter {
     for (final stroke in allStrokes) {
       if (stroke.points.isEmpty) continue;
       if (stroke.isEraser) {
-        _drawEraserStroke(canvas, stroke, size, renderRect);
+        if (stroke.shapeType != ShapeType.freehand) {
+          _drawEraserShapeStroke(canvas, stroke, size, renderRect);
+        } else {
+          _drawEraserStroke(canvas, stroke, size, renderRect);
+        }
+      } else if (stroke.shapeType != ShapeType.freehand) {
+        _drawShapeStroke(canvas, stroke, size, renderRect);
       } else {
         _drawTexturedStroke(canvas, stroke, size, renderRect);
       }
@@ -139,6 +145,112 @@ class DrawingPainter extends CustomPainter {
         canvas.drawCircle(Offset(x, y), r, dotPaint);
       }
     }
+  }
+
+  void _drawShapeStroke(
+    Canvas canvas,
+    DrawingStroke stroke,
+    Size size,
+    Rect? renderRect,
+  ) {
+    if (stroke.points.length < 2) return;
+    final a = scaleNormalizedPoint(stroke.points[0], size, renderRect);
+    final b = scaleNormalizedPoint(stroke.points[1], size, renderRect);
+    final refWidth = renderRect?.width ?? size.width;
+    final sw = stroke.strokeWidth * refWidth;
+    final o = stroke.opacity;
+    final color = stroke.color.withValues(alpha: o);
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = sw
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    switch (stroke.shapeType) {
+      case ShapeType.rectangle:
+        final rect = Rect.fromPoints(a, b);
+        paint.style =
+            stroke.isFilled ? PaintingStyle.fill : PaintingStyle.stroke;
+        canvas.drawRect(rect, paint);
+      case ShapeType.circle:
+        final center = Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2);
+        final radius = (b - a).distance / 2;
+        paint.style =
+            stroke.isFilled ? PaintingStyle.fill : PaintingStyle.stroke;
+        canvas.drawCircle(center, radius, paint);
+      case ShapeType.line:
+        paint.style = PaintingStyle.stroke;
+        canvas.drawLine(a, b, paint);
+      case ShapeType.arrow:
+        paint.style = PaintingStyle.stroke;
+        canvas.drawLine(a, b, paint);
+        _drawArrowhead(canvas, a, b, sw, color);
+      case ShapeType.freehand:
+        break;
+    }
+  }
+
+  void _drawEraserShapeStroke(
+    Canvas canvas,
+    DrawingStroke stroke,
+    Size size,
+    Rect? renderRect,
+  ) {
+    if (stroke.points.length < 2) return;
+    final a = scaleNormalizedPoint(stroke.points[0], size, renderRect);
+    final b = scaleNormalizedPoint(stroke.points[1], size, renderRect);
+    final refWidth = renderRect?.width ?? size.width;
+    final sw = stroke.strokeWidth * refWidth;
+    final paint = Paint()
+      ..strokeWidth = sw
+      ..blendMode = BlendMode.clear
+      ..style = PaintingStyle.fill;
+
+    switch (stroke.shapeType) {
+      case ShapeType.rectangle:
+        canvas.drawRect(Rect.fromPoints(a, b), paint);
+      case ShapeType.circle:
+        final center = Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2);
+        final radius = (b - a).distance / 2;
+        canvas.drawCircle(center, radius, paint);
+      case ShapeType.line:
+      case ShapeType.arrow:
+        paint.style = PaintingStyle.stroke;
+        canvas.drawLine(a, b, paint);
+      case ShapeType.freehand:
+        break;
+    }
+  }
+
+  void _drawArrowhead(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    double strokeWidth,
+    Color color,
+  ) {
+    final direction = to - from;
+    final length = direction.distance;
+    if (length == 0) return;
+    final unit = direction / length;
+    final normal = Offset(-unit.dy, unit.dx);
+    final headSize = strokeWidth * 3.5;
+    const angle = 0.45;
+    final left = to -
+        unit * headSize * math.cos(angle) +
+        normal * headSize * math.sin(angle);
+    final right = to -
+        unit * headSize * math.cos(angle) -
+        normal * headSize * math.sin(angle);
+    final path = Path()
+      ..moveTo(to.dx, to.dy)
+      ..lineTo(left.dx, left.dy)
+      ..lineTo(right.dx, right.dy)
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()..color = color..style = PaintingStyle.fill,
+    );
   }
 
   Path _buildPath(
