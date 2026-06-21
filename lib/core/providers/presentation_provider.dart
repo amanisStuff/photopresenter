@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -287,6 +290,10 @@ class PresentationNotifier extends Notifier<PresentationState> {
 
     state = state.copyWith(images: [...state.images, ...newImages]);
 
+    for (final image in newImages) {
+      _decodeImageDimensions(image);
+    }
+
     for (final url in urlPaths) {
       _downloadUrlImage(url);
     }
@@ -311,8 +318,44 @@ class PresentationNotifier extends Notifier<PresentationState> {
   }
 
   void addMemoryImage(dynamic bytes, String name) {
-    final image = PresentationImage.fromBytes(bytes, name);
+    final image = PresentationImage.fromBytes(bytes as Uint8List, name);
     state = state.copyWith(images: [...state.images, image]);
+    _decodeImageDimensions(image);
+  }
+
+  Future<void> _decodeImageDimensions(PresentationImage image) async {
+    try {
+      Uint8List bytes;
+      if (image.source == ImageSource.file && image.path != null) {
+        final file = File(image.path!);
+        bytes = await file.readAsBytes();
+      } else if (image.bytes != null) {
+        bytes = image.bytes!;
+      } else {
+        return;
+      }
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frameInfo = await codec.getNextFrame();
+      _updateImageDimensions(
+        image.id,
+        frameInfo.image.width,
+        frameInfo.image.height,
+      );
+    } catch (_) {}
+  }
+
+  void _updateImageDimensions(
+    String imageId,
+    int width,
+    int height,
+  ) {
+    final updatedImages = state.images.map((img) {
+      if (img.id == imageId) {
+        return img.copyWith(width: width, height: height);
+      }
+      return img;
+    }).toList();
+    state = state.copyWith(images: updatedImages);
   }
 
   void removeImage(int index) {

@@ -208,6 +208,10 @@ class ActionsSection extends ConsumerWidget {
         ),
         Consumer(
           builder: (context, ref, child) {
+            final state = ref.watch(presentationProvider);
+            if (!state.isPlaying && !state.isPaused) {
+              return const SizedBox.shrink();
+            }
             final drawingState = ref.watch(drawingProvider);
             return SilverIconButton(
               icon: Icons.brush,

@@ -9,6 +9,8 @@ class PresentationImage {
   final String? url;
   final ImageSource source;
   final String name;
+  final int? width;
+  final int? height;
 
   PresentationImage({
     required this.id,
@@ -17,7 +19,22 @@ class PresentationImage {
     this.url,
     required this.source,
     required this.name,
+    this.width,
+    this.height,
   });
+
+  PresentationImage copyWith({int? width, int? height}) {
+    return PresentationImage(
+      id: id,
+      path: path,
+      bytes: bytes,
+      url: url,
+      source: source,
+      name: name,
+      width: width ?? this.width,
+      height: height ?? this.height,
+    );
+  }
 
   factory PresentationImage.fromPath(String path) {
     return PresentationImage(

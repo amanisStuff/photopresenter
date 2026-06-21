@@ -146,14 +146,16 @@ class _PresentationScreenState extends ConsumerState<PresentationScreen> {
                             ),
                             content,
                             if (drawingState.drawingEnabled &&
-                                state.images.isNotEmpty)
+                                state.images.isNotEmpty &&
+                                (state.isPlaying || state.isPaused))
                               const Positioned.fill(
                                 child: DrawingCanvas(),
                               ),
                           ],
                         ),
                       ),
-                      if (drawingState.drawingEnabled)
+                      if (drawingState.drawingEnabled &&
+                          (state.isPlaying || state.isPaused))
                         const DrawingToolbar(),
                       if (!state.isFocusMode && state.images.isNotEmpty)
                         Positioned(

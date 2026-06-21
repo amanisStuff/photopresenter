@@ -5,6 +5,8 @@ import 'package:animate_do/animate_do.dart';
 import '../../../shared/theme.dart';
 import '../../../core/providers/presentation_provider.dart';
 import '../../../core/entities/presentation_image.dart';
+import '../../../core/providers/drawing_provider.dart';
+import '../drawing/drawing_painter.dart';
 import 'add_image_card.dart';
 
 class ImageGrid extends ConsumerStatefulWidget {
@@ -159,6 +161,21 @@ class _DraggableImage extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     _GridImage(image: image),
+                    Positioned.fill(
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final drawingState = ref.watch(drawingProvider);
+                          final strokes = drawingState.strokesFor(image.id);
+                          if (strokes.isEmpty) return const SizedBox.shrink();
+                          return IgnorePointer(
+                            child: CustomPaint(
+                              painter: DrawingPainter(strokes: strokes),
+                              size: Size.infinite,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                     Positioned(
                       top: 4,
                       right: 4,
