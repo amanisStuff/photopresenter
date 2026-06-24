@@ -31,6 +31,8 @@ class PresentationScreen extends ConsumerStatefulWidget {
 class _PresentationScreenState extends ConsumerState<PresentationScreen> {
   final GlobalKey _captureKey = GlobalKey();
   final Set<LogicalKeyboardKey> _heldShapeKeys = {};
+  bool? _eraserWasActive;
+  double? _eraserPreviousWidth;
 
   Future<void> saveAsImage() async {
     try {
@@ -151,6 +153,28 @@ class _PresentationScreenState extends ConsumerState<PresentationScreen> {
             final drawingState = ref.read(drawingProvider);
             if (!drawingState.drawingEnabled) {
               return KeyEventResult.ignored;
+            }
+
+            if (event.logicalKey == LogicalKeyboardKey.keyE) {
+              if (event is KeyDownEvent && _eraserWasActive == null) {
+                _eraserWasActive = drawingState.eraserMode;
+                _eraserPreviousWidth = drawingState.currentStrokeWidth;
+                if (!_eraserWasActive!) {
+                  drawingNotifier.toggleEraser();
+                }
+                drawingNotifier.setStrokeWidth(12.0);
+                return KeyEventResult.handled;
+              }
+              if (event is KeyUpEvent && _eraserWasActive != null) {
+                if (!_eraserWasActive!) {
+                  drawingNotifier.toggleEraser();
+                }
+                drawingNotifier.setStrokeWidth(_eraserPreviousWidth!);
+                _eraserWasActive = null;
+                _eraserPreviousWidth = null;
+                return KeyEventResult.handled;
+              }
+              return KeyEventResult.handled;
             }
 
             LogicalKeyboardKey? shapeKey;

@@ -207,7 +207,11 @@ class _ExtractionDialogContentState extends State<_ExtractionDialogContent> {
         return;
       }
 
-      widget.notifier.addImages(paths);
+      for (final path in paths) {
+        final bytes = await File(path).readAsBytes();
+        final name = p.basenameWithoutExtension(path);
+        widget.notifier.addMemoryImage(bytes, name);
+      }
 
       if (mounted) {
         Navigator.of(context).pop();
