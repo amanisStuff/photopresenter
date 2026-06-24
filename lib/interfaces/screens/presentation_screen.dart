@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import '../../shared/theme.dart';
 import '../../shared/theme/theme_notifier.dart';
+import '../../core/entities/drawing_state.dart';
 import '../../core/providers/presentation_provider.dart';
 import '../../core/providers/settings_provider.dart';
 import '../../core/providers/drawing_provider.dart';
@@ -29,6 +30,7 @@ class PresentationScreen extends ConsumerStatefulWidget {
 
 class _PresentationScreenState extends ConsumerState<PresentationScreen> {
   final GlobalKey _captureKey = GlobalKey();
+  final Set<LogicalKeyboardKey> _heldShapeKeys = {};
 
   Future<void> saveAsImage() async {
     try {
@@ -116,6 +118,16 @@ class _PresentationScreenState extends ConsumerState<PresentationScreen> {
             control: true,
             shift: true,
           ): () => ref.read(drawingProvider.notifier).toggleDrawing(),
+          const SingleActivator(LogicalKeyboardKey.keyZ, control: true): () {
+            final drawingState = ref.read(drawingProvider);
+            if (!drawingState.drawingEnabled) return;
+            final settings = ref.read(settingsProvider);
+            final state = ref.read(presentationProvider);
+            final imageId = settings.useViewport3D
+                ? '_3d_'
+                : (state.currentImage?.id ?? '');
+            ref.read(drawingProvider.notifier).undoLastStroke(imageId);
+          },
           const SingleActivator(LogicalKeyboardKey.keyD, control: true): () =>
               notifier.exportAllImages(),
           const SingleActivator(LogicalKeyboardKey.keyG, control: true): () =>
@@ -127,6 +139,52 @@ class _PresentationScreenState extends ConsumerState<PresentationScreen> {
         },
         child: Focus(
           autofocus: true,
+          onKeyEvent: (node, event) {
+            if (HardwareKeyboard.instance.isControlPressed ||
+                HardwareKeyboard.instance.isShiftPressed ||
+                HardwareKeyboard.instance.isAltPressed ||
+                HardwareKeyboard.instance.isMetaPressed) {
+              return KeyEventResult.ignored;
+            }
+
+            final drawingNotifier = ref.read(drawingProvider.notifier);
+            final drawingState = ref.read(drawingProvider);
+            if (!drawingState.drawingEnabled) {
+              return KeyEventResult.ignored;
+            }
+
+            LogicalKeyboardKey? shapeKey;
+            ShapeType? shapeType;
+
+            if (event.logicalKey == LogicalKeyboardKey.keyC) {
+              shapeKey = LogicalKeyboardKey.keyC;
+              shapeType = ShapeType.circle;
+            } else if (event.logicalKey == LogicalKeyboardKey.keyV) {
+              shapeKey = LogicalKeyboardKey.keyV;
+              shapeType = ShapeType.line;
+            } else if (event.logicalKey == LogicalKeyboardKey.keyS) {
+              shapeKey = LogicalKeyboardKey.keyS;
+              shapeType = ShapeType.rectangle;
+            }
+
+            if (shapeKey == null) return KeyEventResult.ignored;
+
+            if (event is KeyDownEvent) {
+              _heldShapeKeys.add(shapeKey);
+              drawingNotifier.setShapeType(shapeType!);
+              return KeyEventResult.handled;
+            }
+
+            if (event is KeyUpEvent) {
+              _heldShapeKeys.remove(shapeKey);
+              if (_heldShapeKeys.isEmpty) {
+                drawingNotifier.setShapeType(ShapeType.freehand);
+              }
+              return KeyEventResult.handled;
+            }
+
+            return KeyEventResult.ignored;
+          },
           child: DropTarget(
             onDragDone: (details) {
               notifier.addImages(details.files.map((f) => f.path).toList());

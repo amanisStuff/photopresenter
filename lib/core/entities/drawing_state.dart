@@ -4,6 +4,7 @@ enum ShapeType { freehand, rectangle, circle, line, arrow }
 
 class DrawingStroke {
   final List<Offset> points;
+  final List<double>? pressures;
   final Color color;
   final double strokeWidth;
   final double opacity;
@@ -13,6 +14,7 @@ class DrawingStroke {
 
   const DrawingStroke({
     required this.points,
+    this.pressures,
     required this.color,
     required this.strokeWidth,
     this.opacity = 0.55,
@@ -23,11 +25,13 @@ class DrawingStroke {
 
   DrawingStroke copyWith({
     List<Offset>? points,
+    List<double>? pressures,
     ShapeType? shapeType,
     bool? isFilled,
   }) {
     return DrawingStroke(
       points: points ?? this.points,
+      pressures: pressures ?? this.pressures,
       color: color,
       strokeWidth: strokeWidth,
       opacity: opacity,

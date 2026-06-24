@@ -84,8 +84,13 @@ class DrawingPainter extends CustomPainter {
     Rect? renderRect,
   ) {
     final refWidth = renderRect?.width ?? size.width;
+    final pressures = stroke.pressures;
+    final hasPressure = pressures != null && pressures.length == stroke.points.length;
+    final pressureFactor = hasPressure
+        ? (pressures.reduce((a, b) => a + b) / pressures.length)
+        : 1.0;
     final paint = Paint()
-      ..strokeWidth = stroke.strokeWidth * refWidth
+      ..strokeWidth = stroke.strokeWidth * refWidth * (0.3 + 0.7 * pressureFactor)
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke
@@ -105,19 +110,26 @@ class DrawingPainter extends CustomPainter {
     final o = stroke.opacity;
     final baseColor = stroke.color.withValues(alpha: o);
 
+    final pressures = stroke.pressures;
+    final usePressure = pressures != null && pressures.length == points.length;
+    final pressureFactor = usePressure
+        ? pressures.reduce((a, b) => a + b) / pressures.length
+        : 1.0;
+    final widthScale = 0.3 + 0.7 * pressureFactor;
+
     final blurPaint = Paint()
       ..color = stroke.color.withValues(alpha: o * 0.25)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = baseWidth * 1.6
+      ..strokeWidth = baseWidth * 1.6 * widthScale
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, baseWidth * 0.3);
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, baseWidth * 0.3 * widthScale);
     canvas.drawPath(_buildPath(points, size, renderRect), blurPaint);
 
     final corePaint = Paint()
       ..color = baseColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = baseWidth * 0.75
+      ..strokeWidth = baseWidth * 0.75 * widthScale
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(_buildPath(points, size, renderRect), corePaint);
@@ -138,9 +150,12 @@ class DrawingPainter extends CustomPainter {
         final t = 1.0 - carry / seg;
         final x = segA.dx + (segB.dx - segA.dx) * t;
         final y = segA.dy + (segB.dy - segA.dy) * t;
-        final r = baseWidth * (0.15 + (i * 7 % 11) / 22);
+        final pressure = usePressure
+            ? pressures[i - 1] + (pressures[i] - pressures[i - 1]) * t
+            : 1.0;
+        final r = baseWidth * (0.15 + pressure * 0.35);
         dotPaint.color = stroke.color.withValues(
-          alpha: o * (0.85 + (i % 5) * 0.05),
+          alpha: o * (0.7 + 0.3 * pressure),
         );
         canvas.drawCircle(Offset(x, y), r, dotPaint);
       }

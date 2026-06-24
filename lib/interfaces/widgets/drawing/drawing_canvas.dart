@@ -1,3 +1,4 @@
+import 'dart:ui' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/drawing_provider.dart';
@@ -15,6 +16,8 @@ class DrawingCanvas extends ConsumerStatefulWidget {
 
 class _DrawingCanvasState extends ConsumerState<DrawingCanvas> {
   DrawingStroke? _currentStroke;
+  int? _activePointerId;
+  bool _isStylus = false;
 
   @override
   Widget build(BuildContext context) {
@@ -73,24 +76,33 @@ class _DrawingCanvasState extends ConsumerState<DrawingCanvas> {
           return raw / refWidth;
         }
 
-        return GestureDetector(
-          onPanStart: (details) {
+        return Listener(
+          onPointerDown: (event) {
             if (!canvasValid) return;
-            final np = normalizePoint(details.localPosition);
-            final isShape = drawingState.currentShapeType != ShapeType.freehand;
+            if (_activePointerId != null) return;
+            _activePointerId = event.pointer;
+            _isStylus = event.kind == PointerDeviceKind.stylus ||
+                event.kind == PointerDeviceKind.invertedStylus;
+
+            final np = normalizePoint(event.localPosition);
+            final isShape =
+                drawingState.currentShapeType != ShapeType.freehand;
             _currentStroke = DrawingStroke(
               points: [np],
+              pressures: _isStylus ? [event.pressure] : null,
               color: drawingState.currentColor,
               strokeWidth: normalizeWidth(drawingState.currentStrokeWidth),
               opacity: drawingState.currentOpacity,
               isEraser: drawingState.eraserMode,
-              shapeType: isShape ? drawingState.currentShapeType : ShapeType.freehand,
+              shapeType:
+                  isShape ? drawingState.currentShapeType : ShapeType.freehand,
               isFilled: isShape && drawingState.shapeFillMode,
             );
           },
-          onPanUpdate: (details) {
+          onPointerMove: (event) {
             if (_currentStroke == null || !canvasValid) return;
-            final np = normalizePoint(details.localPosition);
+            if (event.pointer != _activePointerId) return;
+            final np = normalizePoint(event.localPosition);
             setState(() {
               if (_currentStroke!.shapeType != ShapeType.freehand) {
                 _currentStroke = _currentStroke!.copyWith(
@@ -99,19 +111,36 @@ class _DrawingCanvasState extends ConsumerState<DrawingCanvas> {
               } else {
                 _currentStroke = _currentStroke!.copyWith(
                   points: [..._currentStroke!.points, np],
+                  pressures: _isStylus
+                      ? [...?_currentStroke!.pressures, event.pressure]
+                      : null,
                 );
               }
             });
           },
-          onPanEnd: (details) {
+          onPointerUp: (event) {
             if (_currentStroke == null) return;
+            if (event.pointer != _activePointerId) return;
             if (_currentStroke!.shapeType != ShapeType.freehand &&
                 _currentStroke!.points.length < 2) {
-              setState(() => _currentStroke = null);
+              setState(() {
+                _currentStroke = null;
+                _activePointerId = null;
+              });
               return;
             }
             drawingNotifier.addStroke(imageId, _currentStroke!);
-            setState(() => _currentStroke = null);
+            setState(() {
+              _currentStroke = null;
+              _activePointerId = null;
+            });
+          },
+          onPointerCancel: (event) {
+            if (event.pointer != _activePointerId) return;
+            setState(() {
+              _currentStroke = null;
+              _activePointerId = null;
+            });
           },
           child: RepaintBoundary(
             child: CustomPaint(
